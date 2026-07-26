@@ -1,1 +1,1 @@
-# gg-learning-simulator
+# gg-technical-simulator
