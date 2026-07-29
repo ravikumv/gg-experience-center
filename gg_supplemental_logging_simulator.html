@@ -30,9 +30,24 @@
     -webkit-font-smoothing:antialiased;
   }
   header{
-    background:var(--paper);
-    border-bottom:3px solid var(--redwood);
-    padding:18px 20px 14px;
+    background:var(--paper); border-bottom:2px solid var(--redwood);
+    padding:20px 16px 16px;
+  }
+  header h1{
+    font-size:1.3rem; font-weight:800; color:var(--ink);
+    letter-spacing:-.01em; margin:0 0 4px;
+  }
+  header p{
+    font-size:0.8rem; color:var(--ink-soft); margin:0;
+  }
+  @media(min-width:768px){
+    header{ padding:24px 28px 16px; }
+    header h1{ font-size:1.55rem; }
+    header p{ font-size:0.85rem; }
+  }
+  @media(min-width:1100px){
+    header{ padding:28px 32px 16px; }
+    header h1{ font-size:1.7rem; }
   }
   header h1{ margin:0 0 4px; font-size:1.35rem; letter-spacing:-0.01em; }
   header h1 span.tag{
@@ -44,16 +59,29 @@
   header p{ margin:0; color:var(--ink-soft); font-size:0.85rem; }
   nav.tabs{
     display:flex; overflow-x:auto; background:var(--paper);
-    border-bottom:1px solid var(--line); position:sticky; top:0; z-index:50;
-    scrollbar-width:none;
+    border-bottom:2px solid var(--line); position:sticky; top:0; z-index:50;
+    scrollbar-width:none; gap:0;
   }
   nav.tabs::-webkit-scrollbar{display:none;}
   nav.tabs button{
-    flex:0 0 auto; background:none; border:none; padding:12px 14px;
-    font-size:0.82rem; font-weight:600; color:var(--ink-soft); cursor:pointer;
+    flex:0 0 auto; background:none; border:none;
+    padding:10px 12px; font-size:0.75rem; font-weight:600;
+    color:var(--ink-soft); cursor:pointer;
     border-bottom:3px solid transparent; white-space:nowrap;
+    transition:color .15s, border-color .15s;
+    letter-spacing:.01em;
   }
-  nav.tabs button.active{ color:var(--redwood); border-bottom-color:var(--redwood); }
+  nav.tabs button:hover{ color:var(--ink); border-bottom-color:var(--line); }
+  nav.tabs button.active{ color:var(--redwood); border-bottom-color:var(--redwood); font-weight:700; }
+  /* Desktop: larger tabs */
+  @media(min-width:768px){
+    nav.tabs button{ padding:12px 20px; font-size:0.85rem; }
+  }
+  /* Wide desktop: full-width tabs fill the bar */
+  @media(min-width:1100px){
+    nav.tabs{ overflow-x:visible; }
+    nav.tabs button{ flex:1; text-align:center; padding:13px 0; font-size:0.88rem; }
+  }
   main{ max-width:920px; margin:0 auto; padding:16px 14px 60px; }
   section.view{display:none;}
   section.view.active{display:block;}
@@ -261,12 +289,57 @@ input[type=number]:focus,select:focus{border-color:var(--redwood);}
 .ai26-dot{width:6px;height:6px;border-radius:50%;background:var(--redwood);}
 @keyframes ai-bounce{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
 
+
+/* Simulation Parameters 2×2 grid */
+.sim-params-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 20px;
+  align-items: end;
+}
+.sim-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.sim-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--ink-soft);
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+}
+.sim-select {
+  width: 100%;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.82rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 8px 11px;
+  background: var(--paper);
+  color: var(--ink);
+  outline: none;
+  transition: border-color .15s;
+  box-sizing: border-box;
+}
+.sim-select:focus { border-color: var(--redwood); }
+.sim-btns {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+  padding-top: 4px;
+}
+@media(max-width:640px){
+  .sim-params-grid { grid-template-columns: 1fr; }
+}
+
 </style>
 </head>
 <body>
 
 <header>
-  <h1>GoldenGate Fundamentals<span class="tag">26ai</span></h1>
+  <h1>GoldenGate Fundamentals</h1>
   <p>Supplemental Logging &amp; ADD TRANDATA Simulator &nbsp;&middot;&nbsp; Oracle GoldenGate Microservices</p>
 </header>
 
@@ -1051,10 +1124,11 @@ input[type=number]:focus,select:focus{border-color:var(--redwood);}
             <div class="apex-region-title">⚙️ Simulation Parameters</div>
           </div>
           <div class="apex-region-body">
-            <div class="sim-form">
-              <div class="form-group">
-                <label class="form-label">Source Schema</label>
-                <select class="form-control" id="simSchema">
+            <div class="sim-params-grid">
+              <!-- Row 1 -->
+              <div class="sim-field">
+                <label class="sim-label">Source Schema</label>
+                <select class="sim-select" id="simSchema">
                   <option value="HR">HR</option>
                   <option value="OE">OE</option>
                   <option value="SH">SH</option>
@@ -1062,13 +1136,14 @@ input[type=number]:focus,select:focus{border-color:var(--redwood);}
                   <option value="CUSTOM">CUSTOM</option>
                 </select>
               </div>
-              <div class="form-group">
-                <label class="form-label">Table Name</label>
-                <input class="form-control" id="simTable" type="text" value="EMPLOYEES" style="width:160px;">
+              <div class="sim-field">
+                <label class="sim-label">Table Name</label>
+                <input class="sim-select" id="simTable" type="text" value="EMPLOYEES">
               </div>
-              <div class="form-group">
-                <label class="form-label">TRANDATA Level</label>
-                <select class="form-control" id="simLevel">
+              <!-- Row 2 -->
+              <div class="sim-field">
+                <label class="sim-label">TRANDATA Level</label>
+                <select class="sim-select" id="simLevel">
                   <option value="basic">Basic — PK only (Default)</option>
                   <option value="allcols">ALLCOLS — All Columns</option>
                   <option value="nokey">NOKEY — Unique Index</option>
@@ -1076,15 +1151,18 @@ input[type=number]:focus,select:focus{border-color:var(--redwood);}
                   <option value="schema">SCHEMATRANDATA — Schema Level</option>
                 </select>
               </div>
-              <div class="form-group">
-                <label class="form-label">Database Type</label>
-                <select class="form-control" id="simDbType">
+              <div class="sim-field">
+                <label class="sim-label">Database Type</label>
+                <select class="sim-select" id="simDbType">
                   <option value="noncdb">Non-CDB (Traditional)</option>
                   <option value="cdb">CDB / PDB (Multitenant)</option>
                 </select>
               </div>
-              <button class="apex-btn apex-btn-primary" onclick="runSim()">&#9654; Run Simulation</button>
-              <button class="apex-btn apex-btn-secondary" onclick="clearSim()">&#8635; Clear</button>
+              <!-- Buttons row -->
+              <div class="sim-btns">
+                <button class="apex-btn apex-btn-primary" onclick="runSim()">&#9654; Run Simulation</button>
+                <button class="apex-btn apex-btn-secondary" onclick="clearSim()">&#8635; Clear</button>
+              </div>
             </div>
           </div>
         </div>
