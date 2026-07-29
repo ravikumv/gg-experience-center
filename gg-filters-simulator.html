@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Ravikumar Vasudevan">
+<meta name="contact" content="ravikumar.v.v@oracle.com">
+<title>Oracle GoldenGate Filters Simulator | Concept, Architecture &amp; Live Pipeline</title>
+<style>
+  :root{
+    --redwood:#C74634;
+    --redwood-dark:#9C3327;
+    --ink:#1B1B1B;
+    --muted:#5F6368;
+    --line:#E3E1DD;
+    --bg:#FAF9F7;
+    --panel:#FFFFFF;
+    --ok:#2E7D32;
+    --warn:#B45309;
+    --primary-blue:#1B6FC9;
+    --standby-grey:#8A8D91;
+  }
+  *{box-sizing:border-box;}
+  html,body{max-width:100%;overflow-x:hidden;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);}
+  header{background:var(--ink);color:#fff;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  header .title{display:flex;align-items:center;gap:12px;}
+  header .badge{background:var(--redwood);color:#fff;font-size:11px;font-weight:700;letter-spacing:.06em;padding:4px 10px;border-radius:4px;text-transform:uppercase;}
+  header h1{font-size:18px;margin:0;font-weight:600;}
+  header .sub{font-size:12px;color:#C9C9C9;margin-top:2px;}
+  nav{display:flex;gap:2px;background:#fff;border-bottom:2px solid var(--line);padding:0 20px;overflow-x:auto;position:sticky;top:0;z-index:20;}
+  nav button{border:none;background:transparent;padding:14px 16px;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
+  nav button:hover{color:var(--ink);}
+  nav button.active{color:var(--redwood);border-bottom-color:var(--redwood);}
+  main{max-width:1500px;margin:0 auto;padding:26px 32px 60px;}
+  section.tab{display:none;}
+  section.tab.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+  h2{font-size:20px;margin:4px 0 6px;}
+  p.lead{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:820px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;}
+  .card h3{margin:0 0 8px;font-size:14.5px;color:var(--redwood-dark);display:flex;align-items:center;gap:8px;}
+  .card p{margin:0;font-size:13px;color:var(--muted);line-height:1.55;}
+  .pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;background:#F3E9E7;color:var(--redwood-dark);letter-spacing:.03em;margin-right:6px;margin-bottom:6px;}
+  .pill.blue{background:#E7F0FB;color:var(--primary-blue);}
+  .pill.grey{background:#EEEFEF;color:var(--muted);}
+  .pill.green{background:#E6F4EA;color:var(--ok);}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+  button.action{background:var(--redwood);color:#fff;border:none;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;}
+  button.action:hover{background:var(--redwood-dark);}
+  button.action.secondary{background:#fff;color:var(--redwood);border:1.5px solid var(--redwood);}
+  button.action.secondary:hover{background:#FBEFED;}
+  button.action:disabled{opacity:.45;cursor:not-allowed;}
+  select.action-select{padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-size:13px;background:#fff;color:var(--ink);}
+  .canvas-wrap{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;}
+  .log{background:#111417;color:#D7F5DE;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;border-radius:8px;padding:12px 14px;height:170px;overflow-y:auto;margin-top:12px;line-height:1.6;}
+  .log .t{color:#7DA6FF;}
+  .log .w{color:#FFD479;}
+  .log .e{color:#FF8A80;}
+  .log .g{color:#8CF0A8;}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px;}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);}
+  th{color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;background:#FAFAF9;}
+  td.mono, th.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;}
+  .note{background:#FFF7EA;border:1px solid #F1DDAF;color:#7A5A12;font-size:12.5px;padding:10px 14px;border-radius:8px;margin-top:14px;}
+  .region-box{border:2px solid var(--line);border-radius:12px;padding:14px;position:relative;}
+  .region-label{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;position:absolute;top:-11px;left:14px;background:var(--bg);padding:0 6px;}
+  .role-tag{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;display:inline-block;margin-top:6px;}
+  footer{text-align:center;font-size:11.5px;color:var(--muted);padding:20px;border-top:1px solid var(--line);}
+  a.back{color:var(--redwood);text-decoration:none;font-size:12.5px;font-weight:600;}
+  .flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+  .status-chip{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:20px;}
+  .status-chip.active{background:#E6F4EA;color:var(--ok);}
+  .status-chip.updating{background:#FFF3D6;color:var(--warn);}
+  .version-badge{background:rgba(255,255,255,.12);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer;border:1px solid rgba(255,255,255,.25);white-space:nowrap;}
+  .version-badge:hover{background:rgba(255,255,255,.2);}
+  #changelogPanel{display:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 20px;max-width:1500px;margin:0 auto 24px;}
+  #changelogPanel.open{display:block;}
+  #changelogPanel h3{margin:0 0 10px;font-size:14px;color:var(--redwood-dark);}
+  .cl-entry{border-left:3px solid var(--redwood);padding:4px 0 4px 12px;margin-bottom:10px;}
+  .cl-entry .cl-ver{font-weight:700;font-size:13px;}
+  .cl-entry .cl-date{color:var(--muted);font-size:11.5px;margin-left:8px;}
+  .cl-entry ul{margin:4px 0 0;padding-left:18px;font-size:12.5px;color:var(--muted);}
+  .cl-close{float:right;background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;}
+
+  /* stage pipeline diagram (architecture tab) */
+  .stagegrid{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:6px 2px 14px;}
+  .stagebox{min-width:170px;background:#F3E9E7;border:1px solid #EAD9D5;border-radius:10px;padding:12px;font-size:12px;display:flex;flex-direction:column;gap:4px;cursor:pointer;transition:box-shadow .15s,border-color .15s;}
+  .stagebox:hover{border-color:var(--redwood);box-shadow:0 2px 10px rgba(199,70,52,.15);}
+  .stagebox.sel{border-color:var(--redwood);background:#F6DEDA;}
+  .stagebox .t{font-weight:700;color:var(--redwood-dark);font-size:12.5px;}
+  .stagebox .s{color:var(--muted);font-size:11px;line-height:1.35;}
+  .stagearrow{display:flex;align-items:center;justify-content:center;min-width:32px;color:var(--redwood);font-size:20px;font-weight:700;}
+  #stageDetail{display:none;background:#FBFBFA;border:1px solid var(--line);border-left:3px solid var(--redwood);border-radius:8px;padding:12px 14px;margin-top:12px;font-size:12.5px;}
+  #stageDetail.show{display:block;}
+  #stageDetail h4{margin:0 0 5px;font-size:13px;color:var(--redwood-dark);}
+  #stageDetail p{margin:0;color:var(--muted);line-height:1.65;}
+
+  /* code blocks */
+  pre.code{background:#111417;color:#D7F5DE;padding:14px 16px;border-radius:8px;font-size:12px;overflow-x:auto;line-height:1.55;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word;}
+  .kcode{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:var(--redwood-dark);background:#F3E9E7;padding:1px 5px;border-radius:3px;}
+  .hero{background:#F6DEDA;border:1px solid #EAD9D5;border-radius:10px;padding:18px 22px;margin-bottom:18px;}
+  .hero h2{margin:0 0 8px;color:var(--redwood-dark);}
+  .hero p{margin:0 0 6px;font-size:13.5px;color:var(--ink);line-height:1.7;}
+  .analogy{background:#fff;border-left:3px solid var(--warn);border-radius:8px;padding:11px 14px;margin-top:10px;font-size:12.5px;color:var(--muted);}
+  .analogy b{color:var(--warn);}
+
+  /* ---- Filter Pipeline (Live Simulator) ---- */
+  .fp-controls{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px;}
+  .fp-controls label{font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em;}
+  .fp-row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px;}
+  .fp-field{min-width:220px;flex:1;}
+  .fp-field select,.fp-field input[type=text]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-size:12.5px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#fff;}
+  .fp-toggle{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink);background:#FBFBFA;border:1px solid var(--line);border-radius:6px;padding:8px 12px;}
+  .paramsnippet{margin-top:6px;}
+  .fp-pipeline{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;align-items:stretch;margin-bottom:14px;}
+  @media(max-width:1050px){.fp-pipeline{grid-template-columns:repeat(3,1fr);}}
+  @media(max-width:620px){.fp-pipeline{grid-template-columns:repeat(2,1fr);}}
+  .fp-node{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;min-height:225px;display:flex;flex-direction:column;position:relative;}
+  .fp-node.decision{border-color:var(--redwood);box-shadow:0 0 0 1px rgba(199,70,52,.15) inset;}
+  .fp-node .fh{font-weight:700;font-size:11.5px;color:var(--redwood-dark);margin-bottom:2px;display:flex;align-items:center;justify-content:space-between;gap:4px;}
+  .fp-node .fs{font-size:10px;color:var(--muted);margin-bottom:6px;line-height:1.35;}
+  .fp-node .fbody{flex:1;overflow-y:auto;max-height:250px;display:flex;flex-direction:column;gap:4px;padding-right:2px;}
+  .fp-node .fcount{font-size:18px;font-weight:700;color:var(--ink);margin-top:4px;}
+  .fp-arrow{display:none;}
+  .chip{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;padding:4px 6px;border-radius:5px;border:1px solid var(--line);background:#FAFAF9;animation:chipin .25s ease;line-height:1.3;}
+  @keyframes chipin{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;}}
+  .chip.pass{border-color:#BFE3C6;background:#F0FBF6;color:var(--ok);}
+  .chip.drop{border-color:#F3C9C3;background:#FDEDEB;color:var(--redwood-dark);text-decoration:line-through;text-decoration-color:rgba(156,51,39,.5);}
+  .chip.masked{border-color:#F1DDAF;background:#FFFBF0;color:#7A5A12;}
+  .chip.sql{border-color:#CFE0F5;background:#F3F8FF;color:var(--primary-blue);}
+  .fp-pulse{position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:#C9CCE0;}
+  .fp-pulse.on{background:var(--ok);box-shadow:0 0 0 0 rgba(46,125,50,.6);animation:pulse 1s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(46,125,50,.55);}70%{box-shadow:0 0 0 8px rgba(46,125,50,0);}100%{box-shadow:0 0 0 0 rgba(46,125,50,0);}}
+  .fp-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px;}
+  @media(max-width:900px){.fp-stats{grid-template-columns:repeat(2,1fr);}}
+  .fp-stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-align:center;}
+  .fp-stat .n{font-size:20px;font-weight:700;color:var(--redwood-dark);}
+  .fp-stat .l{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-top:2px;}
+  .connect-row{display:flex;align-items:center;justify-content:center;gap:6px;color:var(--redwood);font-size:16px;font-weight:700;margin:-6px 0 10px;}
+  .connect-row span.lbl{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+  .badge-op{display:inline-block;padding:1px 6px;border-radius:10px;font-size:9.5px;font-weight:700;}
+  .badge-op.INSERT{background:#E6F4EA;color:var(--ok);}
+  .badge-op.UPDATE{background:#FFF3D6;color:var(--warn);}
+  .badge-op.DELETE{background:#F3E9E7;color:var(--redwood-dark);}
+  .compare-table td.win{color:var(--ok);font-weight:700;}
+  .decision-card{border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:var(--panel);}
+  .decision-card h4{margin:0 0 6px;font-size:13.5px;color:var(--redwood-dark);}
+</style>
+<script>
+/* Basic deterrents against casual view-source / copying.
+   NOTE: This does not provide real security — any determined visitor can
+   still access the page source via browser dev tools, curl, or other means. */
+document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+document.addEventListener('keydown', function(e){
+  var k = e.key ? e.key.toUpperCase() : '';
+  if (
+    k === 'F12' ||
+    (e.ctrlKey && k === 'U') ||
+    (e.ctrlKey && e.shiftKey && (k === 'I' || k === 'J' || k === 'C')) ||
+    (e.metaKey && e.altKey && (k === 'I' || k === 'J' || k === 'C'))
+  ) {
+    e.preventDefault();
+  }
+});
+</script>
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <span class="badge">FILTERS</span>
+    <div>
+      <h1>Oracle GoldenGate Filters Simulator</h1>
+      <div class="sub">Concept &amp; Purpose &middot; Architecture &middot; Filter Syntax Reference &middot; Live Simulator: Option A (Filter at Source) &middot; Option B (Filter at Target) &middot; Comparison</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <button class="version-badge" id="verBadge">v1.3.0 &middot; Changelog</button>
+  </div>
+</header>
+
+<div id="changelogPanel">
+  <button class="cl-close" id="clClose">&#10005; Close</button>
+  <h3>Version History</h3>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.3.0</span><span class="cl-date">2026-07-28</span>
+    <ul>
+      <li>Selecting the Complex tier (SQLEXEC stored procedure) in either Live Simulator now reveals the actual PL/SQL body of <span class="kcode">GG_FILTER_COND_PRC</span>, so the stored procedure isn't a black box.</li>
+      <li>Option A shows the procedure as deployed in the <b>source</b> database (Extract calls it before writing to the trail); Option B shows the same procedure deployed in the <b>target</b> database (Replicat calls it at apply time) &mdash; reinforcing where the object must actually live on each side.</li>
+    </ul>
+  </div>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.2.0</span><span class="cl-date">2026-07-28</span>
+    <ul>
+      <li>Both Live Simulators (Option A &amp; Option B) now include Medium (SQLEXEC subquery + BEFOREFILTER) and Complex (SQLEXEC stored procedure + @GETVAL) filter tiers, with a simulated database round-trip chip showing the lookup result before the pass/fail decision.</li>
+      <li>Generated TABLE/MAP parameter snippets update live to show full SQLEXEC syntax (KEYCOLS, QUERY/SPNAME, PARAMS, BEFOREFILTER) matching the Filter Complexity Ladder in the Syntax Reference tab.</li>
+      <li>Widened the page layout for desktop viewing: main content area increased from 1180px to 1500px max-width, live-pipeline node height increased to comfortably fit the extra SQLEXEC lookup step.</li>
+    </ul>
+  </div>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.1.0</span><span class="cl-date">2026-07-28</span>
+    <ul>
+      <li>Added a Filter Complexity Ladder (Normal &rarr; Simple &rarr; Medium &rarr; Complex) to the Filter Syntax Reference tab, using field examples: plain TABLE/MAP (Normal), WHERE clause (Simple), SQLEXEC subquery with BEFOREFILTER (Medium), and SQLEXEC stored procedure with @GETVAL (Complex).</li>
+      <li>Every Medium and Complex example now shows both the Extract-side (TABLE) and Replicat-side (MAP) syntax side by side, since SQLEXEC/BEFOREFILTER/@GETVAL work identically on either statement.</li>
+      <li>Added an "SQLEXEC-based filters" category card to the Architecture &amp; Types tab.</li>
+      <li>Fixed an unclosed container div in the Concept &amp; Purpose tab.</li>
+    </ul>
+  </div>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.0.0</span><span class="cl-date">2026-07-28</span>
+    <ul>
+      <li>Initial release: Concept &amp; Purpose, Architecture &amp; Types of Filters, Filter Syntax Reference, two Live Simulators (Option A &mdash; filter at Extract/source; Option B &mdash; filter at Replicat/target), and a Comparison &amp; Best Practices tab.</li>
+      <li>Reference: Oracle GoldenGate Classic Architecture Documentation, Release 21.3 (Selecting and Filtering Rows, FILTER clause, WHERE clause, COLS/COLSEXCEPT), publisher-dated September 2025.</li>
+      <li>Built to match the GoldenGate Learning Simulator Suite visual language (Redwood red / ink / white).</li>
+    </ul>
+  </div>
+</div>
+
+<nav id="tabNav">
+  <button data-tab="what" class="active">1. Concept &amp; Purpose</button>
+  <button data-tab="arch">2. Architecture &amp; Types</button>
+  <button data-tab="syntax">3. Filter Syntax Reference</button>
+  <button data-tab="optA">4. Live Sim &middot; Option A</button>
+  <button data-tab="optB">5. Live Sim &middot; Option B</button>
+  <button data-tab="compare">6. Comparison &amp; Best Practices</button>
+</nav>
+
+<main>
+
+<!-- ===================== TAB 1: CONCEPT & PURPOSE ===================== -->
+<section class="tab active" id="tab-what">
+  <div class="hero">
+    <h2>What is a GoldenGate Filter?</h2>
+    <p>A Oracle GoldenGate <b>filter</b> is a condition attached to a <span class="kcode">TABLE</span> statement (in the Extract parameter file) or a <span class="kcode">MAP</span> statement (in the Replicat parameter file) that decides which <b>rows</b> and which <b>columns</b> of a captured change actually make it downstream. Nothing is filtered by magic &mdash; every filter is plain text sitting inside a parameter file, evaluated row-by-row as GoldenGate processes the change stream.</p>
+    <p>Filtering answers two independent questions for every operation GoldenGate touches: <b>&ldquo;should this row go through at all?&rdquo;</b> (row selection) and <b>&ldquo;which of its columns should travel?&rdquo;</b> (column selection). The two are combined freely in the same TABLE/MAP statement.</p>
+    <div class="analogy"><b>Think of it as&nbsp;&mdash;</b> a mail-sorting facility. The <b>WHERE/FILTER</b> clause is the sorter deciding which envelopes even leave the building; <b>COLS/COLSEXCEPT</b> is someone redacting specific lines on the envelopes that are allowed through. Where in the pipeline that sorting desk sits &mdash; at the source post office (Extract) or at the destination office (Replicat) &mdash; is exactly the Option A / Option B choice explored later in this simulator.</div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 1fr;">
+    <div class="card">
+      <h3>Why filter at all? &mdash; Purpose</h3>
+      <p><b style="color:var(--ink)">Reduce volume.</b> Dropping irrelevant rows/columns early shrinks trail files, network transfer, and target storage.</p>
+      <p style="margin-top:8px;"><b style="color:var(--ink)">Protect sensitive data.</b> Column filtering (COLSEXCEPT) can keep a PII or financial column out of the trail entirely, rather than masking it after the fact.</p>
+      <p style="margin-top:8px;"><b style="color:var(--ink)">Selective replication.</b> Send only the rows a target actually needs &mdash; e.g. one region to one target, another region to a different target.</p>
+      <p style="margin-top:8px;"><b style="color:var(--ink)">Split workload.</b> The <span class="kcode">@RANGE</span> function divides one table's changes across several parallel Replicat threads/groups by key range.</p>
+      <p style="margin-top:8px;"><b style="color:var(--ink)">Exception handling.</b> <span class="kcode">RAISEERROR</span> on a failed FILTER can reroute a row to an exceptions table instead of silently dropping it.</p>
+    </div>
+    <div class="card">
+      <h3>Where can a filter live?</h3>
+      <table>
+        <tr><th>Location</th><th>Parameter file</th><th>Typical use</th></tr>
+        <tr><td class="mono">TABLE statement</td><td class="mono">Extract .prm</td><td>Filter at the source, before the trail is ever written</td></tr>
+        <tr><td class="mono">MAP statement</td><td class="mono">Replicat .prm</td><td>Filter at apply time, after the trail already has the data</td></tr>
+        <tr><td class="mono">TABLE (pass-through)</td><td class="mono">Data-pump Extract .prm</td><td>Rare; usually pass-through only, no re-filtering</td></tr>
+      </table>
+      <p style="margin-top:10px;">This dual placement &mdash; source-side vs target-side &mdash; is the entire premise of the <b>Option A / Option B</b> live simulators in tabs 4 and 5.</p>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:14px;">
+    <div class="card">
+      <h3>WHERE vs FILTER &mdash; the quick answer</h3>
+      <p><b style="color:var(--ok)">WHERE</b> &mdash; simple. Basic comparison operators only (<span class="kcode">=, &lt;&gt;, &gt;, &gt;=, &lt;, &lt;=</span>), combined with AND/OR. Good for straightforward row selection on any data type, including strings.</p>
+      <p style="margin-top:8px;"><b style="color:var(--redwood-dark)">FILTER</b> &mdash; complex. Everything WHERE can do, plus the full Oracle GoldenGate column-conversion function library (<span class="kcode">@COMPUTE</span>, <span class="kcode">@STREQ</span>, <span class="kcode">@RANGE</span>, arithmetic, and more), plus <span class="kcode">ON INSERT/UPDATE/DELETE</span> and <span class="kcode">IGNORE INSERT/UPDATE/DELETE</span> operation-type controls, plus <span class="kcode">RAISEERROR</span> in MAP.</p>
+    </div>
+    <div class="card">
+      <h3>A prerequisite people forget</h3>
+      <p>Filtering can only evaluate columns that Oracle GoldenGate actually has access to. In a <span class="kcode">TRANLOG</span> Extract that means columns present in the redo log; anything else must be explicitly pulled in with <span class="kcode">FETCHCOLS</span>.</p>
+      <p style="margin-top:8px;">In the Extract pump and in Replicat, a column must be present in the <b>trail file</b> to be filterable there. So any column you plan to reference in a WHERE/FILTER clause must be logged with <span class="kcode">ADD TRANDATA COLS</span>, keeping the default of <span class="kcode">LOGALLSUPCOLS</span>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TAB 2: ARCHITECTURE & TYPES ===================== -->
+<section class="tab" id="tab-arch">
+  <h2>Architecture &mdash; where filtering sits in the pipeline</h2>
+  <p class="lead">Every filter is anchored to a TABLE (Extract) or MAP (Replicat) statement. Click a stage below to see exactly what can be filtered there.</p>
+
+  <div class="stagegrid" id="stageGrid">
+    <div class="stagebox" data-stage="app"><div class="t">Application</div><div class="s">Issues INSERT / UPDATE / DELETE against the source schema.</div></div>
+    <div class="stagearrow">&rarr;</div>
+    <div class="stagebox" data-stage="db"><div class="t">Source Database</div><div class="s">Commits the change; writes it to the online redo log.</div></div>
+    <div class="stagearrow">&rarr;</div>
+    <div class="stagebox" data-stage="extract"><div class="t">Integrated Extract</div><div class="s"><b>TABLE</b> statement: FILTER / WHERE (rows), COLS / COLSEXCEPT (columns).</div></div>
+    <div class="stagearrow">&rarr;</div>
+    <div class="stagebox" data-stage="trail"><div class="t">Trail File</div><div class="s">Holds whatever the Extract statement let through &mdash; nothing more.</div></div>
+    <div class="stagearrow">&rarr;</div>
+    <div class="stagebox" data-stage="replicat"><div class="t">Replicat</div><div class="s"><b>MAP</b> statement: FILTER / WHERE (rows), COLMAP (columns), can filter again independently.</div></div>
+    <div class="stagearrow">&rarr;</div>
+    <div class="stagebox" data-stage="target"><div class="t">Target Database</div><div class="s">Receives only what both filter points, combined, allowed through.</div></div>
+  </div>
+
+  <div id="stageDetail"></div>
+
+  <h3 style="font-size:14px;color:var(--redwood-dark);margin:24px 0 8px;">Types of filters &mdash; at a glance</h3>
+  <div class="grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="card">
+      <h3>Row filters</h3>
+      <p><span class="pill">WHERE</span><span class="pill blue">FILTER</span></p>
+      <p>Decide whether an entire operation (row change) is kept or dropped. Evaluated per-row, per-operation.</p>
+    </div>
+    <div class="card">
+      <h3>Column filters</h3>
+      <p><span class="pill green">COLS</span><span class="pill green">COLSEXCEPT</span></p>
+      <p>Decide which columns of a kept row are actually captured. Extract/pump only &mdash; not a Replicat option.</p>
+    </div>
+    <div class="card">
+      <h3>Operation-type filters</h3>
+      <p><span class="pill grey">ON INSERT/UPDATE/DELETE</span><span class="pill grey">IGNORE ...</span></p>
+      <p>Restrict a FILTER clause (or an entire TABLE/MAP) to specific SQL operation types.</p>
+    </div>
+    <div class="card">
+      <h3>Function-based filters</h3>
+      <p><span class="pill">@COMPUTE</span><span class="pill">@STREQ</span><span class="pill">@RANGE</span></p>
+      <p>FILTER-only. Column-conversion functions let you test computed values, string equality, or split workload by key range.</p>
+    </div>
+    <div class="card">
+      <h3>Exception routing</h3>
+      <p><span class="pill blue">RAISEERROR</span><span class="pill blue">EXCEPTIONSONLY</span></p>
+      <p>MAP-only. On filter failure, raise a user-defined error and route the row to an exceptions MAP instead of silently dropping it.</p>
+    </div>
+    <div class="card">
+      <h3>Workload-splitting filters</h3>
+      <p><span class="pill">@RANGE (n, total, key)</span></p>
+      <p>Used inside FILTER to divide one table's changes across multiple parallel Replicat groups/threads by key range.</p>
+    </div>
+    <div class="card">
+      <h3>SQLEXEC-based filters</h3>
+      <p><span class="pill blue">SQLEXEC</span><span class="pill blue">BEFOREFILTER</span><span class="pill blue">@GETVAL</span></p>
+      <p>The most powerful tier. A subquery or stored procedure runs <i>before</i> the FILTER clause is evaluated (<span class="kcode">BEFOREFILTER</span>), and FILTER then tests the value it returned. Works identically on the Extract <b>TABLE</b> statement or the Replicat <b>MAP</b> statement &mdash; see the Filter Complexity Ladder in the Syntax Reference tab.</p>
+    </div>
+  </div>
+
+  <div class="note">Oracle GoldenGate does not support filtering, column mapping, or manipulation of LOB (large object) columns, and FILTER is not supported for columns containing multi-byte character truncation cases &mdash; check the documentation for the current list of restrictions before designing a filter strategy.</div>
+</section>
+
+<!-- ===================== TAB 3: FILTER SYNTAX REFERENCE ===================== -->
+<section class="tab" id="tab-syntax">
+  <h2>Filter Syntax Reference</h2>
+  <p class="lead">Exact TABLE/MAP syntax, straight from the Oracle GoldenGate Classic Architecture Documentation (Release 21.3, Selecting and Filtering Rows), plus a field-tested complexity ladder for classifying filters by how much work they do before deciding pass/fail.</p>
+
+  <h3 style="font-size:14px;color:var(--redwood-dark);margin:6px 0 10px;">Filter Complexity Ladder &mdash; Normal &rarr; Simple &rarr; Medium &rarr; Complex</h3>
+  <p class="lead" style="margin-bottom:12px;">Each tier below shows both placements: the Extract-side <span class="kcode">TABLE</span> statement and its Replicat-side <span class="kcode">MAP</span> equivalent &mdash; the same complexity ladder applies whichever side you filter on.</p>
+  <div class="grid" style="grid-template-columns:repeat(4,1fr);" id="ladderGrid">
+    <div class="card ladder-card" data-tier="normal">
+      <h3><span class="pill grey">NORMAL</span></h3>
+      <p><b style="color:var(--ink)">Extracts all data without any conditions.</b></p>
+      <p style="margin:8px 0 3px;"><span class="pill grey">EXTRACT &middot; TABLE</span></p>
+      <pre class="code">TABLE GL.GL_JE_BATCHES;</pre>
+      <p style="margin:8px 0 3px;"><span class="pill blue">REPLICAT &middot; MAP</span></p>
+      <pre class="code">MAP GL.GL_JE_BATCHES,
+  TARGET GL.GL_JE_BATCHES;</pre>
+    </div>
+    <div class="card ladder-card" data-tier="simple">
+      <h3><span class="pill">SIMPLE</span></h3>
+      <p><b style="color:var(--ink)">Filter Condition using WHERE clause</b> &mdash; a direct WHERE condition filters records.</p>
+      <p style="margin:8px 0 3px;"><span class="pill grey">EXTRACT &middot; TABLE</span></p>
+      <pre class="code">TABLE GL.GL_JE_BATCHES,
+  WHERE (JE_BATCH_ID = 8970);</pre>
+      <p style="margin:8px 0 3px;"><span class="pill blue">REPLICAT &middot; MAP</span></p>
+      <pre class="code">MAP GL.GL_JE_BATCHES,
+  TARGET GL.GL_JE_BATCHES,
+  WHERE (JE_BATCH_ID = 8970);</pre>
+    </div>
+    <div class="card ladder-card" data-tier="medium">
+      <h3><span class="pill blue">MEDIUM</span></h3>
+      <p><b style="color:var(--ink)">Filter Condition with Sub-Query (SQLEXEC)</b> &mdash; a subquery checks a condition before the row is filtered.</p>
+      <p style="margin:8px 0 3px;"><span class="pill grey">EXTRACT &middot; TABLE</span></p>
+      <pre class="code">TABLE GL.GL_JE_BATCHES,
+  KEYCOLS (JE_BATCH_ID),
+  SQLEXEC (ID lookup_batch,
+    QUERY 'select count(*) output
+           from GL.GL_JE_HEADERS
+           where JE_BATCH_ID=:VAR_1
+           and STATUS=''P''',
+    PARAMS (VAR_1 = @BEFORE (JE_BATCH_ID)),
+    BEFOREFILTER),
+  FILTER (lookup_batch.output &gt; 0);</pre>
+      <p style="margin:8px 0 3px;"><span class="pill blue">REPLICAT &middot; MAP</span></p>
+      <pre class="code">MAP GL.GL_JE_BATCHES,
+  TARGET GL.GL_JE_BATCHES,
+  SQLEXEC (ID lookup_batch,
+    QUERY 'select count(*) output
+           from GL.GL_JE_HEADERS
+           where JE_BATCH_ID=:VAR_1
+           and STATUS=''P''',
+    PARAMS (VAR_1 = JE_BATCH_ID),
+    BEFOREFILTER),
+  FILTER (lookup_batch.output &gt; 0);</pre>
+    </div>
+    <div class="card ladder-card" data-tier="complex">
+      <h3><span class="pill" style="background:#EDE4F7;color:#6B3FA0;">COMPLEX</span></h3>
+      <p><b style="color:var(--ink)">Filter Condition using Stored Procedure</b> &mdash; a stored procedure is called to decide whether the row is filtered.</p>
+      <p style="margin:8px 0 3px;"><span class="pill grey">EXTRACT &middot; TABLE</span></p>
+      <pre class="code">TABLE STAT.FAORDER_LOG,
+  SQLEXEC (SPNAME STAT.GG_FILTER_COND_PRC,
+    ID DBSP_FAORDER_LOG,
+    PARAMS (P_TABLE_NAME = 'FAORDER_LOG',
+            P_KEY_VALUE1 = ID),
+    BEFOREFILTER),
+  FILTER (@GETVAL (DBSP_FAORDER_LOG.P_COUNT_VAL) &gt; 0);</pre>
+      <p style="margin:8px 0 3px;"><span class="pill blue">REPLICAT &middot; MAP</span></p>
+      <pre class="code">MAP STAT.FAORDER_LOG,
+  TARGET STAT.FAORDER_LOG,
+  SQLEXEC (SPNAME STAT.GG_FILTER_COND_PRC,
+    ID DBSP_FAORDER_LOG,
+    PARAMS (P_TABLE_NAME = 'FAORDER_LOG',
+            P_KEY_VALUE1 = ID),
+    BEFOREFILTER),
+  FILTER (@GETVAL (DBSP_FAORDER_LOG.P_COUNT_VAL) &gt; 0);</pre>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:4px;margin-bottom:22px;">
+    <div class="card">
+      <h3>Reading the Medium example</h3>
+      <p><span class="kcode">KEYCOLS (JE_BATCH_ID)</span> declares the key GoldenGate uses for the lookup. <span class="kcode">SQLEXEC</span> runs a named query (<span class="kcode">ID lookup_batch</span>) that counts pending (<span class="kcode">STATUS='P'</span>) header rows for the batch. On the Extract side, <span class="kcode">PARAMS (VAR_1 = @BEFORE (JE_BATCH_ID))</span> binds <span class="kcode">:VAR_1</span> to the row's before-image key value; on the Replicat side, the trail already carries the column, so the MAP statement binds it directly with <span class="kcode">PARAMS (VAR_1 = JE_BATCH_ID)</span>. <span class="kcode">BEFOREFILTER</span> forces the query to run <i>before</i> FILTER is evaluated, so <span class="kcode">FILTER (lookup_batch.output &gt; 0)</span> can test the returned count &mdash; identically on either side.</p>
+    </div>
+    <div class="card">
+      <h3>Reading the Complex example</h3>
+      <p><span class="kcode">SQLEXEC (SPNAME ...)</span> calls a database stored procedure instead of an inline query &mdash; useful when the filtering logic is already encapsulated in PL/SQL. <span class="kcode">PARAMS</span> passes the table name and key value into the procedure's IN parameters. <span class="kcode">BEFOREFILTER</span> again guarantees the procedure runs first, and <span class="kcode">@GETVAL (DBSP_FAORDER_LOG.P_COUNT_VAL)</span> retrieves the procedure's OUT parameter for FILTER to test. On Replicat, the stored procedure must exist in the <b>target</b> database (it runs where the MAP statement executes), whereas on Extract it must exist in the <b>source</b> database.</p>
+    </div>
+  </div>
+
+  <div class="note">Both Medium and Complex tiers add a database round-trip per row (a query or a procedure call) <i>before</i> the FILTER decision. That's real overhead per operation &mdash; reserve them for cases the WHERE/FILTER-only tiers genuinely can't express, such as checking a related table's state or reusing existing PL/SQL business logic.</div>
+
+  <h3 style="font-size:14px;color:var(--redwood-dark);margin:8px 0 10px;">Detailed clause-by-clause reference</h3>
+  <div class="grid" style="grid-template-columns:1fr 1fr;">
+    <div class="card">
+      <h3>1&#41; WHERE clause &mdash; simple row selection</h3>
+      <p>Enclosed in parentheses; literals in single quotes. Accepts basic comparison operators and AND/OR.</p>
+      <pre class="code">TABLE HR.EMPLOYEES,
+  WHERE (REGION = 'WEST');
+
+MAP HR.EMPLOYEES, TARGET HR.EMPLOYEES,
+  WHERE (SALARY &gt; 50000);</pre>
+    </div>
+    <div class="card">
+      <h3>2&#41; FILTER clause &mdash; complex row selection</h3>
+      <p>Supports numeric comparisons, arithmetic operators, column-conversion functions, and operation-type qualifiers.</p>
+      <pre class="code">TABLE ACT.TCUSTORD,
+  FILTER (ON UPDATE, ON DELETE, AMOUNT &gt; 50);
+
+MAP SALES.TCUSTORD, TARGET SALES.TORD,
+  FILTER (@COMPUTE (PRICE * QTY) &gt; 10000);</pre>
+    </div>
+    <div class="card">
+      <h3>3&#41; COLS / COLSEXCEPT &mdash; column selection</h3>
+      <p>Extract-side (TABLE) only. COLS whitelists columns to capture; COLSEXCEPT blacklists columns to drop. Key columns must never be excluded. If used on the primary Extract rather than the pump, add <span class="kcode">PASSTHRU</span> on the pump.</p>
+      <pre class="code">TABLE FIN.ACCOUNTS,
+  COLSEXCEPT (SSN, CVV);
+
+TABLE FIN.ACCOUNTS,
+  COLS (ACCT_ID, CUST_NAME, REGION, AMOUNT);</pre>
+    </div>
+    <div class="card">
+      <h3>4&#41; RAISEERROR &mdash; exception routing (MAP only)</h3>
+      <p>When a FILTER fails, raise a user-defined error and route the row through <span class="kcode">REPERROR</span> to an exceptions MAP instead of dropping it silently.</p>
+      <pre class="code">REPERROR (9999, EXCEPTION)
+MAP OWNER.SRCTAB, TARGET OWNER.TARGTAB,
+  FILTER (BALANCE &gt; 15000, RAISEERROR 9999);
+
+MAP OWNER.SRCTAB, TARGET OWNER.TARGEXC,
+  EXCEPTIONSONLY,
+  COLMAP (USEDEFAULTS, ERRTYPE = 'FILTER FAILED');</pre>
+    </div>
+    <div class="card">
+      <h3>5&#41; @RANGE &mdash; splitting workload</h3>
+      <p>Distributes one table's changes across multiple parallel MAP/TABLE statements (and therefore multiple Replicat groups or threads) by key range.</p>
+      <pre class="code">-- Replicat group 1 parameter file
+MAP sales.acct, TARGET sales.acct, FILTER (@RANGE (1, 2, ID));
+
+-- Replicat group 2 parameter file
+MAP sales.acct, TARGET sales.acct, FILTER (@RANGE (2, 2, ID));</pre>
+    </div>
+    <div class="card">
+      <h3>6&#41; @STREQ &mdash; string equality inside FILTER</h3>
+      <p>WHERE handles string comparisons natively; FILTER needs a string function such as <span class="kcode">@STREQ</span> since its native comparisons are numeric.</p>
+      <pre class="code">TABLE ACCT.TCUSTORD,
+  FILTER (@STREQ ("NAME", 'JOE') &gt; 0);</pre>
+    </div>
+    <div class="card">
+      <h3>7&#41; SQLEXEC + BEFOREFILTER &mdash; subquery-driven filter (Medium tier)</h3>
+      <p>Runs an inline query per row before FILTER evaluates it &mdash; used when the pass/fail decision depends on the state of a related table. Valid in both TABLE (Extract) and MAP (Replicat).</p>
+      <p style="margin:6px 0 3px;"><span class="pill grey" style="font-size:9.5px;">EXTRACT &middot; TABLE</span></p>
+      <pre class="code">TABLE GL.GL_JE_BATCHES,
+  KEYCOLS (JE_BATCH_ID),
+  SQLEXEC (ID lookup_batch,
+    QUERY 'select count(*) output from
+           GL.GL_JE_HEADERS where
+           JE_BATCH_ID=:VAR_1 and STATUS=''P''',
+    PARAMS (VAR_1 = @BEFORE (JE_BATCH_ID)),
+    BEFOREFILTER),
+  FILTER (lookup_batch.output &gt; 0);</pre>
+      <p style="margin:6px 0 3px;"><span class="pill blue" style="font-size:9.5px;">REPLICAT &middot; MAP</span></p>
+      <pre class="code">MAP GL.GL_JE_BATCHES, TARGET GL.GL_JE_BATCHES,
+  SQLEXEC (ID lookup_batch,
+    QUERY 'select count(*) output from
+           GL.GL_JE_HEADERS where
+           JE_BATCH_ID=:VAR_1 and STATUS=''P''',
+    PARAMS (VAR_1 = JE_BATCH_ID),
+    BEFOREFILTER),
+  FILTER (lookup_batch.output &gt; 0);</pre>
+    </div>
+    <div class="card">
+      <h3>8&#41; SQLEXEC (SPNAME) + @GETVAL &mdash; stored-procedure filter (Complex tier)</h3>
+      <p>Calls an existing PL/SQL stored procedure to make the filtering decision, then reads its OUT parameter with <span class="kcode">@GETVAL</span>. Valid in both TABLE (Extract) and MAP (Replicat) &mdash; the procedure must exist in whichever database that statement runs against.</p>
+      <p style="margin:6px 0 3px;"><span class="pill grey" style="font-size:9.5px;">EXTRACT &middot; TABLE</span></p>
+      <pre class="code">TABLE STAT.FAORDER_LOG,
+  SQLEXEC (SPNAME STAT.GG_FILTER_COND_PRC,
+    ID DBSP_FAORDER_LOG,
+    PARAMS (P_TABLE_NAME = 'FAORDER_LOG',
+            P_KEY_VALUE1 = ID),
+    BEFOREFILTER),
+  FILTER (@GETVAL (DBSP_FAORDER_LOG.P_COUNT_VAL) &gt; 0);</pre>
+      <p style="margin:6px 0 3px;"><span class="pill blue" style="font-size:9.5px;">REPLICAT &middot; MAP</span></p>
+      <pre class="code">MAP STAT.FAORDER_LOG, TARGET STAT.FAORDER_LOG,
+  SQLEXEC (SPNAME STAT.GG_FILTER_COND_PRC,
+    ID DBSP_FAORDER_LOG,
+    PARAMS (P_TABLE_NAME = 'FAORDER_LOG',
+            P_KEY_VALUE1 = ID),
+    BEFOREFILTER),
+  FILTER (@GETVAL (DBSP_FAORDER_LOG.P_COUNT_VAL) &gt; 0);</pre>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:14px;">
+    <div class="card"><h3>Do's</h3>
+      <p><b style="color:var(--ok)">ADD TRANDATA COLS first</b> &mdash; a column must be explicitly logged (and present in the trail) before any WHERE/FILTER/COLS clause can reference it.</p>
+      <p style="margin-top:8px;"><b style="color:var(--ok)">Keep key columns in COLS</b> &mdash; primary/unique key columns (or KEYCOLS) must remain in the column list or capture fails with an error.</p>
+      <p style="margin-top:8px;"><b style="color:var(--ok)">Use FILTER for anything numeric/complex</b> &mdash; @COMPUTE, arithmetic, and @RANGE only work inside FILTER.</p>
+      <p style="margin-top:8px;"><b style="color:var(--ok)">Chain multiple FILTERs deliberately</b> &mdash; GoldenGate evaluates them in the order listed; if one fails, they all fail.</p>
+      <p style="margin-top:8px;"><b style="color:var(--ok)">Use BEFOREFILTER with SQLEXEC</b> &mdash; it guarantees the subquery/stored-procedure result is available before FILTER tries to read it.</p>
+    </div>
+    <div class="card"><h3>Don'ts</h3>
+      <p><b style="color:var(--redwood-dark)">Don't use FILTER for plain string equality</b> &mdash; its native operators are numeric; use WHERE or a string function like @STREQ instead.</p>
+      <p style="margin-top:8px;"><b style="color:var(--redwood-dark)">Don't COLSEXCEPT a key column</b> &mdash; and don't use it to drop unsupported data types; it won't exclude those anyway.</p>
+      <p style="margin-top:8px;"><b style="color:var(--redwood-dark)">Don't expect LOB filtering</b> &mdash; large object columns are not supported for filtering, mapping, or manipulation.</p>
+      <p style="margin-top:8px;"><b style="color:var(--redwood-dark)">Don't forget PASSTHRU</b> &mdash; if COLS/COLSEXCEPT is set on the primary Extract rather than the pump, the pump needs PASSTHRU to avoid re-evaluating column rules.</p>
+      <p style="margin-top:8px;"><b style="color:var(--redwood-dark)">Don't reach for SQLEXEC by default</b> &mdash; it costs a database round-trip per row; use it only when WHERE/FILTER alone truly cannot express the condition.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TAB 4: LIVE SIM - OPTION A (Filter at Source) ===================== -->
+<section class="tab" id="tab-optA">
+  <div class="flex-between">
+    <div>
+      <h2>Live Simulator &mdash; Option A: Filter at Source (Extract)</h2>
+      <p class="lead" style="margin-bottom:8px;">The <span class="kcode">TABLE</span> statement on the Integrated Extract applies FILTER/WHERE and COLS/COLSEXCEPT. Rejected rows never reach the trail; the Replicat simply delivers whatever it finds &mdash; a pass-through MAP.</p>
+    </div>
+  </div>
+
+  <div class="fp-controls">
+    <div class="fp-row">
+      <div class="fp-field">
+        <label>Row filter on Extract TABLE statement</label>
+        <select id="aRowFilter">
+          <option value="none">Normal &mdash; capture all rows</option>
+          <option value="where_region">Simple &mdash; WHERE (REGION = 'WEST')</option>
+          <option value="filter_amount" selected>Simple &mdash; FILTER (AMOUNT &gt; 50000)</option>
+          <option value="filter_amount_upddel">Simple &mdash; FILTER (ON UPDATE, ON DELETE, AMOUNT &gt; 50000)</option>
+          <option value="sqlexec_subquery">Medium &mdash; SQLEXEC subquery (BEFOREFILTER)</option>
+          <option value="sqlexec_storedproc">Complex &mdash; SQLEXEC stored procedure (@GETVAL)</option>
+        </select>
+      </div>
+      <div class="fp-field">
+        <div class="fp-toggle"><input type="checkbox" id="aColFilter"> <span>Exclude sensitive column with <span class="kcode">COLSEXCEPT (SSN)</span></span></div>
+      </div>
+      <div>
+        <button class="action" id="aRunBtn">&#9654; Run 8 Transactions</button>
+        <button class="action secondary" id="aResetBtn">Reset</button>
+      </div>
+    </div>
+    <div class="paramsnippet">
+      <label>Generated Extract TABLE statement</label>
+      <pre class="code" id="aParamOut" style="margin-top:4px;"></pre>
+    </div>
+    <div class="paramsnippet" id="aProcPanel" style="display:none;">
+      <label>Stored procedure being called &mdash; must be deployed in the <b style="color:var(--redwood-dark);">SOURCE</b> database (Extract's log-mining connection calls it locally, before the row ever reaches the trail)</label>
+      <pre class="code" id="aProcOut" style="margin-top:4px;"></pre>
+    </div>
+  </div>
+
+  <div class="fp-stats">
+    <div class="fp-stat"><div class="n" id="aStatGen">0</div><div class="l">Generated</div></div>
+    <div class="fp-stat"><div class="n" id="aStatPass">0</div><div class="l">Passed Extract Filter</div></div>
+    <div class="fp-stat"><div class="n" id="aStatDrop">0</div><div class="l">Dropped at Extract</div></div>
+    <div class="fp-stat"><div class="n" id="aStatTrail">0</div><div class="l">Written to Trail</div></div>
+    <div class="fp-stat"><div class="n" id="aStatTarget">0</div><div class="l">Delivered to Target</div></div>
+  </div>
+
+  <div class="fp-pipeline">
+    <div class="fp-node"><div class="fh">Application<span class="fp-pulse" id="aPulseApp"></span></div><div class="fs">Issues 8 sample transactions against HR.CUSTORD.</div><div class="fbody" id="aColApp"></div></div>
+    <div class="fp-node"><div class="fh">Source Database<span class="fp-pulse" id="aPulseDb"></span></div><div class="fs">Commits &amp; writes to redo log.</div><div class="fbody" id="aColDb"></div></div>
+    <div class="fp-node decision"><div class="fh">Integrated Extract<span class="fp-pulse" id="aPulseExt"></span></div><div class="fs">Evaluates TABLE filter/column rule &mdash; decision point.</div><div class="fbody" id="aColExt"></div></div>
+    <div class="fp-node"><div class="fh">Trail File<span class="fp-pulse" id="aPulseTrail"></span></div><div class="fs">Only rows that passed the Extract filter.</div><div class="fbody" id="aColTrail"></div></div>
+    <div class="fp-node"><div class="fh">Replicat (pass-through)<span class="fp-pulse" id="aPulseRep"></span></div><div class="fs">No filter &mdash; MAP just delivers what's in the trail.</div><div class="fbody" id="aColRep"></div></div>
+    <div class="fp-node"><div class="fh">Target Database<span class="fp-pulse" id="aPulseTgt"></span></div><div class="fs">Receives exactly what Extract let through.</div><div class="fbody" id="aColTgt"></div></div>
+  </div>
+
+  <div class="log" id="aLog"></div>
+
+  <div class="note" style="margin-top:14px;">Option A trims data <b>before</b> it ever leaves the source region &mdash; smallest trail and network footprint, and the safest choice when a column must never travel at all (e.g. regulated PII). The cost: rows dropped here are gone for good &mdash; no other consumer of this trail can ever see them. Choosing the <b>Medium</b> or <b>Complex</b> tier adds a database round-trip to the Extract's redo-log mining path on every row, before FILTER can even be evaluated &mdash; measure that overhead before enabling it broadly.</div>
+</section>
+
+<!-- ===================== TAB 5: LIVE SIM - OPTION B (Filter at Target) ===================== -->
+<section class="tab" id="tab-optB">
+  <div class="flex-between">
+    <div>
+      <h2>Live Simulator &mdash; Option B: Filter at Target (Replicat)</h2>
+      <p class="lead" style="margin-bottom:8px;">The Extract <span class="kcode">TABLE</span> statement captures every row with no row filter and no column exclusion. The <span class="kcode">MAP</span> statement on Replicat applies FILTER/WHERE at apply time, deciding what actually reaches the target.</p>
+    </div>
+  </div>
+
+  <div class="fp-controls">
+    <div class="fp-row">
+      <div class="fp-field">
+        <label>Row filter on Replicat MAP statement</label>
+        <select id="bRowFilter">
+          <option value="none">Normal &mdash; deliver all rows</option>
+          <option value="where_region">Simple &mdash; WHERE (REGION = 'WEST')</option>
+          <option value="filter_amount" selected>Simple &mdash; FILTER (AMOUNT &gt; 50000)</option>
+          <option value="filter_amount_upddel">Simple &mdash; FILTER (ON UPDATE, ON DELETE, AMOUNT &gt; 50000)</option>
+          <option value="sqlexec_subquery">Medium &mdash; SQLEXEC subquery (BEFOREFILTER)</option>
+          <option value="sqlexec_storedproc">Complex &mdash; SQLEXEC stored procedure (@GETVAL)</option>
+        </select>
+      </div>
+      <div class="fp-field">
+        <div class="fp-toggle"><input type="checkbox" id="bRaiseError"> <span>On filter failure, <span class="kcode">RAISEERROR</span> &rarr; route to exceptions table instead of dropping</span></div>
+      </div>
+      <div>
+        <button class="action" id="bRunBtn">&#9654; Run 8 Transactions</button>
+        <button class="action secondary" id="bResetBtn">Reset</button>
+      </div>
+    </div>
+    <div class="paramsnippet">
+      <label>Generated Replicat MAP statement</label>
+      <pre class="code" id="bParamOut" style="margin-top:4px;"></pre>
+    </div>
+    <div class="paramsnippet" id="bProcPanel" style="display:none;">
+      <label>Stored procedure being called &mdash; must be deployed in the <b style="color:var(--redwood-dark);">TARGET</b> database (Replicat's apply connection calls it at apply time, right before writing to the target table)</label>
+      <pre class="code" id="bProcOut" style="margin-top:4px;"></pre>
+    </div>
+  </div>
+
+  <div class="fp-stats">
+    <div class="fp-stat"><div class="n" id="bStatGen">0</div><div class="l">Generated</div></div>
+    <div class="fp-stat"><div class="n" id="bStatTrail">0</div><div class="l">Written to Trail (all)</div></div>
+    <div class="fp-stat"><div class="n" id="bStatPass">0</div><div class="l">Passed Replicat Filter</div></div>
+    <div class="fp-stat"><div class="n" id="bStatDrop">0</div><div class="l">Dropped / Routed at Replicat</div></div>
+    <div class="fp-stat"><div class="n" id="bStatTarget">0</div><div class="l">Delivered to Target</div></div>
+  </div>
+
+  <div class="fp-pipeline">
+    <div class="fp-node"><div class="fh">Application<span class="fp-pulse" id="bPulseApp"></span></div><div class="fs">Issues 8 sample transactions against HR.CUSTORD.</div><div class="fbody" id="bColApp"></div></div>
+    <div class="fp-node"><div class="fh">Source Database<span class="fp-pulse" id="bPulseDb"></span></div><div class="fs">Commits &amp; writes to redo log.</div><div class="fbody" id="bColDb"></div></div>
+    <div class="fp-node"><div class="fh">Integrated Extract<span class="fp-pulse" id="bPulseExt"></span></div><div class="fs">No filter, no column exclusion &mdash; captures everything.</div><div class="fbody" id="bColExt"></div></div>
+    <div class="fp-node"><div class="fh">Trail File<span class="fp-pulse" id="bPulseTrail"></span></div><div class="fs">Full unfiltered data set &mdash; available to any consumer.</div><div class="fbody" id="bColTrail"></div></div>
+    <div class="fp-node decision"><div class="fh">Replicat<span class="fp-pulse" id="bPulseRep"></span></div><div class="fs">Evaluates MAP filter &mdash; decision point.</div><div class="fbody" id="bColRep"></div></div>
+    <div class="fp-node"><div class="fh">Target Database<span class="fp-pulse" id="bPulseTgt"></span></div><div class="fs">Receives only what the Replicat filter allowed.</div><div class="fbody" id="bColTgt"></div></div>
+  </div>
+
+  <div class="log" id="bLog"></div>
+
+  <div class="note" style="margin-top:14px;">Option B keeps the <b>full</b> data set in the trail &mdash; ideal when several targets, an audit process, or a replay need to see rows this Replicat itself discards. The cost: every row crosses the network and touches the trail even if it will be thrown away at the very last step. With the <b>Medium</b> or <b>Complex</b> tier, that lookup runs against the <i>target</i> database at apply time &mdash; the stored procedure or query must exist there, not on the source.</div>
+</section>
+
+<!-- ===================== TAB 6: COMPARISON & BEST PRACTICES ===================== -->
+<section class="tab" id="tab-compare">
+  <h2>Option A vs Option B &mdash; Comparison &amp; Best Practices</h2>
+  <p class="lead">Same filter condition, two different places to enforce it. Neither is universally &ldquo;better&rdquo; &mdash; the right choice depends on what else needs the trail.</p>
+
+  <table class="compare-table">
+    <tr><th>Dimension</th><th>Option A &mdash; Filter at Extract (source)</th><th>Option B &mdash; Filter at Replicat (target)</th></tr>
+    <tr><td>Trail file size</td><td class="win">Smaller &mdash; only qualifying rows written</td><td>Larger &mdash; every captured row written</td></tr>
+    <tr><td>Network / WAN transfer</td><td class="win">Lower &mdash; rejected rows never leave source</td><td>Higher &mdash; every row crosses the network</td></tr>
+    <tr><td>Reusability of trail for other consumers</td><td>Limited &mdash; dropped rows are gone for good</td><td class="win">Full &mdash; other Replicats/audits can still see everything</td></tr>
+    <tr><td>Best for regulated / sensitive columns</td><td class="win">Yes &mdash; COLSEXCEPT keeps data from ever leaving source</td><td>Only if masking happens before the trail is shared further</td></tr>
+    <tr><td>Centralized filter logic across many targets</td><td>Must be duplicated per Extract/TABLE statement</td><td class="win">Easier &mdash; each MAP can apply its own rule from one trail</td></tr>
+    <tr><td>Where to reference the filtered column</td><td>Must be in the redo log / logged via ADD TRANDATA COLS</td><td>Must be present in the trail file</td></tr>
+  </table>
+
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:18px;">
+    <div class="decision-card">
+      <h4>Choose Option A when&hellip;</h4>
+      <p style="font-size:12.5px;color:var(--muted);line-height:1.6;">A column must never physically leave the source environment (PII, payment data, cross-border data residency rules); the trail has exactly one downstream consumer; or minimizing WAN bandwidth for a remote/cloud target is the priority.</p>
+    </div>
+    <div class="decision-card">
+      <h4>Choose Option B when&hellip;</h4>
+      <p style="font-size:12.5px;color:var(--muted);line-height:1.6;">The same trail feeds multiple targets or an audit/replay process that each need different subsets; filter rules change often and you don't want to bounce the primary Extract; or you want to use <span class="kcode">RAISEERROR</span> to route rejected rows to an exceptions table rather than lose them.</p>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:16px;">A practical field note echoed across GoldenGate implementations: put the <span class="kcode">FILTER</span> in the Replicat (Option B) when the trail may be needed for other targets later &mdash; it's far cheaper to add a second Replicat reading an existing full trail than to reprocess history through a re-tuned Extract. Reserve Extract-side filtering (Option A) for cases where the data genuinely must never be captured in the first place.</div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3>Remember the shared prerequisite</h3>
+    <p>Whichever option you pick, a column can only be filtered on if Oracle GoldenGate can see it: logged in the redo log and captured via <span class="kcode">ADD TRANDATA COLS</span> with <span class="kcode">LOGALLSUPCOLS</span> retained, and present in the trail by the time it reaches the stage doing the filtering.</p>
+  </div>
+</section>
+
+</main>
+
+<footer>Oracle GoldenGate Filters Simulator &middot; part of the GoldenGate Learning Simulator Suite &middot; Ravikumar Vasudevan</footer>
+
+<script>
+/* ============ Changelog toggle ============ */
+var verBadge = document.getElementById('verBadge');
+var changelogPanel = document.getElementById('changelogPanel');
+verBadge.addEventListener('click', function(){ changelogPanel.classList.toggle('open'); });
+document.getElementById('clClose').addEventListener('click', function(){ changelogPanel.classList.remove('open'); });
+
+/* ============ Tab switching ============ */
+document.querySelectorAll('#tabNav button').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('#tabNav button').forEach(function(b){ b.classList.remove('active'); });
+    document.querySelectorAll('section.tab').forEach(function(s){ s.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ============ Architecture stage detail (tab 2) ============ */
+var stageInfo = {
+  app: { t: 'Application', d: 'Business application issues INSERT / UPDATE / DELETE statements against the source schema. No GoldenGate component is involved yet &mdash; filtering has not happened.' },
+  db: { t: 'Source Database', d: 'The database commits the change and writes it to the online redo log. Every column value that will ever be filterable must exist here or be explicitly fetched later.' },
+  extract: { t: 'Integrated Extract', d: 'Reads change records via the Oracle log mining server and evaluates its <b>TABLE</b> statement. This is Filter Placement Option A: FILTER/WHERE decide row inclusion, COLS/COLSEXCEPT decide column inclusion, before anything reaches the trail.' },
+  trail: { t: 'Trail File', d: 'The on-disk (or in-memory) record of what the Extract statement allowed through. If Option A filtered here, rejected rows and excluded columns are permanently absent from the trail.' },
+  replicat: { t: 'Replicat', d: 'Reads the trail and evaluates its own <b>MAP</b> statement. This is Filter Placement Option B: even if the trail has everything, Replicat can independently apply FILTER/WHERE (and COLMAP for columns) before writing to the target.' },
+  target: { t: 'Target Database', d: 'Receives only the intersection of whatever both the Extract TABLE statement and the Replicat MAP statement allowed through.' }
+};
+document.querySelectorAll('#stageGrid .stagebox').forEach(function(box){
+  box.addEventListener('click', function(){
+    document.querySelectorAll('#stageGrid .stagebox').forEach(function(b){ b.classList.remove('sel'); });
+    box.classList.add('sel');
+    var info = stageInfo[box.dataset.stage];
+    var det = document.getElementById('stageDetail');
+    det.innerHTML = '<h4>' + info.t + '</h4><p>' + info.d + '</p>';
+    det.classList.add('show');
+  });
+});
+
+/* ============ Shared sample transaction dataset ============ */
+function sampleTx(){
+  return [
+    { id: 1001, op: 'INSERT', region: 'WEST',  amount: 72000, ssn: '512-33-9987', relatedOpenCount: 2 },
+    { id: 1002, op: 'INSERT', region: 'EAST',  amount: 18500, ssn: '498-21-3345', relatedOpenCount: 0 },
+    { id: 1003, op: 'UPDATE', region: 'WEST',  amount: 63500, ssn: '512-33-9987', relatedOpenCount: 1 },
+    { id: 1004, op: 'UPDATE', region: 'APAC',  amount: 41200, ssn: '773-40-2210', relatedOpenCount: 0 },
+    { id: 1005, op: 'DELETE', region: 'EAST',  amount: 55250, ssn: '498-21-3345', relatedOpenCount: 3 },
+    { id: 1006, op: 'INSERT', region: 'WEST',  amount: 9800,  ssn: '512-97-6620', relatedOpenCount: 0 },
+    { id: 1007, op: 'UPDATE', region: 'APAC',  amount: 98700, ssn: '773-40-2210', relatedOpenCount: 1 },
+    { id: 1008, op: 'DELETE', region: 'WEST',  amount: 34000, ssn: '512-97-6620', relatedOpenCount: 0 }
+  ];
+}
+
+function passesFilter(mode, tx){
+  switch(mode){
+    case 'none': return true;
+    case 'where_region': return tx.region === 'WEST';
+    case 'filter_amount': return tx.amount > 50000;
+    case 'filter_amount_upddel':
+      if (tx.op === 'INSERT') return true; // FILTER only constrains ON UPDATE / ON DELETE
+      return tx.amount > 50000;
+    case 'sqlexec_subquery': return tx.relatedOpenCount > 0;
+    case 'sqlexec_storedproc': return tx.relatedOpenCount > 0;
+    default: return true;
+  }
+}
+function filterLabel(mode){
+  switch(mode){
+    case 'none': return 'no row filter (capture/deliver all)';
+    case 'where_region': return "WHERE (REGION = 'WEST')";
+    case 'filter_amount': return 'FILTER (AMOUNT > 50000)';
+    case 'filter_amount_upddel': return 'FILTER (ON UPDATE, ON DELETE, AMOUNT > 50000)';
+    case 'sqlexec_subquery': return 'SQLEXEC subquery (Medium): FILTER (lookup_lines.output > 0)';
+    case 'sqlexec_storedproc': return 'SQLEXEC stored procedure (Complex): FILTER (@GETVAL(P_COUNT_VAL) > 0)';
+    default: return '';
+  }
+}
+/* Returns the visible chip text for the BEFOREFILTER lookup step, or null if this mode has no lookup */
+function lookupChip(mode, tx){
+  if (mode === 'sqlexec_subquery') return 'SQLEXEC lookup_lines &rarr; output = ' + tx.relatedOpenCount;
+  if (mode === 'sqlexec_storedproc') return 'SPNAME GG_FILTER_COND_PRC &rarr; P_COUNT_VAL = ' + tx.relatedOpenCount;
+  return null;
+}
+/* The PL/SQL body of GG_FILTER_COND_PRC, shown so the Complex tier isn't a black box.
+   side = 'source' (Extract calls it) or 'target' (Replicat calls it) — same body, different deployment location. */
+function storedProcSource(side){
+  var dbNote = side === 'source'
+    ? '  -- Runs in the SOURCE database: Extract calls this locally,\n  -- BEFORE the row is ever written to the trail.'
+    : '  -- Runs in the TARGET database: Replicat calls this at apply time,\n  -- BEFORE the row is written to the target table.';
+  return 'CREATE OR REPLACE PROCEDURE HR.GG_FILTER_COND_PRC (\n' +
+    '  P_TABLE_NAME  IN  VARCHAR2,\n' +
+    '  P_KEY_VALUE1  IN  VARCHAR2,\n' +
+    '  P_COUNT_VAL   OUT NUMBER\n' +
+    ') AS\n' +
+    'BEGIN\n' +
+    dbNote + '\n' +
+    '  SELECT COUNT(*)\n' +
+    '    INTO P_COUNT_VAL\n' +
+    '    FROM HR.CUSTORD_LINES\n' +
+    '   WHERE ORDER_ID = P_KEY_VALUE1\n' +
+    "     AND STATUS   = 'OPEN';\n" +
+    'EXCEPTION\n' +
+    '  WHEN NO_DATA_FOUND THEN\n' +
+    '    P_COUNT_VAL := 0;\n' +
+    'END GG_FILTER_COND_PRC;\n' +
+    '/';
+}
+function opBadge(op){ return '<span class="badge-op ' + op + '">' + op + '</span>'; }
+function txLine(tx, showSsn){
+  return '#' + tx.id + ' ' + opBadge(tx.op) + ' ' + tx.region + ' $' + tx.amount.toLocaleString() +
+    (showSsn ? ' &middot; SSN ' + tx.ssn : '');
+}
+
+
+/* ================================================================
+   OPTION A — filter at Extract (source)
+   ================================================================ */
+(function(){
+  var rowSel = document.getElementById('aRowFilter');
+  var colChk = document.getElementById('aColFilter');
+  var paramOut = document.getElementById('aParamOut');
+  var runBtn = document.getElementById('aRunBtn');
+  var resetBtn = document.getElementById('aResetBtn');
+  var logEl = document.getElementById('aLog');
+  var cols = {
+    app: document.getElementById('aColApp'),
+    db: document.getElementById('aColDb'),
+    ext: document.getElementById('aColExt'),
+    trail: document.getElementById('aColTrail'),
+    rep: document.getElementById('aColRep'),
+    tgt: document.getElementById('aColTgt')
+  };
+  var pulses = {
+    app: document.getElementById('aPulseApp'), db: document.getElementById('aPulseDb'),
+    ext: document.getElementById('aPulseExt'), trail: document.getElementById('aPulseTrail'),
+    rep: document.getElementById('aPulseRep'), tgt: document.getElementById('aPulseTgt')
+  };
+  var stat = {
+    gen: document.getElementById('aStatGen'), pass: document.getElementById('aStatPass'),
+    drop: document.getElementById('aStatDrop'), trail: document.getElementById('aStatTrail'),
+    tgt: document.getElementById('aStatTarget')
+  };
+  var running = false;
+
+  function renderParam(){
+    var lines = ['TABLE HR.CUSTORD,'];
+    if (colChk.checked) lines.push('  COLSEXCEPT (SSN),');
+    var mode = rowSel.value;
+    if (mode === 'sqlexec_subquery') {
+      lines.push('  KEYCOLS (ORDER_ID),');
+      lines.push('  SQLEXEC (ID lookup_lines,');
+      lines.push("    QUERY 'select count(*) output from HR.CUSTORD_LINES");
+      lines.push("           where ORDER_ID=:VAR_1 and STATUS=''OPEN''',");
+      lines.push('    PARAMS (VAR_1 = @BEFORE (ORDER_ID)),');
+      lines.push('    BEFOREFILTER),');
+      lines.push('  FILTER (lookup_lines.output > 0),');
+    } else if (mode === 'sqlexec_storedproc') {
+      lines.push('  SQLEXEC (SPNAME HR.GG_FILTER_COND_PRC,');
+      lines.push('    ID DBSP_CUSTORD,');
+      lines.push("    PARAMS (P_TABLE_NAME = 'CUSTORD', P_KEY_VALUE1 = ORDER_ID),");
+      lines.push('    BEFOREFILTER),');
+      lines.push('  FILTER (@GETVAL (DBSP_CUSTORD.P_COUNT_VAL) > 0),');
+    } else if (mode !== 'none') {
+      lines.push('  ' + filterLabel(mode) + ',');
+    }
+    var last = lines[lines.length - 1];
+    lines[lines.length - 1] = last.replace(/,$/, ';');
+    paramOut.textContent = lines.join('\n');
+
+    var procPanel = document.getElementById('aProcPanel');
+    var procOut = document.getElementById('aProcOut');
+    if (mode === 'sqlexec_storedproc') {
+      procOut.textContent = storedProcSource('source');
+      procPanel.style.display = '';
+    } else {
+      procPanel.style.display = 'none';
+    }
+  }
+
+  rowSel.addEventListener('change', renderParam);
+  colChk.addEventListener('change', renderParam);
+  renderParam();
+
+  function flash(el){ el.classList.add('on'); setTimeout(function(){ el.classList.remove('on'); }, 450); }
+  function alog(msg, cls){
+    var d = document.createElement('div');
+    if (cls) d.className = cls;
+    d.innerHTML = msg;
+    logEl.appendChild(d);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  function resetCounts(){
+    stat.gen.textContent = stat.pass.textContent = stat.drop.textContent = stat.trail.textContent = stat.tgt.textContent = '0';
+  }
+
+  resetBtn.addEventListener('click', function(){
+    Object.keys(cols).forEach(function(k){ cols[k].innerHTML = ''; });
+    logEl.innerHTML = '';
+    resetCounts();
+  });
+
+  runBtn.addEventListener('click', function(){
+    if (running) return;
+    running = true;
+    runBtn.disabled = true;
+    Object.keys(cols).forEach(function(k){ cols[k].innerHTML = ''; });
+    logEl.innerHTML = '';
+    resetCounts();
+    var mode = rowSel.value;
+    var excludeSsn = colChk.checked;
+    var txs = sampleTx();
+    var i = 0;
+    var counts = { gen: 0, pass: 0, drop: 0, trail: 0, tgt: 0 };
+    alog('<span class="t">[EXTRACT]</span> TABLE HR.CUSTORD row filter: ' + filterLabel(mode) + (excludeSsn ? ' &middot; column filter: COLSEXCEPT (SSN)' : ''));
+
+    (function next(){
+      if (i >= txs.length) { running = false; runBtn.disabled = false; return; }
+      var tx = txs[i];
+      counts.gen++; stat.gen.textContent = counts.gen;
+      flash(pulses.app);
+      cols.app.insertAdjacentHTML('beforeend', '<div class="chip">' + txLine(tx, true) + '</div>');
+
+      setTimeout(function(){
+        flash(pulses.db);
+        cols.db.insertAdjacentHTML('beforeend', '<div class="chip">' + txLine(tx, true) + '</div>');
+
+        setTimeout(function(){
+          flash(pulses.ext);
+          var lk = lookupChip(mode, tx);
+
+          function afterLookup(){
+            var ok = passesFilter(mode, tx);
+            if (ok){
+              counts.pass++; stat.pass.textContent = counts.pass;
+              cols.ext.insertAdjacentHTML('beforeend', '<div class="chip pass">' + txLine(tx, !excludeSsn) + ' &rarr; PASS</div>');
+              alog('Row #' + tx.id + ' (' + tx.op + ', AMOUNT=' + tx.amount + ', REGION=' + tx.region + ') <span class="g">PASSED</span> Extract filter' + (excludeSsn ? ' &middot; SSN column dropped by COLSEXCEPT' : '') + ' &rarr; written to trail');
+            } else {
+              counts.drop++; stat.drop.textContent = counts.drop;
+              cols.ext.insertAdjacentHTML('beforeend', '<div class="chip drop">' + txLine(tx, false) + ' &rarr; DROP</div>');
+              alog('Row #' + tx.id + ' (' + tx.op + ', AMOUNT=' + tx.amount + ', REGION=' + tx.region + ') <span class="e">FAILED</span> Extract filter &rarr; never written to trail');
+            }
+
+            setTimeout(function(){
+              if (ok){
+                flash(pulses.trail);
+                counts.trail++; stat.trail.textContent = counts.trail;
+                var chipCls = excludeSsn ? 'chip masked' : 'chip pass';
+                cols.trail.insertAdjacentHTML('beforeend', '<div class="' + chipCls + '">' + txLine(tx, !excludeSsn) + (excludeSsn ? ' &middot; SSN redacted' : '') + '</div>');
+
+                setTimeout(function(){
+                  flash(pulses.rep);
+                  cols.rep.insertAdjacentHTML('beforeend', '<div class="chip pass">' + txLine(tx, !excludeSsn) + ' &rarr; pass-through</div>');
+
+                  setTimeout(function(){
+                    flash(pulses.tgt);
+                    counts.tgt++; stat.tgt.textContent = counts.tgt;
+                    cols.tgt.insertAdjacentHTML('beforeend', '<div class="chip pass">' + txLine(tx, !excludeSsn) + '</div>');
+                    i++; next();
+                  }, 260);
+                }, 260);
+              } else {
+                i++; next();
+              }
+            }, 260);
+          }
+
+          if (lk){
+            cols.ext.insertAdjacentHTML('beforeend', '<div class="chip sql">' + lk + '</div>');
+            alog('<span class="t">[SQLEXEC]</span> BEFOREFILTER lookup for row #' + tx.id + ' returned ' + tx.relatedOpenCount);
+            setTimeout(afterLookup, 240);
+          } else {
+            afterLookup();
+          }
+        }, 260);
+      }, 220);
+    })();
+  });
+})();
+
+/* ================================================================
+   OPTION B — filter at Replicat (target)
+   ================================================================ */
+(function(){
+  var rowSel = document.getElementById('bRowFilter');
+  var raiseChk = document.getElementById('bRaiseError');
+  var paramOut = document.getElementById('bParamOut');
+  var runBtn = document.getElementById('bRunBtn');
+  var resetBtn = document.getElementById('bResetBtn');
+  var logEl = document.getElementById('bLog');
+  var cols = {
+    app: document.getElementById('bColApp'),
+    db: document.getElementById('bColDb'),
+    ext: document.getElementById('bColExt'),
+    trail: document.getElementById('bColTrail'),
+    rep: document.getElementById('bColRep'),
+    tgt: document.getElementById('bColTgt')
+  };
+  var pulses = {
+    app: document.getElementById('bPulseApp'), db: document.getElementById('bPulseDb'),
+    ext: document.getElementById('bPulseExt'), trail: document.getElementById('bPulseTrail'),
+    rep: document.getElementById('bPulseRep'), tgt: document.getElementById('bPulseTgt')
+  };
+  var stat = {
+    gen: document.getElementById('bStatGen'), trail: document.getElementById('bStatTrail'),
+    pass: document.getElementById('bStatPass'), drop: document.getElementById('bStatDrop'),
+    tgt: document.getElementById('bStatTarget')
+  };
+  var running = false;
+
+  function renderParam(){
+    var lines = ['MAP HR.CUSTORD, TARGET HR.CUSTORD,'];
+    var mode = rowSel.value;
+    if (mode === 'sqlexec_subquery') {
+      lines.push('  SQLEXEC (ID lookup_lines,');
+      lines.push("    QUERY 'select count(*) output from HR.CUSTORD_LINES");
+      lines.push("           where ORDER_ID=:VAR_1 and STATUS=''OPEN''',");
+      lines.push('    PARAMS (VAR_1 = ORDER_ID),');
+      lines.push('    BEFOREFILTER),');
+      var f1 = 'FILTER (lookup_lines.output > 0' + (raiseChk.checked ? ', RAISEERROR 9999' : '') + ')';
+      lines.push('  ' + f1 + ',');
+    } else if (mode === 'sqlexec_storedproc') {
+      lines.push('  SQLEXEC (SPNAME HR.GG_FILTER_COND_PRC,');
+      lines.push('    ID DBSP_CUSTORD,');
+      lines.push("    PARAMS (P_TABLE_NAME = 'CUSTORD', P_KEY_VALUE1 = ORDER_ID),");
+      lines.push('    BEFOREFILTER),');
+      var f2 = 'FILTER (@GETVAL (DBSP_CUSTORD.P_COUNT_VAL) > 0' + (raiseChk.checked ? ', RAISEERROR 9999' : '') + ')';
+      lines.push('  ' + f2 + ',');
+    } else if (mode !== 'none') {
+      var clause = filterLabel(mode);
+      if (raiseChk.checked && clause.indexOf('FILTER') === 0) {
+        clause = clause.slice(0, -1) + ', RAISEERROR 9999)';
+      }
+      lines.push('  ' + clause + ',');
+    }
+    lines.push('  COLMAP (USEDEFAULTS);');
+    if (raiseChk.checked) {
+      lines.unshift('REPERROR (9999, EXCEPTION)');
+      lines.push('', 'MAP HR.CUSTORD, TARGET HR.CUSTORD_EXC,', '  EXCEPTIONSONLY,', "  COLMAP (USEDEFAULTS, ERRTYPE = 'FILTER FAILED');");
+    }
+    paramOut.textContent = lines.join('\n');
+
+    var procPanel = document.getElementById('bProcPanel');
+    var procOut = document.getElementById('bProcOut');
+    if (mode === 'sqlexec_storedproc') {
+      procOut.textContent = storedProcSource('target');
+      procPanel.style.display = '';
+    } else {
+      procPanel.style.display = 'none';
+    }
+  }
+  rowSel.addEventListener('change', renderParam);
+  raiseChk.addEventListener('change', renderParam);
+  renderParam();
+
+  function flash(el){ el.classList.add('on'); setTimeout(function(){ el.classList.remove('on'); }, 450); }
+  function alog(msg, cls){
+    var d = document.createElement('div');
+    if (cls) d.className = cls;
+    d.innerHTML = msg;
+    logEl.appendChild(d);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  function resetCounts(){
+    stat.gen.textContent = stat.trail.textContent = stat.pass.textContent = stat.drop.textContent = stat.tgt.textContent = '0';
+  }
+
+  resetBtn.addEventListener('click', function(){
+    Object.keys(cols).forEach(function(k){ cols[k].innerHTML = ''; });
+    logEl.innerHTML = '';
+    resetCounts();
+  });
+
+  runBtn.addEventListener('click', function(){
+    if (running) return;
+    running = true;
+    runBtn.disabled = true;
+    Object.keys(cols).forEach(function(k){ cols[k].innerHTML = ''; });
+    logEl.innerHTML = '';
+    resetCounts();
+    var mode = rowSel.value;
+    var routeExceptions = raiseChk.checked;
+    var txs = sampleTx();
+    var i = 0;
+    var counts = { gen: 0, trail: 0, pass: 0, drop: 0, tgt: 0 };
+    alog('<span class="t">[EXTRACT]</span> TABLE HR.CUSTORD &mdash; no row filter, no column exclusion, captures every row.');
+    alog('<span class="t">[REPLICAT]</span> MAP HR.CUSTORD row filter: ' + filterLabel(mode) + (routeExceptions ? ' &middot; RAISEERROR routes failures to HR.CUSTORD_EXC' : ''));
+
+    (function next(){
+      if (i >= txs.length) { running = false; runBtn.disabled = false; return; }
+      var tx = txs[i];
+      counts.gen++; stat.gen.textContent = counts.gen;
+      flash(pulses.app);
+      cols.app.insertAdjacentHTML('beforeend', '<div class="chip">' + txLine(tx, true) + '</div>');
+
+      setTimeout(function(){
+        flash(pulses.db);
+        cols.db.insertAdjacentHTML('beforeend', '<div class="chip">' + txLine(tx, true) + '</div>');
+
+        setTimeout(function(){
+          flash(pulses.ext);
+          cols.ext.insertAdjacentHTML('beforeend', '<div class="chip pass">' + txLine(tx, true) + ' &rarr; captured</div>');
+
+          setTimeout(function(){
+            flash(pulses.trail);
+            counts.trail++; stat.trail.textContent = counts.trail;
+            cols.trail.insertAdjacentHTML('beforeend', '<div class="chip pass">' + txLine(tx, true) + '</div>');
+
+            setTimeout(function(){
+              flash(pulses.rep);
+              var lk = lookupChip(mode, tx);
+
+              function afterLookup(){
+                var ok = passesFilter(mode, tx);
+                if (ok){
+                  counts.pass++; stat.pass.textContent = counts.pass;
+                  cols.rep.insertAdjacentHTML('beforeend', '<div class="chip pass">' + txLine(tx, true) + ' &rarr; PASS</div>');
+                  alog('Row #' + tx.id + ' (' + tx.op + ', AMOUNT=' + tx.amount + ', REGION=' + tx.region + ') <span class="g">PASSED</span> Replicat filter &rarr; applied to target');
+                } else {
+                  counts.drop++; stat.drop.textContent = counts.drop;
+                  var reason = routeExceptions ? 'ROUTED TO EXCEPTIONS' : 'DROP';
+                  cols.rep.insertAdjacentHTML('beforeend', '<div class="chip drop">' + txLine(tx, false) + ' &rarr; ' + reason + '</div>');
+                  alog('Row #' + tx.id + ' (' + tx.op + ', AMOUNT=' + tx.amount + ', REGION=' + tx.region + ') <span class="e">FAILED</span> Replicat filter &rarr; ' +
+                    (routeExceptions ? 'RAISEERROR 9999, routed to HR.CUSTORD_EXC exceptions table' : 'discarded, never reaches target'));
+                }
+
+                setTimeout(function(){
+                  if (ok){
+                    flash(pulses.tgt);
+                    counts.tgt++; stat.tgt.textContent = counts.tgt;
+                    cols.tgt.insertAdjacentHTML('beforeend', '<div class="chip pass">' + txLine(tx, true) + '</div>');
+                  } else if (routeExceptions){
+                    cols.tgt.insertAdjacentHTML('beforeend', '<div class="chip masked">#' + tx.id + ' &rarr; HR.CUSTORD_EXC</div>');
+                  }
+                  i++; next();
+                }, 260);
+              }
+
+              if (lk){
+                cols.rep.insertAdjacentHTML('beforeend', '<div class="chip sql">' + lk + '</div>');
+                alog('<span class="t">[SQLEXEC]</span> BEFOREFILTER lookup for row #' + tx.id + ' returned ' + tx.relatedOpenCount);
+                setTimeout(afterLookup, 240);
+              } else {
+                afterLookup();
+              }
+            }, 260);
+          }, 260);
+        }, 220);
+      }, 220);
+    })();
+  });
+})();
+</script>
+
+</body>
+</html>
