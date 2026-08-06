@@ -1,0 +1,2529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GoldenGate Fundamentals — Supplemental Logging &amp; ADD TRANDATA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --redwood:#C74634;
+    --redwood-dark:#9C3327;
+    --ink:#1B1B1B;
+    --muted:#5F6368;
+    --line:#E3E1DD;
+    --bg:#FAF9F7;
+    --panel:#FFFFFF;
+    --ok:#2E7D32;
+    --warn:#B45309;
+    --primary-blue:#1B6FC9;
+    --standby-grey:#8A8D91;
+  }
+  *{box-sizing:border-box;}
+  html,body{max-width:100%;overflow-x:hidden;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);}
+  header{background:var(--ink);color:#fff;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  header .title{display:flex;align-items:center;gap:12px;}
+  header .badge{background:var(--redwood);color:#fff;font-size:11px;font-weight:700;letter-spacing:.06em;padding:4px 10px;border-radius:4px;text-transform:uppercase;}
+  header h1{font-size:18px;margin:0;font-weight:600;}
+  header .sub{font-size:12px;color:#C9C9C9;margin-top:2px;}
+  nav{display:flex;gap:2px;background:#fff;border-bottom:2px solid var(--line);padding:0 20px;overflow-x:auto;position:sticky;top:0;z-index:20;}
+  nav button{border:none;background:transparent;padding:14px 16px;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
+  nav button:hover{color:var(--ink);}
+  nav button.active{color:var(--redwood);border-bottom-color:var(--redwood);}
+  main{max-width:1500px;margin:0 auto;padding:26px 32px 60px;}
+  section.tab{display:none;}
+  section.tab.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+  h2{font-size:20px;margin:4px 0 6px;}
+  p.lead{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:820px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;}
+  .card h3{margin:0 0 8px;font-size:14.5px;color:var(--redwood-dark);display:flex;align-items:center;gap:8px;}
+  .card p{margin:0;font-size:13px;color:var(--muted);line-height:1.55;}
+  .pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;background:#F3E9E7;color:var(--redwood-dark);letter-spacing:.03em;margin-right:6px;margin-bottom:6px;}
+  .pill.blue{background:#E7F0FB;color:var(--primary-blue);}
+  .pill.grey{background:#EEEFEF;color:var(--muted);}
+  .pill.green{background:#E6F4EA;color:var(--ok);}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+  button.action{background:var(--redwood);color:#fff;border:none;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;}
+  button.action:hover{background:var(--redwood-dark);}
+  button.action.secondary{background:#fff;color:var(--redwood);border:1.5px solid var(--redwood);}
+  button.action.secondary:hover{background:#FBEFED;}
+  button.action:disabled{opacity:.45;cursor:not-allowed;}
+  select.action-select{padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-size:13px;background:#fff;color:var(--ink);}
+  .canvas-wrap{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;}
+  .log{background:#111417;color:#D7F5DE;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;border-radius:8px;padding:12px 14px;height:170px;overflow-y:auto;margin-top:12px;line-height:1.6;}
+  .log .t{color:#7DA6FF;}
+  .log .w{color:#FFD479;}
+  .log .e{color:#FF8A80;}
+  .log .g{color:#8CF0A8;}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px;}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);}
+  th{color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;background:#FAFAF9;}
+  td.mono, th.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;}
+  .note{background:#FFF7EA;border:1px solid #F1DDAF;color:#7A5A12;font-size:12.5px;padding:10px 14px;border-radius:8px;margin-top:14px;}
+  .region-box{border:2px solid var(--line);border-radius:12px;padding:14px;position:relative;}
+  .region-label{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;position:absolute;top:-11px;left:14px;background:var(--bg);padding:0 6px;}
+  .role-tag{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;display:inline-block;margin-top:6px;}
+  footer{text-align:center;font-size:11.5px;color:var(--muted);padding:20px;border-top:1px solid var(--line);}
+  a.back{color:var(--redwood);text-decoration:none;font-size:12.5px;font-weight:600;}
+  .flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+  .status-chip{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:20px;}
+  .status-chip.active{background:#E6F4EA;color:var(--ok);}
+  .status-chip.updating{background:#FFF3D6;color:var(--warn);}
+  .version-badge{background:rgba(255,255,255,.12);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer;border:1px solid rgba(255,255,255,.25);white-space:nowrap;}
+  .version-badge:hover{background:rgba(255,255,255,.2);}
+  #changelogPanel{display:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 20px;max-width:1500px;margin:0 auto 24px;}
+  #changelogPanel.open{display:block;}
+  #changelogPanel h3{margin:0 0 10px;font-size:14px;color:var(--redwood-dark);}
+  .cl-entry{border-left:3px solid var(--redwood);padding:4px 0 4px 12px;margin-bottom:10px;}
+  .cl-entry .cl-ver{font-weight:700;font-size:13px;}
+  .cl-entry .cl-date{color:var(--muted);font-size:11.5px;margin-left:8px;}
+  .cl-entry ul{margin:4px 0 0;padding-left:18px;font-size:12.5px;color:var(--muted);}
+  .cl-close{float:right;background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;}
+
+  /* stage pipeline diagram (architecture tab) */
+  .stagegrid{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:6px 2px 14px;}
+  .stagebox{min-width:170px;background:#F3E9E7;border:1px solid #EAD9D5;border-radius:10px;padding:12px;font-size:12px;display:flex;flex-direction:column;gap:4px;cursor:pointer;transition:box-shadow .15s,border-color .15s;}
+  .stagebox:hover{border-color:var(--redwood);box-shadow:0 2px 10px rgba(199,70,52,.15);}
+  .stagebox.sel{border-color:var(--redwood);background:#F6DEDA;}
+  .stagebox .t{font-weight:700;color:var(--redwood-dark);font-size:12.5px;}
+  .stagebox .s{color:var(--muted);font-size:11px;line-height:1.35;}
+  .stagearrow{display:flex;align-items:center;justify-content:center;min-width:32px;color:var(--redwood);font-size:20px;font-weight:700;}
+  #stageDetail{display:none;background:#FBFBFA;border:1px solid var(--line);border-left:3px solid var(--redwood);border-radius:8px;padding:12px 14px;margin-top:12px;font-size:12.5px;}
+  #stageDetail.show{display:block;}
+  #stageDetail h4{margin:0 0 5px;font-size:13px;color:var(--redwood-dark);}
+  #stageDetail p{margin:0;color:var(--muted);line-height:1.65;}
+
+  /* code blocks */
+  pre.code{background:#111417;color:#D7F5DE;padding:14px 16px;border-radius:8px;font-size:12px;overflow-x:auto;line-height:1.55;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word;}
+  .kcode{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:var(--redwood-dark);background:#F3E9E7;padding:1px 5px;border-radius:3px;}
+  .hero{background:#F6DEDA;border:1px solid #EAD9D5;border-radius:10px;padding:18px 22px;margin-bottom:18px;}
+  .hero h2{margin:0 0 8px;color:var(--redwood-dark);}
+  .hero p{margin:0 0 6px;font-size:13.5px;color:var(--ink);line-height:1.7;}
+  .analogy{background:#fff;border-left:3px solid var(--warn);border-radius:8px;padding:11px 14px;margin-top:10px;font-size:12.5px;color:var(--muted);}
+  .analogy b{color:var(--warn);}
+
+  /* ---- Filter Pipeline (Live Simulator) ---- */
+  .fp-controls{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px;}
+  .fp-controls label{font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em;}
+  .fp-row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px;}
+  .fp-field{min-width:220px;flex:1;}
+  .fp-field select,.fp-field input[type=text]{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-size:12.5px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#fff;}
+  .fp-toggle{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink);background:#FBFBFA;border:1px solid var(--line);border-radius:6px;padding:8px 12px;}
+  .paramsnippet{margin-top:6px;}
+  .fp-pipeline{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;align-items:stretch;margin-bottom:14px;}
+  @media(max-width:1050px){.fp-pipeline{grid-template-columns:repeat(3,1fr);}}
+  @media(max-width:620px){.fp-pipeline{grid-template-columns:repeat(2,1fr);}}
+  .fp-node{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;min-height:225px;display:flex;flex-direction:column;position:relative;}
+  .fp-node.decision{border-color:var(--redwood);box-shadow:0 0 0 1px rgba(199,70,52,.15) inset;}
+  .fp-node .fh{font-weight:700;font-size:11.5px;color:var(--redwood-dark);margin-bottom:2px;display:flex;align-items:center;justify-content:space-between;gap:4px;}
+  .fp-node .fs{font-size:10px;color:var(--muted);margin-bottom:6px;line-height:1.35;}
+  .fp-node .fbody{flex:1;overflow-y:auto;max-height:250px;display:flex;flex-direction:column;gap:4px;padding-right:2px;}
+  .fp-node .fcount{font-size:18px;font-weight:700;color:var(--ink);margin-top:4px;}
+  .fp-arrow{display:none;}
+  .chip{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;padding:4px 6px;border-radius:5px;border:1px solid var(--line);background:#FAFAF9;animation:chipin .25s ease;line-height:1.3;}
+  @keyframes chipin{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:none;}}
+  .chip.pass{border-color:#BFE3C6;background:#F0FBF6;color:var(--ok);}
+  .chip.drop{border-color:#F3C9C3;background:#FDEDEB;color:var(--redwood-dark);text-decoration:line-through;text-decoration-color:rgba(156,51,39,.5);}
+  .chip.masked{border-color:#F1DDAF;background:#FFFBF0;color:#7A5A12;}
+  .chip.sql{border-color:#CFE0F5;background:#F3F8FF;color:var(--primary-blue);}
+  .fp-pulse{position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:#C9CCE0;}
+  .fp-pulse.on{background:var(--ok);box-shadow:0 0 0 0 rgba(46,125,50,.6);animation:pulse 1s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(46,125,50,.55);}70%{box-shadow:0 0 0 8px rgba(46,125,50,0);}100%{box-shadow:0 0 0 0 rgba(46,125,50,0);}}
+  .fp-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px;}
+  @media(max-width:900px){.fp-stats{grid-template-columns:repeat(2,1fr);}}
+  .fp-stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-align:center;}
+  .fp-stat .n{font-size:20px;font-weight:700;color:var(--redwood-dark);}
+  .fp-stat .l{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-top:2px;}
+  .connect-row{display:flex;align-items:center;justify-content:center;gap:6px;color:var(--redwood);font-size:16px;font-weight:700;margin:-6px 0 10px;}
+  .connect-row span.lbl{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+  .badge-op{display:inline-block;padding:1px 6px;border-radius:10px;font-size:9.5px;font-weight:700;}
+  .badge-op.INSERT{background:#E6F4EA;color:var(--ok);}
+  .badge-op.UPDATE{background:#FFF3D6;color:var(--warn);}
+  .badge-op.DELETE{background:#F3E9E7;color:var(--redwood-dark);}
+  .compare-table td.win{color:var(--ok);font-weight:700;}
+  .decision-card{border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:var(--panel);}
+  .decision-card h4{margin:0 0 6px;font-size:13.5px;color:var(--redwood-dark);}
+
+
+.apex-region{background:#fff;border:1px solid #E3E1DD;border-radius:10px;margin-bottom:14px;}
+.apex-region-header{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid #E3E1DD;font-size:13px;font-weight:700;color:#1B1B1B;}
+.apex-region-body{padding:14px 16px;}
+.apex-region-body.no-pad{padding:0;}
+.apex-region-title{font-size:13px;font-weight:700;color:#1B1B1B;}
+.apex-region-icon{margin-right:5px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+@media(max-width:700px){.g2,.g3,.g4{grid-template-columns:1fr;}}
+.stat-card{background:#fff;border:1px solid #E3E1DD;border-radius:10px;padding:14px 16px;}
+.stat-label{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#5F6368;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+.stat-value{font-size:20px;font-weight:700;color:#1B1B1B;}
+.stat-card.red .stat-value,.stat-card.warn .stat-value{color:#C74634;}
+.stat-card.green .stat-value{color:#2E7D32;}
+.stat-delta{font-size:11.5px;color:#5F6368;margin-top:2px;}
+.badge,.pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.03em;}
+.badge-success,.badge-green{background:#E6F4EA;color:#2E7D32;border:1px solid rgba(46,125,50,.25);}
+.badge-danger,.badge-red{background:#F3E9E7;color:#9C3327;border:1px solid rgba(199,70,52,.25);}
+.badge-info,.badge-teal{background:#E7F0FB;color:#1B6FC9;border:1px solid rgba(27,111,201,.25);}
+.badge-ai,.badge-amber,.badge-warning{background:#FFF7EA;color:#B45309;border:1px solid rgba(180,83,9,.25);}
+.apex-table{width:100%;border-collapse:collapse;font-size:13px;}
+.apex-table th{text-align:left;background:#FAFAF9;color:#5F6368;font-weight:600;padding:7px 10px;border-bottom:1px solid #E3E1DD;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;}
+.apex-table td{padding:7px 10px;border-bottom:1px solid #E3E1DD;color:#1B1B1B;vertical-align:top;}
+.apex-table tr:hover td{background:#FAFAF9;}
+.apex-btn{font-family:inherit;font-size:13px;font-weight:600;padding:8px 15px;border-radius:6px;cursor:pointer;border:1.5px solid #E3E1DD;background:#fff;color:#5F6368;transition:.15s;}
+.apex-btn-primary{background:#C74634;border-color:#C74634;color:#fff;}
+.apex-btn-primary:hover{background:#9C3327;}
+.apex-btn-secondary{background:#fff;border-color:#E3E1DD;color:#5F6368;}
+code{font-family:ui-monospace,Menlo,monospace;background:#F3E9E7;border-radius:3px;padding:1px 5px;font-size:11.5px;color:#9C3327;}
+pre.code,#cmdCode{background:#111417;color:#D7F5DE;font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.6;padding:13px 15px;border-radius:8px;overflow-x:auto;white-space:pre;margin:0;}
+.c-kw{color:#7DA6FF;font-weight:700;}.c-cm{color:#4a5268;}.c-str{color:#FFCB8B;}.c-out{color:#8CF0A8;}
+input[type=number],input[type=text],select{font-family:inherit;font-size:13px;border:1px solid #E3E1DD;border-radius:6px;padding:8px 10px;background:#fff;color:#1B1B1B;outline:none;transition:border-color .15s;}
+input:focus,select:focus{border-color:#C74634;}
+.terminal-body,#termBody{background:#111417;color:#D7F5DE;font-family:ui-monospace,Menlo,monospace;font-size:12px;border-radius:8px;padding:12px 14px;min-height:140px;overflow-y:auto;line-height:1.8;}
+.ai-panel{background:#fff;border:1px solid #E3E1DD;border-radius:10px;}
+.ai-panel-header{padding:12px 16px;border-bottom:1px solid #E3E1DD;display:flex;align-items:center;gap:10px;}
+.ai-panel-logo{background:#C74634;color:#fff;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:5px;letter-spacing:.05em;}
+.ai-panel-name{font-size:14px;font-weight:700;color:#1B1B1B;}
+.ai-panel-sub{font-size:12px;color:#5F6368;}
+.ai-chat-area{min-height:240px;max-height:340px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;}
+.ai-msg{display:flex;gap:10px;align-items:flex-start;}
+.ai-msg.user{flex-direction:row-reverse;}
+.ai-msg-icon{width:28px;height:28px;border-radius:50%;background:#C74634;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.ai-msg.user .ai-msg-icon{background:#1B6FC9;}
+.ai-msg-bubble{background:#F3F3F2;border:1px solid #E3E1DD;border-radius:8px;padding:9px 13px;font-size:13px;line-height:1.6;max-width:85%;}
+.ai-msg.user .ai-msg-bubble{background:#E7F0FB;border-color:rgba(27,111,201,.25);}
+.ai-input-row{display:flex;gap:8px;padding:10px 14px;border-top:1px solid #E3E1DD;}
+.ai-input{flex:1;border:1px solid #E3E1DD;border-radius:6px;padding:8px 11px;font-family:inherit;font-size:13px;color:#1B1B1B;background:#fff;outline:none;}
+.ai-input:focus{border-color:#C74634;}
+.ai-quick-btn{font-family:ui-monospace,Menlo,monospace;font-size:11px;background:#FAF9F7;border:1px solid #E3E1DD;border-radius:6px;padding:7px 11px;cursor:pointer;color:#5F6368;text-align:left;line-height:1.4;transition:.15s;}
+.ai-quick-btn:hover{border-color:#C74634;color:#C74634;background:#F3E9E7;}
+.prereq-item{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border-bottom:1px solid #E3E1DD;cursor:pointer;transition:background .15s;}
+.prereq-item:hover{background:#FAFAF9;}
+.prereq-item.checked .prereq-check{background:#2E7D32;border-color:#2E7D32;color:#fff;}
+.prereq-check{width:20px;height:20px;border-radius:50%;border:2px solid #E3E1DD;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;transition:all .15s;}
+.prereq-label{font-size:13.5px;color:#1B1B1B;font-weight:600;}
+.prereq-desc{font-size:12px;color:#5F6368;margin-top:2px;line-height:1.4;}
+.perf-bars{display:flex;gap:12px;align-items:flex-end;height:150px;margin-bottom:14px;}
+.p-bar-group{flex:1;height:100%;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.p-bar-wrap{width:100%;display:flex;align-items:flex-end;flex:1;}
+.p-bar{width:100%;border-radius:4px 4px 0 0;min-height:4px;transition:height 1.1s cubic-bezier(.34,1.4,.64,1);will-change:height;}
+.p-bar-green{background:linear-gradient(180deg,#2E7D32,#1a5c1e);}
+.p-bar-red{background:linear-gradient(180deg,#C74634,#9C3327);}
+.p-bar-amber{background:linear-gradient(180deg,#B45309,#7a3c00);}
+.p-bar-label{font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#5F6368;text-align:center;line-height:1.3;}
+.pipe-container{display:flex;align-items:center;overflow-x:auto;padding:8px 0;}
+.pipe-box{flex-shrink:0;background:#FAFAF9;border:1.5px solid #E3E1DD;border-radius:8px;padding:12px;text-align:center;min-width:96px;transition:all .3s cubic-bezier(.34,1.56,.64,1);}
+.pipe-box.active{background:#F3E9E7;border-color:#C74634;transform:scale(1.07);box-shadow:0 4px 14px rgba(199,70,52,.15);}
+.pipe-box.active .pipe-label{color:#C74634;font-weight:700;}
+.pipe-icon{font-size:18px;margin-bottom:5px;}
+.pipe-label{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;font-weight:600;color:#1B1B1B;}
+.pipe-sub{font-size:9.5px;color:#5F6368;margin-top:3px;line-height:1.3;}
+.pipe-arrow{font-size:15px;color:#E3E1DD;padding:0 5px;flex-shrink:0;transition:color .3s;}
+.pipe-arrow.active{color:#C74634;}
+.step-wizard{padding:4px 0;}
+.step-row{display:flex;gap:0;padding:9px 14px;cursor:pointer;border-left:3px solid transparent;transition:all .15s;align-items:flex-start;}
+.step-row:hover{background:#FAFAF9;border-left-color:#E3E1DD;}
+.step-row.s-active{background:#F3E9E7;border-left-color:#C74634;}
+.step-row.s-active .step-title{color:#C74634;font-weight:700;}
+.step-row.s-active .step-circle{background:#C74634;color:#fff;border-color:#C74634;}
+.step-left{display:flex;flex-direction:column;align-items:center;width:30px;flex-shrink:0;margin-right:11px;}
+.step-circle{width:24px;height:24px;border-radius:50%;background:#fff;border:2px solid #E3E1DD;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;font-family:ui-monospace,Menlo,monospace;color:#5F6368;flex-shrink:0;z-index:1;transition:all .15s;}
+.step-line{width:2px;flex:1;min-height:12px;background:#E3E1DD;margin-top:3px;}
+.step-title{font-size:13px;font-weight:600;color:#1B1B1B;margin-bottom:2px;}
+.step-desc{font-size:11.5px;color:#5F6368;line-height:1.4;}
+#redoBlockViz{font-family:ui-monospace,Menlo,monospace;font-size:12px;}
+#rb-v1,#rb-v2{background:#fff;border:1px solid #E3E1DD;border-radius:8px;padding:14px;}
+.toggle-track{width:40px;height:21px;border-radius:11px;background:#e2e2e2;border:1.5px solid #E3E1DD;position:relative;cursor:pointer;transition:background .2s;}
+.toggle-track.on{background:#2E7D32;border-color:#2E7D32;}
+.toggle-thumb{position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:#fff;transition:left .2s;}
+.toggle-track.on .toggle-thumb{left:21px;}
+.toggle-label{font-size:13px;color:#1B1B1B;}
+.apex-toggle{display:flex;align-items:center;gap:10px;}
+.sim-params-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;align-items:end;}
+.sim-field{display:flex;flex-direction:column;gap:5px;}
+.sim-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#5F6368;font-family:ui-monospace,Menlo,monospace;}
+.sim-select{width:100%;font-family:inherit;font-size:13px;border:1px solid #E3E1DD;border-radius:6px;padding:8px 10px;background:#fff;color:#1B1B1B;outline:none;transition:border-color .15s;box-sizing:border-box;}
+.sim-select:focus{border-color:#C74634;}
+.sim-btns{grid-column:1/-1;display:flex;gap:10px;padding-top:4px;}
+@media(max-width:640px){.sim-params-grid{grid-template-columns:1fr;}}
+.section-note,.note{background:#FFF7EA;border:1px solid #F1DDAF;color:#7A5A12;font-size:12.5px;padding:10px 14px;border-radius:8px;margin:10px 0;}
+@keyframes ai-bounce{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
+
+/* Particle enhanced */
+/* Apply viz lane fill */
+/* Option A/B buttons */
+.path-btn { cursor:pointer; padding:14px 16px; border-radius:8px; border:1.5px solid #E3E1DD; background:#fff; transition:all .2s; flex:1; text-align:left; }
+.path-btn.active { border-color:#C74634; background:#F3E9E7; }
+.path-btn h4 { font-size:13px; font-weight:700; color:#C74634; margin:0 0 4px; }
+.path-btn p  { font-size:11.5px; color:#5F6368; font-family:ui-monospace,Menlo,monospace; margin:0; }
+
+
+/* ---------- Guided steps ---------- */
+  .type-note b{color:var(--text);}
+
+  /* ---------- Live pipeline ---------- */
+  footer.note{margin-top:36px;font-size:12px;color:var(--sub);border-top:1px solid var(--line);padding-top:16px;}
+
+
+/* Base button */
+
+/* Fix step-body layout */
+/* Conn fields */
+/* Type select buttons */
+.type-btn:hover { border-color:#C74634; background:#FDF6F5; }
+/* Type note */
+/* Code block */
+.code-block { background:#111417; color:#D7F5DE; font-family:ui-monospace,Menlo,monospace; font-size:11.5px; line-height:1.6; padding:12px 14px; border-radius:8px; overflow-x:auto; white-space:pre; margin:10px 0; min-height:60px; }
+/* Metric row */
+/* Pipeline */
+/* Particle */
+/* Apply viz */
+.lfill { position:absolute; left:0; top:0; bottom:0; border-radius:5px; background:rgba(46,125,50,.25); transition:width .4s ease; width:0%; }
+/* kthread (integrated) */
+/* Log panel */
+/* Path selector */
+#pathSelect /* Step num */
+.step-num { width:28px; height:28px; border-radius:50%; background:#C74634; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; flex-shrink:0; }
+.step-status { font-size:11.5px; font-weight:600; color:#5F6368; margin-left:auto; font-family:ui-monospace,Menlo,monospace; }
+.step-title { font-size:14px; font-weight:700; color:#1B1B1B; }
+
+
+/* ── Internals: LogMiner cards ── */
+#lm-s1,#lm-s2,#lm-s3,#lm-s4{
+  background:#fff;border:1.5px solid #E3E1DD;border-radius:8px;
+  padding:12px 14px;transition:all .4s;font-size:12px;color:#1B1B1B;
+}
+#lm-s1.active,#lm-s2.active,#lm-s3.active,#lm-s4.active{
+  border-color:#C74634;background:#F3E9E7;
+  box-shadow:0 0 0 3px rgba(199,70,52,.12);
+}
+#lm-status{
+  font-family:ui-monospace,Menlo,monospace;font-size:12px;
+  color:#5F6368;margin-top:10px;min-height:20px;transition:color .3s;
+}
+/* ── DML Pipeline boxes ── */
+.pipe-box{
+  flex-shrink:0;background:#FAFAF9;border:1.5px solid #E3E1DD;
+  border-radius:8px;padding:12px 10px;text-align:center;
+  min-width:88px;transition:all .35s cubic-bezier(.34,1.56,.64,1);
+  opacity:1;
+}
+.pipe-box.active{
+  background:#F3E9E7;border-color:#C74634;
+  transform:scale(1.08);
+  box-shadow:0 4px 14px rgba(199,70,52,.25);
+}
+.pipe-box.active .pipe-label{color:#C74634;font-weight:700;}
+.pipe-icon{font-size:20px;margin-bottom:5px;}
+.pipe-label{font-family:ui-monospace,Menlo,monospace;font-size:10.5px;font-weight:600;color:#1B1B1B;}
+.pipe-sub{font-size:9.5px;color:#5F6368;margin-top:3px;line-height:1.3;}
+.pipe-arrow{font-size:18px;color:#E3E1DD;padding:0 4px;flex-shrink:0;transition:color .3s;}
+.pipe-arrow.active{color:#C74634;}
+.pipe-container{display:flex;align-items:center;gap:0;overflow-x:auto;padding:8px 0;}
+/* ── Redo block cards ── */
+#rb-v1,#rb-v2{
+  background:#fff;border:1.5px solid #E3E1DD;border-radius:8px;
+  padding:14px 16px;font-family:ui-monospace,Menlo,monospace;
+  font-size:11.5px;line-height:1.7;transition:all .5s;
+}
+#rb-v1.active{border-color:#C74634;background:#F3E9E7;box-shadow:0 0 0 3px rgba(199,70,52,.1);}
+#rb-v2.active{border-color:#1B6FC9;background:#E7F0FB;box-shadow:0 0 0 3px rgba(27,111,201,.1);}
+#rb-scn{font-family:ui-monospace,Menlo,monospace;font-size:18px;font-weight:700;
+  color:#C74634;text-align:center;padding:8px;transition:all .4s;}
+#rb-footer{font-size:11px;color:#5F6368;margin-top:8px;text-align:center;min-height:18px;}
+/* ── Redo log comparison ── */
+#redoLogBody{
+  font-family:ui-monospace,Menlo,monospace;font-size:12px;
+  line-height:1.7;padding:14px;min-height:120px;
+  transition:opacity .25s ease;
+}
+
+
+
+/* ---------- Guided steps ---------- */
+  .type-note b{color:#1B1B1B;}
+
+  /* ---------- Live pipeline ---------- */
+  footer.note{margin-top:36px;font-size:12px;color:#5F6368;border-top:1px solid #E3E1DD;padding-top:16px;}
+
+
+/* ---------- Guided steps ---------- */
+  .type-note b{color:var(--text);}
+
+  /* ---------- Live pipeline ---------- */
+  footer.note{margin-top:36px;font-size:12px;color:var(--sub);border-top:1px solid var(--line);padding-top:16px;}
+/* ═══ LIVE SIM CSS ═══ */
+:root{
+  --src:#9C3327; --tgt:#1B6FC9; --gg:#C74634; --apply:#2E7D32;
+  --sub:#5F6368; --text:#1B1B1B; --panel:#FFFFFF; --panel2:#FAFAF9;
+  --line:#E3E1DD; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --body:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  --redwood:#C74634; --redwood-dark:#9C3327;
+}
+/* ---------- Guided steps ---------- */
+  .step{background:#FFFFFF;border:1px solid #E3E1DD;border-radius:10px;padding:18px;margin-bottom:14px;position:relative;}
+  .step.locked{opacity:.45;}
+  .step .step-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .step .step-num{width:26px;height:26px;border-radius:50%;background:#FAFAF9;border:1px solid #E3E1DD;display:flex;align-items:center;justify-content:center;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;flex:none;}
+  .step.done .step-num{background:#2E7D32;border-color:#2E7D32;color:#04140E;}
+  .step .step-title{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-weight:600;font-size:14.5px;}
+  .step .step-status{margin-left:auto;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10.5px;padding:4px 9px;border-radius:100px;border:1px solid #E3E1DD;color:#5F6368;}
+  .step.done .step-status{color:#2E7D32;border-color:#2E7D32;}
+  .step-body{font-size:13px;color:#5F6368;line-height:1.7;}
+  .conn-row{display:flex;gap:16px;flex-wrap:wrap;margin:10px 0;}
+  .conn-field{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;background:#FAFAF9;border:1px solid #E3E1DD;border-radius:6px;padding:8px 10px;min-width:170px;}
+  .conn-field .k{color:#5F6368;display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
+  .conn-field .v{color:#1B1B1B;}
+
+  .type-select{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;}
+  .type-btn{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;border:1px solid #E3E1DD;background:#FAFAF9;color:#5F6368;padding:8px 12px;border-radius:8px;cursor:pointer;text-align:left;min-width:170px;}
+  .type-btn b{display:block;color:#1B1B1B;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:12.5px;margin-bottom:2px;}
+  .type-btn.active{border-color:#C74634;background:rgba(199,70,52,.08);}
+  .type-btn.active b{color:#C74634;}
+  .type-note{font-size:12px;color:#5F6368;margin-top:8px;line-height:1.6;}
+  .type-note b{color:#1B1B1B;}
+
+  button.btn{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:13px;font-weight:600;border:1.5px solid #C74634;background:#fff;color:#C74634;padding:9px 16px;border-radius:6px;cursor:pointer;}
+  button.btn.primary{background:#C74634;border-color:#C74634;color:#FFFFFF;font-weight:600;}
+  button.btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  /* ---------- Live pipeline ---------- */
+  .pipeline-wrap{background:#FFFFFF;border:1px solid #E3E1DD;border-radius:12px;padding:20px;position:relative;overflow-x:auto;}
+  .pipeline{position:relative;height:190px;min-width:1080px;}
+  .stage{position:absolute;top:50%;transform:translateY(-50%);width:108px;text-align:center;}
+  .stage .icon{width:60px;height:60px;margin:0 auto 6px;border-radius:10px;border:1px solid #E3E1DD;background:#FAFAF9;display:flex;align-items:center;justify-content:center;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:9.5px;color:#5F6368;line-height:1.25;}
+  .stage .name{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;color:#1B1B1B;}
+  .stage .sub{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:8.5px;color:#5F6368;}
+  .apply-viz{position:absolute;left:790px;top:50%;transform:translateY(-50%);width:150px;height:110px;}
+  .lane{height:19px;border:1px solid #E3E1DD;border-radius:5px;background:#FAFAF9;position:relative;display:flex;align-items:center;padding:0 7px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:8.5px;color:#5F6368;margin-bottom:5px;}
+  .lane:last-child{margin-bottom:0;}
+  .lane .lfill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#2E7D32,transparent);opacity:.3;width:0%;border-radius:5px;transition:width .3s;}
+  .kernel-box{border:1px solid #1B6FC9;border-radius:10px;background:rgba(27,111,201,.06);height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;}
+  .kernel-box .klabel{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:9.5px;color:#1B6FC9;text-align:center;}
+  .kernel-subthreads{display:flex;gap:6px;}
+  .kthread{width:15px;height:15px;border-radius:4px;background:#FAFAF9;border:1px solid #E3E1DD;}
+  .kthread.active{background:#2E7D32;box-shadow:0 0 8px #2E7D32;}
+  .particle{position:absolute;top:50%;width:9px;height:9px;border-radius:3px;margin-top:-4.5px;box-shadow:0 0 8px currentColor;transition:left 1s linear, top .4s ease, background .3s;z-index:6;}
+
+  .metric-row{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;}
+  .metric{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;border:1px solid #E3E1DD;background:#FAFAF9;padding:7px 12px;border-radius:8px;color:#5F6368;min-width:120px;}
+  .metric b{display:block;color:#1B1B1B;font-size:14px;font-weight:600;}
+
+  .log-panel{background:#111417;border:1px solid #262B30;border-radius:10px;padding:12px 14px;height:150px;overflow-y:auto;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;line-height:1.8;}
+  .log-panel .row{display:flex;gap:10px;}
+  .log-panel .ts{color:#7A8496;flex:none;}
+  .log-panel .tag{flex:none;font-weight:600;}
+  .log-panel .tag.src{color:#FF8A80;}
+  .log-panel .tag.gg{color:#FFD479;}
+  .log-panel .tag.tgt{color:#7DA6FF;}
+  .log-panel .msg{color:#D7F5DE;}
+
+  footer.note{margin-top:36px;font-size:12px;color:#5F6368;border-top:1px solid #E3E1DD;padding-top:16px;}
+
+</style>
+</head>
+<body>
+<header>
+  <div class="title">
+    <span class="badge">GoldenGate</span>
+    <div>
+      <h1>GoldenGate Fundamentals</h1>
+      <div class="sub">Supplemental Logging &amp; ADD TRANDATA Simulator · Oracle GoldenGate Microservices</div>
+    </div>
+  </div>
+</header>
+<nav>
+  <button class="active" data-view="prereq">Pre-Requisites</button>
+  <button data-view="sizing">Sizing</button>
+  <button data-view="concept">Concept</button>
+  <button data-view="commands">Commands</button>
+  <button data-view="internals">Internals</button>
+  <button data-view="simulator">Trandata Simulator</button>
+  <button data-view="performance">Performance</button>
+  <button data-view="livesim">Live Simulator</button>
+  <button data-view="ai26">GG AI Bot</button>
+</nav>
+<main>
+
+<section class="tab active" id="view-prereq">
+<div style="background:var(--info-bg);border:1px solid var(--info-border);border-radius:var(--radius);padding:12px 16px;display:flex;gap:12px;margin-bottom:20px;">
+    <span style="font-size:16px;">ℹ️</span>
+    <div><div style="font-weight:600;color:var(--info);margin-bottom:2px;">Pre-Requisite Checklist</div>
+    <div style="font-size:12px;color:var(--text-secondary);">Ensure all prerequisites are met before enabling supplemental logging and ADD TRANDATA. Use the checklist below to track progress.</div></div>
+  </div>
+
+  <!-- CHECKLIST -->
+  <div class="apex-region" style="margin-bottom:20px;">
+    <div class="apex-region-header">
+      <div class="apex-region-title">☑️ Setup Checklist</div>
+      <span id="checkProgress" class="badge badge-info">0 / 8 Complete</span>
+    </div>
+    <div class="apex-region-body">
+      <div id="checklistContainer">
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><label>Oracle database is in ARCHIVELOG mode (required for GoldenGate)</label></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><label>GoldenGate software installed and OGG_HOME / ORACLE_HOME set correctly</label></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><label>GoldenGate database user created with required privileges (SYSDBA / GRANT_ADMIN_PRIVILEGE)</label></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><label>Database minimal supplemental logging enabled: ALTER DATABASE ADD SUPPLEMENTAL LOG DATA</label></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><label>FORCE LOGGING enabled: ALTER DATABASE FORCE LOGGING</label></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><label>Redo log groups sized appropriately (≥ 500MB per group, ≥ 3 groups)</label></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><label>DBLOGIN tested successfully in AdminClient</label></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><input type="checkbox"><label>ADD SCHEMATRANDATA / TRANDATA executed and verified with INFO TRANDATA</label></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DB PREREQS -->
+  <div style="margin-bottom:20px;">
+    <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--apex-red);display:flex;align-items:center;gap:8px;">🔴 Database-Level Prerequisites</div>
+    <div class="g2">
+      <div style="background:var(--content-bg);border:1px solid var(--border);border-left:4px solid var(--apex-red);border-radius:var(--radius-lg);padding:16px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--apex-red);margin-bottom:10px;">ARCHIVELOG Mode</div>
+        <ul style="list-style:none;padding-left:4px;">
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--success);">✔</span>Oracle DB must be in ARCHIVELOG mode</li>
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--success);">✔</span>GoldenGate mines archived redo logs for changes</li>
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--success);">✔</span>Check: <code style="font-family:monospace;color:var(--apex-red);font-size:11px;">SELECT LOG_MODE FROM V$DATABASE;</code></li>
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--success);">✔</span>Enable: SHUTDOWN → MOUNT → ALTER DATABASE ARCHIVELOG</li>
+        </ul>
+      </div>
+      <div style="background:var(--content-bg);border:1px solid var(--border);border-left:4px solid var(--info);border-radius:var(--radius-lg);padding:16px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--info);margin-bottom:10px;">Minimal Supplemental Logging</div>
+        <ul style="list-style:none;padding-left:4px;">
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--success);">✔</span>Must be enabled at DB level before TRANDATA</li>
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--success);">✔</span>Requires SYSDBA or ALTER DATABASE privilege</li>
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--success);">✔</span>No instance restart required</li>
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--success);">✔</span>Works in RAC — apply once per DB, not per node</li>
+        </ul>
+      </div>
+      <div style="background:var(--content-bg);border:1px solid var(--border);border-left:4px solid var(--success);border-radius:var(--radius-lg);padding:16px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--success);margin-bottom:10px;">FORCE LOGGING</div>
+        <ul style="list-style:none;padding-left:4px;">
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--success);">✔</span>Prevents NOLOGGING operations from bypassing redo</li>
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--success);">✔</span>Critical for direct path loads, CREATE TABLE NOLOGGING</li>
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--success);">✔</span>Apply at DB level AND PDB level for multitenant</li>
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--success);">✔</span>Check: <code style="font-family:monospace;color:var(--success);font-size:11px;">SELECT FORCE_LOGGING FROM V$DATABASE;</code></li>
+        </ul>
+      </div>
+      <div style="background:var(--content-bg);border:1px solid var(--border);border-left:4px solid var(--warning);border-radius:var(--radius-lg);padding:16px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--warning);margin-bottom:10px;">Redo Log Sizing</div>
+        <ul style="list-style:none;padding-left:4px;">
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--success);">✔</span>Minimum: 3 redo log groups, ≥ 500MB each</li>
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--success);">✔</span>Supplemental logging increases redo volume by 5–40%</li>
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--success);">✔</span>Target: log switches no more than 4 per hour</li>
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;align-items:flex-start;"><span style="color:var(--success);">✔</span>Monitor: V$LOG_HISTORY for switch frequency</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- GoldenGate User Creation -->
+  <div style="margin-bottom:20px;">  </div>
+
+  <!-- GG Software prereqs -->
+  <div>
+    <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--apex-red);">🛠️ GoldenGate Software &amp; Network Prerequisites</div>
+    <div class="g2">
+      <div style="background:var(--content-bg);border:1px solid var(--border);border-left:4px solid var(--ai-purple);border-radius:var(--radius-lg);padding:16px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ai-purple);margin-bottom:10px;">Software Requirements</div>
+        <ul style="list-style:none;padding-left:4px;">
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;"><span style="color:var(--success);">✔</span>Oracle GoldenGate 26ai Microservices installed</li>
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;"><span style="color:var(--success);">✔</span>OGG_HOME and ORACLE_HOME environment variables set</li>
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;"><span style="color:var(--success);">✔</span>ServiceManager running (AdminClient port 9100)</li>
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;"><span style="color:var(--success);">✔</span>Oracle Wallet configured for credential alias</li>
+        </ul>
+      </div>
+      <div style="background:var(--content-bg);border:1px solid var(--border);border-left:4px solid var(--success);border-radius:var(--radius-lg);padding:16px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--success);margin-bottom:10px;">Source DB Validation</div>
+        <ul style="list-style:none;padding-left:4px;">
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;"><span style="color:var(--success);">✔</span>Tables to replicate have PRIMARY KEY or UNIQUE index</li>
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;"><span style="color:var(--success);">✔</span>No unsupported data types (BFILE, XMLTYPE — limited)</li>
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;"><span style="color:var(--success);">✔</span>Source schema accessible by GGS user (SELECT privilege)</li>
+          <li style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;gap:8px;"><span style="color:var(--success);">✔</span>V$DATABASE shows LOG_MODE = ARCHIVELOG</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+<div class="apex-region" style="margin-top:14px;">
+  <div class="apex-region-header">
+    <div class="apex-region-title">&#128100; GoldenGate Database User Creation</div>
+  </div>
+  <div class="apex-region-body" style="padding:0;">
+
+    <!-- Non-CDB -->
+    <div style="padding:14px 16px;border-bottom:1px solid #E3E1DD;">
+      <div style="font-size:13px;font-weight:700;color:#9C3327;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+        <span style="background:#F3E9E7;color:#C74634;border-radius:6px;padding:2px 9px;font-size:11px;font-weight:700;font-family:ui-monospace,Menlo,monospace;">Non-CDB</span>
+        Non-CDB Database
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="background:#FAFAF9;border:1px solid #E3E1DD;border-left:3px solid #C74634;border-radius:6px;padding:10px 14px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#5F6368;margin-bottom:6px;font-family:ui-monospace,Menlo,monospace;">Step 1 — Create User</div>
+          <pre class="code">CREATE USER ggadmin IDENTIFIED BY &lt;password&gt;
+  DEFAULT TABLESPACE users
+  TEMPORARY TABLESPACE temp;</pre>
+        </div>
+        <div style="background:#FAFAF9;border:1px solid #E3E1DD;border-left:3px solid #C74634;border-radius:6px;padding:10px 14px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#5F6368;margin-bottom:6px;font-family:ui-monospace,Menlo,monospace;">Step 2 — Core Grants</div>
+          <pre class="code">GRANT CREATE SESSION, CONNECT, RESOURCE TO ggadmin;
+GRANT SELECT ANY DICTIONARY TO ggadmin;
+GRANT SELECT ANY TABLE       TO ggadmin;
+GRANT FLASHBACK ANY TABLE    TO ggadmin;
+GRANT ALTER SESSION          TO ggadmin;
+GRANT EXECUTE ON DBMS_FLASHBACK TO ggadmin;</pre>
+        </div>
+        <div style="background:#FAFAF9;border:1px solid #E3E1DD;border-left:3px solid #C74634;border-radius:6px;padding:10px 14px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#5F6368;margin-bottom:6px;font-family:ui-monospace,Menlo,monospace;">Step 3 — GoldenGate Admin Privilege</div>
+          <pre class="code">EXEC DBMS_GOLDENGATE_AUTH.GRANT_ADMIN_PRIVILEGE('GGADMIN');
+
+-- Oracle 26ai shortcut (replaces all Step 2 grants above):
+GRANT GG_ADMINISTRATOR TO ggadmin;</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- CDB/Multitenant -->
+    <div style="padding:14px 16px;border-bottom:1px solid #E3E1DD;">
+      <div style="font-size:13px;font-weight:700;color:#9C3327;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+        <span style="background:#E7F0FB;color:#1B6FC9;border-radius:6px;padding:2px 9px;font-size:11px;font-weight:700;font-family:ui-monospace,Menlo,monospace;">CDB</span>
+        CDB / Multitenant Database
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="background:#FAFAF9;border:1px solid #E3E1DD;border-left:3px solid #1B6FC9;border-radius:6px;padding:10px 14px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#5F6368;margin-bottom:6px;font-family:ui-monospace,Menlo,monospace;">Step 1 — Create Common User (c## prefix required)</div>
+          <pre class="code">ALTER SESSION SET CONTAINER = CDB$ROOT;
+CREATE USER c##ggadmin IDENTIFIED BY &lt;password&gt;
+  DEFAULT TABLESPACE users CONTAINER=ALL;</pre>
+        </div>
+        <div style="background:#FAFAF9;border:1px solid #E3E1DD;border-left:3px solid #1B6FC9;border-radius:6px;padding:10px 14px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#5F6368;margin-bottom:6px;font-family:ui-monospace,Menlo,monospace;">Step 2 — Core Grants (CONTAINER=ALL)</div>
+          <pre class="code">GRANT CREATE SESSION         TO c##ggadmin CONTAINER=ALL;
+GRANT SET CONTAINER          TO c##ggadmin CONTAINER=ALL;
+GRANT SELECT ANY DICTIONARY  TO c##ggadmin CONTAINER=ALL;
+GRANT SELECT ANY TABLE        TO c##ggadmin CONTAINER=ALL;
+GRANT FLASHBACK ANY TABLE     TO c##ggadmin CONTAINER=ALL;
+GRANT ALTER SESSION           TO c##ggadmin CONTAINER=ALL;
+GRANT EXECUTE ON DBMS_FLASHBACK TO c##ggadmin CONTAINER=ALL;</pre>
+        </div>
+        <div style="background:#FAFAF9;border:1px solid #E3E1DD;border-left:3px solid #1B6FC9;border-radius:6px;padding:10px 14px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#5F6368;margin-bottom:6px;font-family:ui-monospace,Menlo,monospace;">Step 3 — GoldenGate Admin Privilege across all PDBs</div>
+          <pre class="code">EXEC DBMS_GOLDENGATE_AUTH.GRANT_ADMIN_PRIVILEGE(
+  'C##GGADMIN', CONTAINER=>'ALL');
+
+-- Oracle 26ai shortcut:
+GRANT GG_ADMINISTRATOR TO c##ggadmin CONTAINER=ALL;</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Oracle 26ai New Roles -->
+    <div style="padding:14px 16px;">
+      <div style="font-size:13px;font-weight:700;color:#9C3327;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+        <span style="background:#E6F4EA;color:#2E7D32;border-radius:6px;padding:2px 9px;font-size:11px;font-weight:700;font-family:ui-monospace,Menlo,monospace;">26ai NEW</span>
+        New Roles &amp; Privileges — Oracle Database 26ai
+      </div>
+      <table class="apex-table">
+        <thead><tr><th>Role / Privilege</th><th>Scope</th><th>Purpose</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><code>GG_ADMINISTRATOR</code></td><td>CDB / Non-CDB</td><td>Unified admin role — replaces all individual manual grants</td><td><span class="badge badge-success">&#10003; New 26ai</span></td></tr>
+          <tr><td><code>GG_CAPTURE</code></td><td>CDB / Non-CDB</td><td>Extract-only scoped role — least-privilege capture</td><td><span class="badge badge-success">&#10003; New 26ai</span></td></tr>
+          <tr><td><code>GG_APPLY</code></td><td>CDB / Non-CDB</td><td>Replicat-only scoped role — least-privilege apply</td><td><span class="badge badge-success">&#10003; New 26ai</span></td></tr>
+          <tr><td><code>GG_XSTREAM_USER</code></td><td>CDB only</td><td>XStream-to-GoldenGate bridge for 26ai Integrated Capture</td><td><span class="badge badge-success">&#10003; New 26ai</span></td></tr>
+          <tr><td><code>LOGMINING_GRANT</code></td><td>CDB only</td><td>Single call replaces all V$ and LogMiner manual grants</td><td><span class="badge badge-success">&#10003; New 26ai</span></td></tr>
+          <tr><td><code>DBA_GOLDENGATE_PRIVILEGES</code></td><td>Both</td><td>New dictionary view — audit which users hold GG grants</td><td><span class="badge badge-success">&#10003; New 26ai</span></td></tr>
+          <tr><td><code>DBMS_GOLDENGATE_AUTH</code></td><td>Both</td><td>Enhanced in 26ai — CONTAINER=ALL in single procedure call</td><td><span class="badge badge-info">Enhanced</span></td></tr>
+        </tbody>
+      </table>
+      <div class="note" style="margin-top:10px;">
+        &#128161; <strong>Oracle 26ai tip:</strong> <code>GRANT GG_ADMINISTRATOR TO ggadmin;</code> replaces all Step 2 manual grants above. For Extract-only use <code>GG_CAPTURE</code>; for Replicat-only use <code>GG_APPLY</code> — follows least-privilege security posture.
+      </div>
+    </div>
+
+  </div>
+</div>
+</section>
+
+<section class="tab" id="view-sizing">
+<div style="background:var(--info-bg);border:1px solid var(--info-border);border-radius:6px;padding:12px 16px;display:flex;gap:12px;margin-bottom:20px;">
+    <span style="font-size:16px;">📐</span>
+    <div><div style="font-weight:600;color:var(--info);margin-bottom:2px;">GoldenGate Sizing Guidelines</div>
+    <div style="font-size:12px;color:var(--text-secondary);">Based on Oracle internal sizing guidelines. Use these formulas to plan memory, storage, and network for your GoldenGate deployment.</div></div>
+  </div>
+
+  <!-- Memory Calc -->
+  <div class="apex-region" style="margin-bottom:20px;">
+    <div class="apex-region-header"><div class="apex-region-title">🧮 Memory Requirement Calculator (Integrated Extract)</div></div>
+    <div class="apex-region-body">
+      <div style="background:var(--info-bg);border:1px solid var(--info-border);border-radius:6px;padding:12px 16px;display:flex;gap:12px;margin-bottom:16px;">
+        <span>ℹ️</span>
+        <div style="font-size:12px;color:var(--text-secondary);">By default, one Extract requests the logmining server to run with <strong>MAX_SGA_SIZE of 1GB</strong>. For 3 Extracts in the same database instance, allocate at least 3 GB to the Streams pool. Best practice: keep 25% of Streams pool available.<br><strong>Example:</strong> 3 Extracts → set STREAMS_POOL_SIZE = 3 GB × 1.25 = <strong>3.75 GB</strong></div>
+      </div>
+      <div style="background:#1E2433;border-radius:6px;padding:12px 18px;font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#FFCB6B;border:1px solid #2A3040;margin-bottom:16px;text-align:center;">
+        STREAMS_POOL_SIZE = (Number of Extracts × 1 GB) × 1.25
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:14px;">
+        <label style="font-size:12px;font-weight:500;color:var(--text-label);">Number of Extract Processes:</label>
+        <input type="number" id="numExtracts" value="3" min="1" max="20"
+          style="border:1px solid #E3E1DD;border-radius:6px;padding:8px 10px;font-family:ui-monospace,Menlo,monospace;font-size:13px;width:100%;max-width:130px;outline:none;background:#fff;color:#1B1B1B;"
+          oninput="calcMemory()">
+        <div id="memResult" style="background:var(--apex-red-light);border:1px solid var(--apex-red-mid);border-radius:6px;padding:10px 16px;font-family:ui-monospace,Menlo,monospace;font-size:14px;font-weight:700;color:var(--apex-red);">STREAMS_POOL_SIZE = 3.75 GB</div>
+      </div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">SQL to Apply</div>
+      <div class="code-block">
+<span class="c-kw">ALTER SYSTEM SET</span> STREAMS_POOL_SIZE = <span class="c-val" id="memSqlVal">3840</span>M SCOPE=BOTH;
+<span class="c-cm">-- Or in init.ora / spfile: STREAMS_POOL_SIZE=3840M</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trail Storage Calc -->
+  <div class="apex-region" style="margin-bottom:20px;">
+    <div class="apex-region-header"><div class="apex-region-title">💾 Trail File Storage Calculator</div></div>
+    <div class="apex-region-body">
+      <div style="background:var(--info-bg);border:1px solid var(--info-border);border-radius:6px;padding:12px 16px;display:flex;gap:12px;margin-bottom:16px;">
+        <span>ℹ️</span>
+        <div style="font-size:12px;color:var(--text-secondary);">Formula: <strong>((transaction log size × 0.33) × log switches per day) × retention days</strong><br>
+        Example: 1GB logs, 10 switches/day, 7 days → 1 × 0.33 × 10 × 7 = <strong>23 GB</strong></div>
+      </div>
+      <div style="background:#1E2433;border-radius:6px;padding:12px 18px;font-family:ui-monospace,Menlo,monospace;font-size:13px;color:#FFCB6B;border:1px solid #2A3040;margin-bottom:16px;text-align:center;">
+        Trail Storage = (Txn Log GB × 0.33) × Log Switches/Day × Retention Days
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;margin-bottom:12px;">
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <label style="font-size:12px;font-weight:500;color:var(--text-label);">Txn Log Size (GB)</label>
+          <input type="number" id="txnLogSize" value="1" min="0.1" step="0.1"
+            style="border:1px solid #E3E1DD;border-radius:6px;padding:8px 10px;font-family:ui-monospace,Menlo,monospace;font-size:13px;width:100%;max-width:130px;outline:none;background:#fff;color:#1B1B1B;" oninput="calcTrail()">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <label style="font-size:12px;font-weight:500;color:var(--text-label);">Log Switches/Day</label>
+          <input type="number" id="logSwitches" value="10" min="1"
+            style="border:1px solid #E3E1DD;border-radius:6px;padding:8px 10px;font-family:ui-monospace,Menlo,monospace;font-size:13px;width:100%;max-width:130px;outline:none;background:#fff;color:#1B1B1B;" oninput="calcTrail()">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <label style="font-size:12px;font-weight:500;color:var(--text-label);">Retention Days</label>
+          <input type="number" id="retDays" value="7" min="1"
+            style="border:1px solid #E3E1DD;border-radius:6px;padding:8px 10px;font-family:ui-monospace,Menlo,monospace;font-size:13px;width:100%;max-width:130px;outline:none;background:#fff;color:#1B1B1B;" oninput="calcTrail()">
+        </div>
+        <div id="trailResult" style="background:var(--apex-red-light);border:1px solid var(--apex-red-mid);border-radius:6px;padding:10px 16px;font-family:ui-monospace,Menlo,monospace;font-size:14px;font-weight:700;color:var(--apex-red);">Trail Storage = 23.1 GB</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Network -->
+</section>
+
+<section class="tab" id="view-concept">
+<!-- Stat cards -->
+        <div class="g2" style="margin-bottom:20px;">
+          <!-- Without supplemental -->
+          <div class="apex-region">
+            <div class="apex-region-header">
+              <div class="apex-region-title"><span class="apex-region-icon">📜</span> Standard Redo Log — WITHOUT Supplemental</div>
+              <span class="badge badge-danger">⚠ Missing Data</span>
+            </div>
+            <div class="apex-region-body">
+              <div class="code-label"><span class="code-dot" style="background:#6B7280;"></span> Oracle Default Redo Entry</div>
+              <div class="code-block">
+<span class="c-cm">-- Standard redo only logs CHANGED columns</span>
+<span class="c-kw">UPDATE</span> HR.EMPLOYEES
+  <span class="c-kw">SET</span> SALARY = <span class="c-val">95000</span>
+  <span class="c-kw">WHERE</span> EMPLOYEE_ID = <span class="c-val">101</span>;
+
+<span class="c-cm">-- Redo vector written by LGWR:</span>
+<span class="c-out">OP: 11.4 (update)  SCN: 0x0B.A43C21</span>
+  <span class="c-warn">col 5[SALARY]: 95000  ← after-image only</span>
+  <span class="c-warn">Row identity:   UNKNOWN ←  problem!</span>
+  <span class="c-warn">Before-image:   NOT CAPTURED</span>
+              </div>
+              <div class="apex-alert danger" style="margin-top:14px;margin-bottom:0;">
+                <span class="alert-icon">❌</span>
+                <div class="alert-body">
+                  <div class="alert-title">GoldenGate Extract Cannot Proceed</div>
+                  <div class="alert-text">Without the primary key in the redo vector, Extract cannot identify which row changed. It must scan the full table or skip the operation — both are unacceptable for real-time replication.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- With supplemental -->
+          <div class="apex-region">
+            <div class="apex-region-header">
+              <div class="apex-region-title"><span class="apex-region-icon">🔑</span> Supplemental Redo Log — WITH Logging Enabled</div>
+              <span class="badge badge-success">✔ Complete</span>
+            </div>
+            <div class="apex-region-body">
+              <div class="code-label"><span class="code-dot" style="background:#197A3B;"></span> Enhanced Redo Entry</div>
+              <div class="code-block">
+<span class="c-cm">-- Supplemental log appends extra vectors</span>
+<span class="c-kw">UPDATE</span> HR.EMPLOYEES
+  <span class="c-kw">SET</span> SALARY = <span class="c-val">95000</span>
+  <span class="c-kw">WHERE</span> EMPLOYEE_ID = <span class="c-val">101</span>;
+
+<span class="c-cm">-- Enhanced redo vector:</span>
+<span class="c-out">OP: 11.4  SCN: 0x0B.A43C21</span>
+  <span class="c-val">col 0[EMPLOYEE_ID]: 101</span>  <span class="c-cm">← PK ✔</span>
+  <span class="c-val">col 4[SALARY_BI]:  85000</span> <span class="c-cm">← before-image ✔</span>
+  <span class="c-val">col 5[SALARY]:     95000</span> <span class="c-cm">← after-image ✔</span>
+  <span class="c-val">col 1[EMAIL]: john@corp.com</span><span class="c-cm">← UK col ✔</span>
+              </div>
+              <div class="apex-alert success" style="margin-top:14px;margin-bottom:0;">
+                <span class="alert-icon">✅</span>
+                <div class="alert-body">
+                  <div class="alert-title">Extract Builds Complete LCR</div>
+                  <div class="alert-text">All pieces present: row identity (PK=101), before-image (85000→95000), key context. Trail file written. Replicat applies the change precisely at the target.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Architecture -->
+        <div class="apex-region">
+          <div class="apex-region-header">
+            <div class="apex-region-title"><span class="apex-region-icon">🏗️</span> Two-Level Supplemental Logging Architecture</div>
+          </div>
+          <div class="apex-region-body">
+            <div class="arch-layer arch-oracle">
+              <div class="arch-label">🔴 Level 1 — Database Level (Minimal Supplemental Logging)</div>
+              <div class="arch-chips">
+                <div class="arch-chip">📋 Enables Redo Log Infrastructure</div>
+                <div class="arch-chip">🔧 ALTER DATABASE ADD SUPPLEMENTAL LOG DATA</div>
+                <div class="arch-chip">✔ Required Foundation for GGS</div>
+                <div class="arch-chip">📌 Very low overhead</div>
+              </div>
+            </div>
+            <div class="arch-conn">
+              <div class="arch-conn-line"></div>
+              <span>⬇ Enables table-level log group creation</span>
+              <div class="arch-conn-line"></div>
+            </div>
+            <div class="arch-layer arch-gg">
+              <div class="arch-label">🟡 Level 2 — Table / Schema Level (ADD TRANDATA)</div>
+              <div class="arch-chips">
+                <div class="arch-chip">📊 Per-table supplemental log groups</div>
+                <div class="arch-chip">🔑 Primary / Unique key columns</div>
+                <div class="arch-chip">📝 Before-image capture</div>
+                <div class="arch-chip">🛡️ ALLCOLS for CDR</div>
+                <div class="arch-chip">🏗️ SCHEMATRANDATA for bulk</div>
+              </div>
+            </div>
+            <div class="arch-conn">
+              <div class="arch-conn-line"></div>
+              <span>⬇ Extract reads enhanced redo via LogMiner / Integrated mode</span>
+              <div class="arch-conn-line"></div>
+            </div>
+            <div class="arch-layer arch-target">
+              <div class="arch-label">🟢 GoldenGate Extract — Trail File Production</div>
+              <div class="arch-chips">
+                <div class="arch-chip">🔍 Redo log mining (LogMiner API)</div>
+                <div class="arch-chip">📦 LCR construction</div>
+                <div class="arch-chip">🚀 Trail file write</div>
+                <div class="arch-chip">↔️ Downstream Replicat</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Types table -->
+        <div class="apex-region">
+          <div class="apex-region-header">
+            <div class="apex-region-title"><span class="apex-region-icon">📋</span> Supplemental Log Types at a Glance</div>
+          </div>
+          <div class="apex-region-body no-pad">
+            <table class="apex-table">
+              <thead>
+                <tr>
+                  <th>Log Type</th><th>Scope</th><th>Columns Logged</th><th>GoldenGate Usage</th><th>Overhead</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Minimal</strong><br><small style="color:var(--text-muted); font-family:monospace;">ALTER DATABASE</small></td>
+                  <td>Database-wide</td>
+                  <td>Infrastructure only</td>
+                  <td><span class="badge badge-warning">⚠ Required foundation</span></td>
+                  <td><span class="badge badge-success">Very Low</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Primary Key</strong><br><small style="color:var(--text-muted); font-family:monospace;">ADD TRANDATA</small></td>
+                  <td>Table</td>
+                  <td>PK columns only</td>
+                  <td><span class="badge badge-success">✅ Minimum for GGS</span></td>
+                  <td><span class="badge badge-success">Low (+5–10%)</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Unique Key</strong><br><small style="color:var(--text-muted); font-family:monospace;">NOKEY option</small></td>
+                  <td>Table</td>
+                  <td>UK + PK columns</td>
+                  <td><span class="badge badge-info">Tables without PK</span></td>
+                  <td><span class="badge badge-warning">Medium (+15%)</span></td>
+                </tr>
+                <tr>
+                  <td><strong>All Columns</strong><br><small style="color:var(--text-muted); font-family:monospace;">ALLCOLS</small></td>
+                  <td>Table</td>
+                  <td>Every column — before + after image</td>
+                  <td><span class="badge badge-info">CDR / Bi-directional</span> <span class="badge badge-ai">Lakehouse / Iceberg</span></td>
+                  <td><span class="badge badge-danger">High (+40%)</span></td>
+                </tr>
+                <tr>
+                  <td><strong>SCHEMATRANDATA</strong><br><small style="color:var(--text-muted); font-family:monospace;">ADD SCHEMATRANDATA</small></td>
+                  <td>Schema-wide</td>
+                  <td>PK + UK per table</td>
+                  <td><span class="badge badge-success">✅ Recommended bulk</span></td>
+                  <td><span class="badge badge-success">Low (+5%)</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+</section>
+
+<section class="tab" id="view-commands">
+<div class="g2" style="align-items:start; margin-bottom:20px;">
+
+          <!-- Step wizard -->
+          <div class="apex-region" style="height:100%;">
+            <div class="apex-region-header">
+              <div class="apex-region-title"><span class="apex-region-icon">📋</span> Configuration Steps</div>
+            </div>
+            <div class="apex-region-body" style="padding:0;">
+              <div class="step-wizard" id="stepWizard">
+                <div class="step-row s-active" onclick="selectStep(0)">
+                  <div class="step-left"><div class="step-circle">1</div><div class="step-line"></div></div>
+                  <div class="step-body"><div class="step-title">Check Current Status</div><div class="step-desc">Query V$DATABASE to verify ARCHIVELOG mode and existing supplemental logging state.</div></div>
+                </div>
+                <div class="step-row" onclick="selectStep(1)">
+                  <div class="step-left"><div class="step-circle">2</div><div class="step-line"></div></div>
+                  <div class="step-body"><div class="step-title">Enable Minimal Suppl. Logging</div><div class="step-desc">Enable minimal DB-level supplemental logging. Requires SYSDBA privilege.</div></div>
+                </div>
+                <div class="step-row" onclick="selectStep(2)">
+                  <div class="step-left"><div class="step-circle">3</div><div class="step-line"></div></div>
+                  <div class="step-body"><div class="step-title">Enable Force Logging</div><div class="step-desc">Enable FORCE LOGGING to prevent NOLOGGING operations bypassing redo capture.</div></div>
+                </div>
+                <div class="step-row" onclick="selectStep(3)">
+                  <div class="step-left"><div class="step-circle">4</div><div class="step-line"></div></div>
+                  <div class="step-body"><div class="step-title">AdminClient Login</div><div class="step-desc">Connect to GoldenGate Microservices via AdminClient (replaces GGSCI in 26ai).</div></div>
+                </div>
+                <div class="step-row" onclick="selectStep(4)">
+                  <div class="step-left"><div class="step-circle">5</div><div class="step-line"></div></div>
+                  <div class="step-body"><div class="step-title">DBLOGIN — Authenticate</div><div class="step-desc">Authenticate GoldenGate to the source Oracle database using DBLOGIN.</div></div>
+                </div>
+                <div class="step-row" onclick="selectStep(5)">
+                  <div class="step-left"><div class="step-circle">6</div><div class="step-line"></div></div>
+                  <div class="step-body"><div class="step-title">ADD SCHEMATRANDATA</div><div class="step-desc">Apply schema-level supplemental logging for all tables in a schema.</div></div>
+                </div>
+                <div class="step-row" onclick="selectStep(6)">
+                  <div class="step-left"><div class="step-circle">7</div><div class="step-line"></div></div>
+                  <div class="step-body"><div class="step-title">ADD TRANDATA (Per Table)</div><div class="step-desc">Fine-grained table-level ADD TRANDATA with PK / ALLCOLS / KEYCOLS / NOKEY.</div></div>
+                </div>
+                <div class="step-row" onclick="selectStep(7)">
+                  <div class="step-left"><div class="step-circle">8</div></div>
+                  <div class="step-body"><div class="step-title">Verify Configuration</div><div class="step-desc">Verify supplemental logging via INFO TRANDATA and DBA_LOG_GROUPS dictionary view.</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Code panel -->
+          <div class="apex-region" id="cmdCodePanel" style="height:100%;">
+            <div class="apex-region-header" style="flex-wrap:wrap;gap:8px;">
+              <div class="apex-region-title"><span class="apex-region-icon">💻</span> <span id="cmdPanelTitle">Step 1 — SQL*Plus Prompt</span></div>
+              <span class="badge badge-info" id="cmdPanelBadge">Oracle SQL / AdminClient</span>
+            </div>
+            <div class="apex-region-body" style="padding:0;">
+              <div id="cmdCode" style="
+                background:#1E2433;
+                border-radius:0 0 8px 8px;
+                padding:18px 20px;
+                font-family:'JetBrains Mono',monospace;
+                font-size:12px;
+                line-height:1.9;
+                color:#CDD5E0;
+                min-height:400px;
+                overflow-x:auto;
+                overflow-y:auto;
+                white-space:pre;
+                tab-size:4;
+              "><span class="c-cm">-- ══════════════════════════════════</span>
+<span class="c-cm">-- STEP 1: Check Current DB Status</span>
+<span class="c-cm">-- ══════════════════════════════════</span>
+
+<span class="c-cm">-- SQL*Plus Prompt:</span>
+<span class="c-kw">SELECT</span> LOG_MODE,
+       SUPPLEMENTAL_LOG_DATA_MIN  <span class="c-cm">AS MIN_SUPPL</span>,
+       SUPPLEMENTAL_LOG_DATA_PK   <span class="c-cm">AS PK_SUPPL</span>,
+       SUPPLEMENTAL_LOG_DATA_UI   <span class="c-cm">AS UI_SUPPL</span>,
+       FORCE_LOGGING
+<span class="c-kw">FROM</span>   V$DATABASE;
+
+<span class="c-cm">-- Check existing log groups:</span>
+<span class="c-kw">SELECT</span> OWNER, TABLE_NAME, LOG_GROUP_NAME,
+       LOG_GROUP_TYPE, ALWAYS
+<span class="c-kw">FROM</span>   DBA_LOG_GROUPS
+<span class="c-kw">WHERE</span>  OWNER = <span class="c-str">'HR'</span>;
+
+<span class="c-cm">-- Expected BEFORE enabling:</span>
+<span class="c-out">LOG_MODE   MIN_SUPPL  PK_SUPPL  FORCE</span>
+<span class="c-out">---------- ---------  --------  -----</span>
+<span class="c-out">ARCHIVELOG NO         NO        NO</span></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TRANDATA options -->
+        <div class="apex-region">
+          <div class="apex-region-header">
+            <div class="apex-region-title"><span class="apex-region-icon">🎛️</span> ADD TRANDATA Options</div>
+            <span class="badge badge-info">Choose the right level for each scenario</span>
+          </div>
+          <div class="apex-region-body">
+            <div class="td-grid">
+              <div class="td-card td-selected" onclick="selectTD(this)">
+                <div class="td-icon">🔑</div>
+                <div class="td-name">Basic (Primary Key)</div>
+                <div class="td-desc">Logs PK columns only. Minimum required when a primary key exists. Best for standard OLTP tables.</div>
+                <div class="td-cmd">ADD TRANDATA HR.EMPLOYEES</div>
+              </div>
+              <div class="td-card" onclick="selectTD(this)">
+                <div class="td-icon">🗝️</div>
+                <div class="td-name">NOKEY (Unique Index)</div>
+                <div class="td-desc">For tables without a primary key. Logs unique index columns or falls back to ROWID-based identification.</div>
+                <div class="td-cmd">ADD TRANDATA HR.DEPT NOKEY</div>
+              </div>
+              <div class="td-card" onclick="selectTD(this)">
+                <div class="td-icon">📋</div>
+                <div class="td-name">ALLCOLS</div>
+                <div class="td-desc">Logs every column. Required for CDR (Conflict Detection &amp; Resolution) in bi-directional replication.</div>
+                <div class="td-cmd">ADD TRANDATA HR.EMPLOYEES ALLCOLS</div>
+              </div>
+              <div class="td-card" onclick="selectTD(this)">
+                <div class="td-icon">🎯</div>
+                <div class="td-name">KEYCOLS (Custom Key)</div>
+                <div class="td-desc">Define custom columns as the logical key. Overrides default key detection for legacy or composite scenarios.</div>
+                <div class="td-cmd">ADD TRANDATA HR.EMP KEYCOLS (BADGE, SSN)</div>
+              </div>
+              <div class="td-card" onclick="selectTD(this)">
+                <div class="td-icon">🏗️</div>
+                <div class="td-name">SCHEMATRANDATA</div>
+                <div class="td-desc">Schema-level supplemental logging. Auto-applies to new tables added later. Includes scheduling columns for Parallel Replicat.</div>
+                <div class="td-cmd">ADD SCHEMATRANDATA HR</div>
+              </div>
+              <div class="td-card" onclick="selectTD(this)">
+                <div class="td-icon">⚡</div>
+                <div class="td-name">PREPARECSN</div>
+                <div class="td-desc">Marks the SCN at which initial data load completed, enabling Extract to begin capture at the exact right point.</div>
+                <div class="td-cmd">ADD TRANDATA HR.EMP PREPARECSN</div>
+              </div>
+            </div>
+          </div>
+        </div>
+</section>
+
+<section class="tab" id="view-internals">
+
+<!-- ══════════════════════════════════════════
+     1. DML Internal Pipeline
+══════════════════════════════════════════ -->
+<div class="apex-region" style="margin-bottom:20px;">
+  <div class="apex-region-header">
+    <div class="apex-region-title"><span class="apex-region-icon">🔬</span> DML Internal Pipeline — Click Animate</div>
+    <div style="display:flex;gap:8px;">
+      <button class="apex-btn apex-btn-primary" onclick="animatePipeline()">▶ Animate</button>
+      <button class="apex-btn apex-btn-secondary" onclick="resetPipeline()">↺ Reset</button>
+    </div>
+  </div>
+  <div class="apex-region-body" style="padding:16px;overflow-x:auto;">
+    <div class="pipe-container" id="pipeline">
+      <div class="pipe-box" id="pb0"><div class="pipe-icon">💻</div><div class="pipe-label">DML Statement</div><div class="pipe-sub">UPDATE / INSERT / DELETE</div></div>
+      <div class="pipe-arrow" id="pa0">→</div>
+      <div class="pipe-box" id="pb1"><div class="pipe-icon">🧠</div><div class="pipe-label">PGA / Buffer Cache</div><div class="pipe-sub">Row staged; undo allocated</div></div>
+      <div class="pipe-arrow" id="pa1">→</div>
+      <div class="pipe-box" id="pb2"><div class="pipe-icon">📝</div><div class="pipe-label">Redo Log Buffer</div><div class="pipe-sub">Change vectors in SGA</div></div>
+      <div class="pipe-arrow" id="pa2">→</div>
+      <div class="pipe-box" id="pb3"><div class="pipe-icon">➕</div><div class="pipe-label">Suppl. Log Writer</div><div class="pipe-sub">PK + before-image appended</div></div>
+      <div class="pipe-arrow" id="pa3">→</div>
+      <div class="pipe-box" id="pb4"><div class="pipe-icon">💾</div><div class="pipe-label">Online Redo Log</div><div class="pipe-sub">LGWR flushes; same SCN</div></div>
+      <div class="pipe-arrow" id="pa4">→</div>
+      <div class="pipe-box" id="pb5"><div class="pipe-icon">🔍</div><div class="pipe-label">GGS Extract</div><div class="pipe-sub">Mines redo → trail file</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     2. Redo Block Anatomy + LogMiner (side by side)
+══════════════════════════════════════════ -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+
+  <!-- Redo Block Anatomy -->
+  <div class="apex-region">
+    <div class="apex-region-header">
+      <div class="apex-region-title"><span class="apex-region-icon">📜</span> Redo Block Anatomy — Animated</div>
+      <button class="apex-btn apex-btn-secondary" onclick="animateRedoBlock()" style="padding:5px 12px;font-size:12px;">▶ Animate</button>
+    </div>
+    <div class="apex-region-body" style="padding:16px;">
+      <!-- SCN header -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+        <div style="background:#1B1B1B;color:#D7F5DE;padding:4px 12px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:1px;font-family:ui-monospace,Menlo,monospace;">REDO LOG BLOCK — 512 bytes</div>
+        <div style="flex:1;height:1px;background:#E3E1DD;"></div>
+        <div id="rb-scn" style="font-size:11px;color:#C74634;font-weight:700;font-family:ui-monospace,Menlo,monospace;min-width:160px;text-align:right;"></div>
+      </div>
+      <!-- Two vectors -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div id="rb-v1" style="border:1.5px solid #E3E1DD;border-radius:8px;padding:12px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.05em;color:#5F6368;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #E3E1DD;font-family:ui-monospace,Menlo,monospace;text-transform:uppercase;">CV #1 — Standard DML</div>
+          <div style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;line-height:1.8;color:#1B1B1B;">
+            <div><span style="color:#C74634;font-weight:700;">OP:</span> 11.4 (UPDATE)</div>
+            <div><span style="color:#5F6368;">OBJ:</span> 74521 — HR.EMPLOYEES</div>
+            <div><span style="color:#5F6368;">DATA#5</span> [SALARY]: <span style="color:#2E7D32;">95000</span></div>
+            <div style="font-size:10px;color:#B45309;margin-top:4px;">← after-image only</div>
+          </div>
+        </div>
+        <div id="rb-v2" style="border:1.5px solid #E3E1DD;border-radius:8px;padding:12px;">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.05em;color:#1B6FC9;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #E3E1DD;font-family:ui-monospace,Menlo,monospace;text-transform:uppercase;">CV #2 — Supplemental</div>
+          <div style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;line-height:1.8;color:#1B1B1B;">
+            <div><span style="color:#C74634;font-weight:700;">OP:</span> 5.1 (SUPPL)</div>
+            <div><span style="color:#5F6368;">DATA#0</span> [EMP_ID]: <span style="color:#2E7D32;">101</span> <span style="color:#2E7D32;font-weight:700;">← PK ✔</span></div>
+            <div><span style="color:#5F6368;">DATA#4</span> [SAL_BI]: <span style="color:#1B6FC9;">85000</span> <span style="color:#1B6FC9;font-weight:700;">← before ✔</span></div>
+          </div>
+        </div>
+      </div>
+      <!-- Footer -->
+      <div id="rb-footer" style="padding:9px 12px;background:#E6F4EA;border:1px solid rgba(46,125,50,.25);border-radius:6px;font-size:11.5px;color:#2E7D32;min-height:36px;"></div>
+    </div>
+  </div>
+
+  <!-- LogMiner -->
+  <div class="apex-region">
+    <div class="apex-region-header">
+      <div class="apex-region-title"><span class="apex-region-icon">🔍</span> LogMiner — What Extract Sees</div>
+      <button class="apex-btn apex-btn-secondary" onclick="animateLogMiner()" style="padding:5px 12px;font-size:12px;">▶ Animate</button>
+    </div>
+    <div class="apex-region-body" style="padding:16px;">
+      <!-- 4-stage pipeline -->
+      <div style="display:grid;grid-template-columns:1fr 24px 1fr 24px 1fr 24px 1fr;align-items:center;gap:0;margin-bottom:14px;">
+        <div id="lm-s1" style="background:#FAFAF9;border:1.5px solid #E3E1DD;border-radius:8px;padding:10px 8px;text-align:center;transition:all .4s;">
+          <div style="font-size:18px;margin-bottom:4px;">📄</div>
+          <div style="font-size:11px;font-weight:700;color:#1B1B1B;">Redo Log</div>
+          <div style="font-size:9.5px;color:#5F6368;margin-top:2px;">Online / Archived</div>
+        </div>
+        <div id="lm-a1" style="text-align:center;font-size:16px;color:#E3E1DD;transition:color .4s;">→</div>
+        <div id="lm-s2" style="background:#FAFAF9;border:1.5px solid #E3E1DD;border-radius:8px;padding:10px 8px;text-align:center;transition:all .4s;">
+          <div style="font-size:18px;margin-bottom:4px;">⚙️</div>
+          <div style="font-size:11px;font-weight:700;color:#1B1B1B;">LogMiner</div>
+          <div style="font-size:9.5px;color:#5F6368;margin-top:2px;">V$LOGMNR_CONTENTS</div>
+        </div>
+        <div id="lm-a2" style="text-align:center;font-size:16px;color:#E3E1DD;transition:color .4s;">→</div>
+        <div id="lm-s3" style="background:#FAFAF9;border:1.5px solid #E3E1DD;border-radius:8px;padding:10px 8px;text-align:center;transition:all .4s;">
+          <div style="font-size:18px;margin-bottom:4px;">🔷</div>
+          <div style="font-size:11px;font-weight:700;color:#1B1B1B;">GGS Extract</div>
+          <div style="font-size:9.5px;color:#5F6368;margin-top:2px;">LCR Construction</div>
+        </div>
+        <div id="lm-a3" style="text-align:center;font-size:16px;color:#E3E1DD;transition:color .4s;">→</div>
+        <div id="lm-s4" style="background:#FAFAF9;border:1.5px solid #E3E1DD;border-radius:8px;padding:10px 8px;text-align:center;transition:all .4s;">
+          <div style="font-size:18px;margin-bottom:4px;">🗃️</div>
+          <div style="font-size:11px;font-weight:700;color:#1B1B1B;">Trail File</div>
+          <div style="font-size:9.5px;color:#5F6368;margin-top:2px;">./dirdat/lt000001</div>
+        </div>
+      </div>
+      <!-- Status -->
+      <div id="lm-status" style="padding:10px 14px;background:#FAFAF9;border:1px solid #E3E1DD;border-radius:6px;font-size:12.5px;color:#5F6368;min-height:44px;transition:all .4s;line-height:1.5;">
+        Click <strong>▶ Animate</strong> to trace an UPDATE through the LogMiner pipeline.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════
+     3. Live Redo Log Comparison
+══════════════════════════════════════════ -->
+<div class="apex-region" style="margin-bottom:20px;">
+  <div class="apex-region-header">
+    <div class="apex-region-title"><span class="apex-region-icon">⚖️</span> Live Redo Log Comparison</div>
+    <div class="apex-toggle">
+      <div class="toggle-track" id="suppTrack" onclick="toggleSupp()"><div class="toggle-thumb"></div></div>
+      <span class="toggle-label" id="suppLabel">Supplemental Logging: <strong>OFF</strong></span>
+    </div>
+  </div>
+  <div class="apex-region-body" id="redoLogBody" style="min-height:120px;padding:16px;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#1B1B1B;line-height:1.8;transition:opacity .25s;">
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     4. Key Oracle Dictionary Views
+══════════════════════════════════════════ -->
+<div class="apex-region">
+  <div class="apex-region-header">
+    <div class="apex-region-title"><span class="apex-region-icon">📚</span> Key Oracle Dictionary Views</div>
+  </div>
+  <div class="apex-region-body" style="padding:0;">
+    <table class="apex-table">
+      <thead><tr><th>View</th><th>Purpose</th><th>Key Columns</th></tr></thead>
+      <tbody>
+        <tr><td><code>V$DATABASE</code></td><td>DB-level supplemental log status</td><td>SUPPLEMENTAL_LOG_DATA_MIN, _PK, _UI, _FK, _ALL, FORCE_LOGGING</td></tr>
+        <tr><td><code>DBA_LOG_GROUPS</code></td><td>Table-level log group definitions</td><td>LOG_GROUP_NAME, TABLE_NAME, LOG_GROUP_TYPE, ALWAYS</td></tr>
+        <tr><td><code>DBA_LOG_GROUP_COLUMNS</code></td><td>Columns in each log group</td><td>COLUMN_NAME, POSITION, LOG_GROUP_COLUMN_TYPE</td></tr>
+        <tr><td><code>V$LOGMNR_CONTENTS</code></td><td>Decoded redo log entries (mining session)</td><td>SCN, OPERATION, SQL_REDO, SQL_UNDO, ROW_ID</td></tr>
+        <tr><td><code>DBA_CAPTURE</code></td><td>GGS Integrated Extract capture metadata</td><td>CAPTURE_NAME, STATUS, REQUIRED_CHECKPOINT_SCN</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</section>
+
+<section class="tab" id="view-simulator">
+<!-- Parameters -->
+        <div class="apex-region" style="margin-bottom:20px;">
+          <div class="apex-region-header">
+            <div class="apex-region-title">⚙️ Simulation Parameters</div>
+          </div>
+          <div class="apex-region-body">
+            <div class="sim-params-grid">
+              <!-- Row 1 -->
+              <div class="sim-field">
+                <label class="sim-label">Source Schema</label>
+                <select class="sim-select" id="simSchema">
+                  <option value="HR">HR</option>
+                  <option value="OE">OE</option>
+                  <option value="SH">SH</option>
+                  <option value="SCOTT">SCOTT</option>
+                  <option value="CUSTOM">CUSTOM</option>
+                </select>
+              </div>
+              <div class="sim-field">
+                <label class="sim-label">Table Name</label>
+                <input class="sim-select" id="simTable" type="text" value="EMPLOYEES">
+              </div>
+              <!-- Row 2 -->
+              <div class="sim-field">
+                <label class="sim-label">TRANDATA Level</label>
+                <select class="sim-select" id="simLevel">
+                  <option value="basic">Basic — PK only (Default)</option>
+                  <option value="allcols">ALLCOLS — All Columns</option>
+                  <option value="nokey">NOKEY — Unique Index</option>
+                  <option value="keycols">KEYCOLS — Custom Key</option>
+                  <option value="schema">SCHEMATRANDATA — Schema Level</option>
+                </select>
+              </div>
+              <div class="sim-field">
+                <label class="sim-label">Database Type</label>
+                <select class="sim-select" id="simDbType">
+                  <option value="noncdb">Non-CDB (Traditional)</option>
+                  <option value="cdb">CDB / PDB (Multitenant)</option>
+                </select>
+              </div>
+              <!-- Buttons row -->
+              <div class="sim-btns">
+                <button class="apex-btn apex-btn-primary" onclick="runSim()">&#9654; Run Simulation</button>
+                <button class="apex-btn apex-btn-secondary" onclick="clearSim()">&#8635; Clear</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Terminal -->
+        <div class="apex-region" style="margin-bottom:20px;">
+          <div class="apex-region-header">
+            <div class="apex-region-title">&#128187; AdminClient Terminal Output</div>
+            <span id="simStatus" style="display:none;background:var(--warning-bg);color:var(--warning);border:1px solid var(--warning-border);border-radius:12px;padding:2px 10px;font-size:11px;font-weight:600;">&#9679; RUNNING</span>
+          </div>
+          <div class="apex-region-body" style="padding:12px;">
+            <div style="background:#1A1F2E;border-radius:6px;overflow:hidden;">
+              <div style="background:#252D3D;padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,0.06);">
+                <div style="display:flex;gap:5px;">
+                  <div style="width:11px;height:11px;border-radius:50%;background:#FF5F57;"></div>
+                  <div style="width:11px;height:11px;border-radius:50%;background:#FEBC2E;"></div>
+                  <div style="width:11px;height:11px;border-radius:50%;background:#28C840;"></div>
+                </div>
+                <span style="font-size:11px;color:rgba(255,255,255,0.35);font-family:'JetBrains Mono',monospace;margin-left:6px;">Oracle GoldenGate 21c — AdminClient</span>
+              </div>
+              <div id="termBody" style="padding:16px 20px;min-height:220px;max-height:320px;overflow-y:auto;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.9;color:#CDD5E0;">
+                <div style="color:#546E7A;">-- Oracle GoldenGate 21c Microservices – AdminClient Simulator</div>
+                <div style="color:#546E7A;">-- Select parameters above and click Run Simulation</div>
+                <div>&nbsp;</div>
+                <div><span style="color:#C74634;">AdminClient&gt;</span> <span style="display:inline-block;width:7px;height:13px;background:#CDD5E0;animation:blink 1s infinite;vertical-align:middle;"></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div class="g2" id="simResults" style="display:none;">
+          <div class="apex-region">
+            <div class="apex-region-header">
+              <div class="apex-region-title">&#128203; TRANDATA Status</div>
+            </div>
+            <div class="apex-region-body" id="simResultBody"></div>
+          </div>
+          <div class="apex-region">
+            <div class="apex-region-header">
+              <div class="apex-region-title">&#128269; DBA_LOG_GROUPS Verification</div>
+            </div>
+            <div class="apex-region-body no-pad" id="simDictBody"></div>
+          </div>
+        </div>
+</section>
+
+<section class="tab" id="view-performance">
+<div class="g2" style="margin-bottom:20px;">
+
+          <!-- ── REDO VOLUME CHART ── -->
+          <div class="apex-region">
+            <div class="apex-region-header">
+              <div class="apex-region-title"><span class="apex-region-icon">📊</span> Redo Volume by Logging Level</div>
+              <button class="apex-btn apex-btn-secondary" onclick="animateBars('redo')" style="padding:5px 14px;font-size:12px;font-weight:600;">▶ Animate</button>
+            </div>
+            <div class="apex-region-body">
+              <div style="background:#F8F9FA;border:1px solid var(--border);border-radius:8px;padding:20px 20px 12px;">
+                <div style="display:flex;gap:12px;align-items:flex-end;height:180px;margin-bottom:16px;" id="redoChartWrap">
+                  <div style="flex:1;height:100%;display:flex;flex-direction:column;align-items:center;gap:6px;">
+                    <div style="flex:1;width:100%;display:flex;align-items:flex-end;">
+                      <div id="rb0" data-target="28" style="width:100%;height:28%;background:linear-gradient(180deg,#22C55E,#16A34A);border-radius:4px 4px 0 0;position:relative;transition:height 1s cubic-bezier(.34,1.4,.64,1);">
+                        <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:var(--text-primary);white-space:nowrap;">100 MB/hr</div>
+                      </div>
+                    </div>
+                    <div style="font-size:10px;color:var(--text-muted);text-align:center;line-height:1.3;">No Suppl.<br>Logging</div>
+                  </div>
+                  <div style="flex:1;height:100%;display:flex;flex-direction:column;align-items:center;gap:6px;">
+                    <div style="flex:1;width:100%;display:flex;align-items:flex-end;">
+                      <div id="rb1" data-target="32" style="width:100%;height:32%;background:linear-gradient(180deg,#22C55E,#16A34A);border-radius:4px 4px 0 0;position:relative;transition:height 1s cubic-bezier(.34,1.4,.64,1) .10s;">
+                        <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:var(--text-primary);white-space:nowrap;">103 MB/hr</div>
+                      </div>
+                    </div>
+                    <div style="font-size:10px;color:var(--text-muted);text-align:center;line-height:1.3;">DB Minimal<br>Only</div>
+                  </div>
+                  <div style="flex:1;height:100%;display:flex;flex-direction:column;align-items:center;gap:6px;">
+                    <div style="flex:1;width:100%;display:flex;align-items:flex-end;">
+                      <div id="rb2" data-target="42" style="width:100%;height:42%;background:linear-gradient(180deg,#F59E0B,#D97706);border-radius:4px 4px 0 0;position:relative;transition:height 1s cubic-bezier(.34,1.4,.64,1) .20s;">
+                        <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:var(--text-primary);white-space:nowrap;">110 MB/hr</div>
+                      </div>
+                    </div>
+                    <div style="font-size:10px;color:var(--text-muted);text-align:center;line-height:1.3;">PK Only<br>(Recommend)</div>
+                  </div>
+                  <div style="flex:1;height:100%;display:flex;flex-direction:column;align-items:center;gap:6px;">
+                    <div style="flex:1;width:100%;display:flex;align-items:flex-end;">
+                      <div id="rb3" data-target="58" style="width:100%;height:58%;background:linear-gradient(180deg,#F59E0B,#D97706);border-radius:4px 4px 0 0;position:relative;transition:height 1s cubic-bezier(.34,1.4,.64,1) .30s;">
+                        <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:var(--text-primary);white-space:nowrap;">130 MB/hr</div>
+                      </div>
+                    </div>
+                    <div style="font-size:10px;color:var(--text-muted);text-align:center;line-height:1.3;">UK+PK<br>NOKEY</div>
+                  </div>
+                  <div style="flex:1;height:100%;display:flex;flex-direction:column;align-items:center;gap:6px;">
+                    <div style="flex:1;width:100%;display:flex;align-items:flex-end;">
+                      <div id="rb4" data-target="100" style="width:100%;height:100%;background:linear-gradient(180deg,#EF4444,#DC2626);border-radius:4px 4px 0 0;position:relative;transition:height 1s cubic-bezier(.34,1.4,.64,1) .40s;">
+                        <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:var(--text-primary);white-space:nowrap;">240 MB/hr</div>
+                      </div>
+                    </div>
+                    <div style="font-size:10px;color:var(--text-muted);text-align:center;line-height:1.3;">ALLCOLS<br>CDR/Lakehouse</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--text-muted);">
+                  <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;background:#22C55E;border-radius:2px;display:inline-block;"></span>Baseline / Acceptable</span>
+                  <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;background:#F59E0B;border-radius:2px;display:inline-block;"></span>Monitor Closely</span>
+                  <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;background:#EF4444;border-radius:2px;display:inline-block;"></span>Plan Increased Archiving</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── EXTRACT THROUGHPUT CHART ── -->
+          <div class="apex-region">
+            <div class="apex-region-header">
+              <div class="apex-region-title"><span class="apex-region-icon">⚡</span> Extract Throughput by Method</div>
+              <button class="apex-btn apex-btn-secondary" onclick="animateBars('extract')" style="padding:5px 14px;font-size:12px;font-weight:600;">▶ Animate</button>
+            </div>
+            <div class="apex-region-body">
+              <div style="background:#F8F9FA;border:1px solid var(--border);border-radius:8px;padding:20px 20px 12px;">
+                <div style="display:flex;gap:12px;align-items:flex-end;height:180px;margin-bottom:16px;">
+                  <div style="flex:1;height:100%;display:flex;flex-direction:column;align-items:center;gap:6px;">
+                    <div style="flex:1;width:100%;display:flex;align-items:flex-end;">
+                      <div id="eb0" data-target="22" style="width:100%;height:22%;background:linear-gradient(180deg,#EF4444,#DC2626);border-radius:4px 4px 0 0;position:relative;transition:height 1s cubic-bezier(.34,1.4,.64,1);">
+                        <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:var(--text-primary);white-space:nowrap;">8K rps</div>
+                      </div>
+                    </div>
+                    <div style="font-size:10px;color:var(--text-muted);text-align:center;line-height:1.3;">Classic<br>Extract</div>
+                  </div>
+                  <div style="flex:1;height:100%;display:flex;flex-direction:column;align-items:center;gap:6px;">
+                    <div style="flex:1;width:100%;display:flex;align-items:flex-end;">
+                      <div id="eb1" data-target="50" style="width:100%;height:50%;background:linear-gradient(180deg,#F59E0B,#D97706);border-radius:4px 4px 0 0;position:relative;transition:height 1s cubic-bezier(.34,1.4,.64,1) .12s;">
+                        <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:var(--text-primary);white-space:nowrap;">18K rps</div>
+                      </div>
+                    </div>
+                    <div style="font-size:10px;color:var(--text-muted);text-align:center;line-height:1.3;">Integrated<br>Extract</div>
+                  </div>
+                  <div style="flex:1;height:100%;display:flex;flex-direction:column;align-items:center;gap:6px;">
+                    <div style="flex:1;width:100%;display:flex;align-items:flex-end;">
+                      <div id="eb2" data-target="100" style="width:100%;height:100%;background:linear-gradient(180deg,#22C55E,#16A34A);border-radius:4px 4px 0 0;position:relative;transition:height 1s cubic-bezier(.34,1.4,.64,1) .24s;">
+                        <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:var(--text-primary);white-space:nowrap;">45K rps</div>
+                      </div>
+                    </div>
+                    <div style="font-size:10px;color:var(--text-muted);text-align:center;line-height:1.3;">Integrated<br>+ PQ</div>
+                  </div>
+                  <div style="flex:1;height:100%;display:flex;flex-direction:column;align-items:center;gap:6px;">
+                    <div style="flex:1;width:100%;display:flex;align-items:flex-end;">
+                      <div id="eb3" data-target="84" style="width:100%;height:84%;background:linear-gradient(180deg,#22C55E,#16A34A);border-radius:4px 4px 0 0;position:relative;transition:height 1s cubic-bezier(.34,1.4,.64,1) .36s;">
+                        <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:var(--text-primary);white-space:nowrap;">38K rps</div>
+                      </div>
+                    </div>
+                    <div style="font-size:10px;color:var(--text-muted);text-align:center;line-height:1.3;">Downstream<br>Extract</div>
+                  </div>
+                </div>
+                <div style="font-size:11px;color:var(--text-muted);">rps = rows/sec · PQ = Parallel Query · Reference: 8-CPU system · GoldenGate 21c / 26ai</div>
+              </div>
+            </div>
+          </div>
+
+        
+        <!-- Stat summary cards -->
+        <div class="g4" style="margin-top:20px;margin-bottom:0;">
+          <div class="stat-card red">
+            <div class="stat-label">Redo Log Overhead (PK only)</div>
+            <div class="stat-value">+8%</div>
+            <div class="stat-delta down">✔ Acceptable for OLTP</div>
+          </div>
+          <div class="stat-card info">
+            <div class="stat-label">Redo Log Overhead (ALLCOLS)</div>
+            <div class="stat-value">+40%</div>
+            <div class="stat-delta up">▲ Plan archiving accordingly</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-label">CPU Overhead</div>
+            <div class="stat-value">1–3%</div>
+            <div class="stat-delta down">✔ Within normal variance</div>
+          </div>
+          <div class="stat-card warn">
+            <div class="stat-label">Extract Throughput (Integrated)</div>
+            <div class="stat-value">45K</div>
+            <div class="stat-delta down">rows/sec with Parallel Query</div>
+          </div>
+        </div>
+</div>
+
+        <div class="apex-region" style="margin-bottom:20px;">
+          <div class="apex-region-header">
+            <div class="apex-region-title"><span class="apex-region-icon">🎯</span> Tuning Recommendations</div>
+          </div>
+          <div class="apex-region-body no-pad">
+            <table class="apex-table">
+              <thead><tr><th>Scenario</th><th>Recommended Config</th><th>Redo Overhead</th><th>Notes</th></tr></thead>
+              <tbody>
+                <tr><td>Standard OLTP — tables with PK</td><td><code style="color:var(--success)">ADD SCHEMATRANDATA</code></td><td><span class="badge badge-success">+5–10%</span></td><td>Best default; PK logging only</td></tr>
+                <tr><td>Tables without PK or UK</td><td><code style="color:var(--info)">ADD TRANDATA ... NOKEY</code></td><td><span class="badge badge-warning">+15–25%</span></td><td>Add surrogate key if possible</td></tr>
+                <tr><td>Bi-directional / CDR / Lakehouse</td><td><code style="color:var(--warning)">ADD TRANDATA ... ALLCOLS</code></td><td><span class="badge badge-danger">+30–60%</span></td><td>Limit scope to conflict tables only</td></tr>
+                <tr><td>Archive / LOB-heavy tables</td><td>Exclude via TABLE filter</td><td><span class="badge badge-success">No overhead</span></td><td>Use TABLEEXCLUDE in Extract param</td></tr>
+                <tr><td>INSERT-only bulk tables</td><td>Minimal logging only</td><td><span class="badge badge-success">+3–5%</span></td><td>INSERT needs no before-image</td></tr>
+                <tr><td>Redo log sizing</td><td>≥ 500MB per group, ≥ 3 groups</td><td><span class="badge badge-info">Architecture</span></td><td>Prevent log switch bottlenecks</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="apex-region">
+          <div class="apex-region-header">
+            <div class="apex-region-title"><span class="apex-region-icon">🔎</span> Monitoring Queries</div>
+          </div>
+          <div class="apex-region-body">
+            <div class="code-block" style="font-size:12px;">
+<span class="c-cm">-- 1. Redo generation rate</span>
+<span class="c-kw">SELECT</span> NAME, VALUE/1024/1024 <span class="c-kw">AS</span> MB_GENERATED
+<span class="c-kw">FROM</span>   V$SYSSTAT
+<span class="c-kw">WHERE</span>  NAME <span class="c-kw">IN</span> (<span class="c-str">'redo size'</span>, <span class="c-str">'redo wastage'</span>);
+
+<span class="c-cm">-- 2. Log switch frequency (should be &lt; 4/hr)</span>
+<span class="c-kw">SELECT</span> TO_CHAR(FIRST_TIME,<span class="c-str">'YYYY-MM-DD HH24'</span>) HOUR, COUNT(*) SWITCHES
+<span class="c-kw">FROM</span>   V$LOG_HISTORY
+<span class="c-kw">GROUP BY</span> TO_CHAR(FIRST_TIME,<span class="c-str">'YYYY-MM-DD HH24'</span>)
+<span class="c-kw">ORDER BY</span> 1 <span class="c-kw">DESC</span>;
+
+<span class="c-cm">-- 3. Extract lag</span>
+<span class="c-kw">SELECT</span> EXTRACT_NAME, EXTRACT_LAG, TOTAL_OPERATIONS
+<span class="c-kw">FROM</span>   DBA_GG_INBOUND_PROGRESS;
+            </div>
+          </div>
+        </div>
+</section>
+
+<section class="tab" id="view-livesim">
+<h2 class="section-title">Connect, configure, and replicate</h2>
+    <p class="section-desc">Work through the steps in order — each one unlocks the next, the way a real setup does.</p>
+
+    <!-- STEP 1 -->
+    <div class="step" id="step1">
+      <div class="step-head"><div class="step-num">1</div><div class="step-title">Source connection — Oracle 19c CDB</div><div class="step-status" id="status1">not connected</div></div>
+      <div class="step-body">
+        <div class="conn-row">
+          <div class="conn-field"><span class="k">Connection type</span><span class="v">Oracle Database</span></div>
+          <div class="conn-field"><span class="k">Host / service</span><span class="v">cdb19-src.adb.azure.oraclecloud.com</span></div>
+          <div class="conn-field"><span class="k">Container</span><span class="v">CDB$ROOT → PDB1</span></div>
+          <div class="conn-field"><span class="k">Auth</span><span class="v">Wallet (TLS), C##GGADMIN</span></div>
+        </div>
+        <button class="btn primary" id="btnConnSrc">Test source connection</button>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step locked" id="step2">
+      <div class="step-head"><div class="step-num">2</div><div class="step-title">Configure &amp; start Extract</div><div class="step-status" id="status2">locked</div></div>
+      <div class="step-body">
+        <pre class="code-block"><span class="c">-- registered against the source connection from Step 1</span>
+ADD TRANDATA pdb1.sales.orders;
+
+EXTRACT ext19c
+USERIDALIAS c##ggadmin DOMAIN OracleGoldenGate
+EXTTRAIL et
+TRANLOGOPTIONS INTEGRATEDPARAMS (max_sga_size 256)
+TABLE pdb1.sales.orders;</pre>
+        <button class="btn primary" id="btnStartExtract" style="margin-top:10px;">Register &amp; start Extract</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step locked" id="step3">
+      <div class="step-head"><div class="step-num">3</div><div class="step-title">Trail file — local to the GoldenGate deployment</div><div class="step-status" id="status3">locked</div></div>
+      <div class="step-body">
+        <p>Once Extract starts, it begins appending LCRs to trail <code class="inline">et</code> on the deployment's storage. Records here are: <b id="trailCount">0</b>.</p>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step locked" id="step4">
+      <div class="step-head"><div class="step-num">4</div><div class="step-title">Target connection — Oracle Database 26ai</div><div class="step-status" id="status4">locked</div></div>
+      <div class="step-body">
+        <div class="conn-row">
+          <div class="conn-field"><span class="k">Connection type</span><span class="v">Oracle Database</span></div>
+          <div class="conn-field"><span class="k">Host / service</span><span class="v">db26ai-tgt.adb.azure.oraclecloud.com</span></div>
+          <div class="conn-field"><span class="k">Container</span><span class="v">CDB$ROOT → PDB_TGT</span></div>
+          <div class="conn-field"><span class="k">Auth</span><span class="v">Wallet (TLS), GGADMIN_TGT</span></div>
+        </div>
+        <button class="btn primary" id="btnConnTgt">Test target connection</button>
+      </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="step locked" id="step5">
+      <div class="step-head"><div class="step-num">5</div><div class="step-title">Configure &amp; start Replicat</div><div class="step-status" id="status5">locked</div></div>
+      <div class="step-body">
+        <p>Pick a Replicat type — this changes how the apply stage behaves in Step 6.</p>
+        <div class="type-select" id="typeSelect">
+          <button class="type-btn active" data-type="classic"><b>Classic</b>single thread, FIFO</button>
+          <button class="type-btn" data-type="coordinated"><b>Coordinated</b>static, manual ranges</button>
+          <button class="type-btn" data-type="parallel"><b>Parallel (Non-Integrated)</b>dynamic, dependency-aware</button>
+          <button class="type-btn" data-type="integrated"><b>Integrated</b>DB kernel apply engine</button>
+          <button class="type-btn" data-type="integrated_parallel"><b>Parallel (Integrated)</b>kernel apply, explicit parallelism</button>
+        </div>
+        <div class="type-note" id="typeNote"></div>
+        <pre class="code-block" id="repCode"></pre>
+        <button class="btn primary" id="btnStartReplicat" style="margin-top:10px;">Add checkpoint table &amp; start Replicat</button>
+      </div>
+    </div>
+
+    <!-- STEP 6 -->
+    <div class="step locked" id="step6">
+      <div class="step-head"><div class="step-num">6</div><div class="step-title">Run data replication</div><div class="step-status" id="status6">locked</div></div>
+      <div class="step-body">
+        <div class="type-select" id="pathSelect" style="margin-top:4px;">
+          <button class="type-btn active" data-path="A"><b>Option A — Two deployments</b>Distribution → Interconnect → Receiver → target trail</button>
+          <button class="type-btn" data-path="B"><b>Option B — One deployment</b>Replicat reads the local trail directly, no Distribution/Receiver hop</button>
+        </div>
+        <p class="type-note" id="pathNote"></p>
+        <button class="btn primary" id="startBtn" disabled>▶ Run replication from trail file</button>
+        <button class="btn" id="resetBtn">↺ Reset simulator</button>
+        <div class="metric-row">
+          <div class="metric">SCN (source)<b id="mScn">3,201,884</b></div>
+          <div class="metric">Applied txns<b id="mApplied">0</b></div>
+          <div class="metric">End-to-end lag<b id="mLag">0 ms</b></div>
+          <div class="metric">Replicat mode<b id="mMode">Classic</b></div>
+        </div>
+        <div class="pipeline-wrap">
+          <div class="pipeline" id="pipeline">
+            <div class="stage" id="stageSource" style="left:0px;"><div class="icon">CDB<br>PDB1</div><div class="name">Source Table</div><div class="sub">SALES.ORDERS</div></div>
+            <div class="stage" id="stageExtract" style="left:130px;"><div class="icon" id="iconExtract">INT<br>EXT</div><div class="name">Extract</div><div class="sub">Logmining Server</div></div>
+            <div class="stage" id="stageTrail" style="left:260px;"><div class="icon" id="iconTrail">TRAIL<br>(et)</div><div class="name">Local Trail</div><div class="sub">GG deployment</div></div>
+            <div class="stage" id="stageDist" style="left:390px;"><div class="icon" id="iconDist">DIST<br>SVR</div><div class="name">Distribution</div><div class="sub">reads trail</div></div>
+            <div class="stage" id="stageRecv" style="left:520px;"><div class="icon" id="iconRecv">RECV<br>SVR</div><div class="name">Receiver</div><div class="sub">Azure backbone</div></div>
+            <div class="stage" id="stageRT" style="left:650px;"><div class="icon" id="iconRT">TRAIL<br>(rt)</div><div class="name">Target Trail</div><div class="sub">read by Replicat</div></div>
+            <div class="apply-viz" id="applyViz"></div>
+            <div class="stage" id="stageTarget" style="right:0px;left:auto;"><div class="icon" id="iconTarget">26ai</div><div class="name">Target Table</div><div class="sub">SALES.ORDERS</div></div>
+          </div>
+        </div>
+        <div class="log-panel" id="logPanel" style="margin-top:14px;"></div>
+      </div>
+    </div>
+</section>
+
+<section class="tab" id="view-ai26">
+<div class="g2" style="align-items:start;">
+
+          <!-- AI Chat Panel -->
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="ai-panel">
+              <div class="ai-panel-header">
+                <div class="ai-panel-logo">GG Bot</div>
+                <div>
+                  <div class="ai-panel-title">GoldenGate AI Assistant</div>
+                  <div class="ai-panel-sub">Powered by GG AI Bot · Ask about supplemental logging, Extract config, performance</div>
+                </div>
+              </div>
+              <div class="ai-panel-body">
+                <div class="ai-quick-prompts">
+                  <button class="ai-quick-btn" onclick="quickPrompt('What is supplemental logging and why does GoldenGate need it?')">What is supplemental logging?</button>
+                  <button class="ai-quick-btn" onclick="quickPrompt('When should I use ALLCOLS vs PK-only supplemental logging?')">ALLCOLS vs PK only?</button>
+                  <button class="ai-quick-btn" onclick="quickPrompt('How do I troubleshoot OGG-00869 supplemental logging error?')">Troubleshoot OGG-00869</button>
+                  <button class="ai-quick-btn" onclick="quickPrompt('What is the performance impact of ADD TRANDATA ALLCOLS on OLTP?')">Performance impact?</button>
+                  <button class="ai-quick-btn" onclick="quickPrompt('Difference between ADD TRANDATA and ADD SCHEMATRANDATA?')">TRANDATA vs SCHEMATRANDATA</button>
+                </div>
+                <div class="ai-chat-area" id="aiChatArea">
+                  <div class="ai-msg ai">
+                    <div class="ai-msg-icon">GG</div>
+                    <div class="ai-msg-text">
+                      Hello! I'm your <strong>GG AI Bot Assistant</strong> for GoldenGate. I can help you understand supplemental logging, troubleshoot Extract issues, explain ADD TRANDATA options, and analyze performance impacts.<br><br>
+                      Try one of the quick prompts above, or ask your own question!
+                    </div>
+                  </div>
+                </div>
+                <div class="ai-input-row">
+                  <input class="ai-input" id="aiInput" placeholder="Ask about supplemental logging, ADD TRANDATA, Extract configuration..." onkeydown="if(event.key==='Enter')sendAI()">
+                  <button class="ai-send-btn" id="aiSendBtn" onclick="sendAI()">🤖 Ask GG Bot</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Info panel -->
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="apex-region">
+              <div class="apex-region-header">
+                <div class="apex-region-title"><span class="apex-region-icon">🤖</span> About GG AI Bot</div>
+                <span class="badge badge-ai">GG Bot</span>
+              </div>
+              <div class="apex-region-body">
+                <div class="apex-alert ai" style="margin-bottom:14px;">
+                  <span class="alert-icon">✨</span>
+                  <div class="alert-body">
+                    <div class="alert-title">GG AI Bot Integration</div>
+                    <div class="alert-text">This simulator is enhanced with GG AI Bot — Oracle's enterprise AI platform that provides context-aware assistance for database and GoldenGate operations, tuned on Oracle documentation and real-world patterns.</div>
+                  </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                  <div style="display:flex;gap:10px;align-items:center;padding:10px 14px;background:var(--ai-purple-bg);border:1px solid var(--ai-purple-border);border-radius:6px;">
+                    <span style="font-size:18px;">🔍</span>
+                    <div><div style="font-size:13px;font-weight:600;color:var(--text-primary);">Context-Aware Answers</div><div style="font-size:12px;color:var(--text-muted);">26AI knows your current tab and schema context</div></div>
+                  </div>
+                  <div style="display:flex;gap:10px;align-items:center;padding:10px 14px;background:var(--ai-purple-bg);border:1px solid var(--ai-purple-border);border-radius:6px;">
+                    <span style="font-size:18px;">🛠️</span>
+                    <div><div style="font-size:13px;font-weight:600;color:var(--text-primary);">Command Generation</div><div style="font-size:12px;color:var(--text-muted);">Get exact SQL/GGSCI commands for your scenario</div></div>
+                  </div>
+                  <div style="display:flex;gap:10px;align-items:center;padding:10px 14px;background:var(--ai-purple-bg);border:1px solid var(--ai-purple-border);border-radius:6px;">
+                    <span style="font-size:18px;">🩺</span>
+                    <div><div style="font-size:13px;font-weight:600;color:var(--text-primary);">Error Diagnosis</div><div style="font-size:12px;color:var(--text-muted);">Paste OGG error codes for root-cause analysis</div></div>
+                  </div>
+                  <div style="display:flex;gap:10px;align-items:center;padding:10px 14px;background:var(--ai-purple-bg);border:1px solid var(--ai-purple-border);border-radius:6px;">
+                    <span style="font-size:18px;">📊</span>
+                    <div><div style="font-size:13px;font-weight:600;color:var(--text-primary);">Performance Insights</div><div style="font-size:12px;color:var(--text-muted);">Quantify redo overhead for your workload</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="apex-region">
+              <div class="apex-region-header">
+                <div class="apex-region-title"><span class="apex-region-icon">💡</span> Sample Questions</div>
+              </div>
+              <div class="apex-region-body" style="padding:14px;">
+                <div style="display:flex;flex-direction:column;gap:6px;">
+                  <div class="ai-quick-btn" style="border-radius:6px;text-align:left;padding:8px 12px;font-size:12px;" onclick="quickPrompt('How do I enable supplemental logging for a CDB/PDB in Oracle 19c?')">How to enable supplemental logging in CDB/PDB?</div>
+                  <div class="ai-quick-btn" style="border-radius:6px;text-align:left;padding:8px 12px;font-size:12px;" onclick="quickPrompt('What Extract parameters do I need for integrated mode with supplemental logging?')">Extract params for integrated mode?</div>
+                  <div class="ai-quick-btn" style="border-radius:6px;text-align:left;padding:8px 12px;font-size:12px;" onclick="quickPrompt('Can I add supplemental logging without restarting Oracle database?')">Online without restart?</div>
+                  <div class="ai-quick-btn" style="border-radius:6px;text-align:left;padding:8px 12px;font-size:12px;" onclick="quickPrompt('What happens to supplemental logging if I drop and recreate a table?')">Effect of DROP TABLE on TRANDATA?</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- GG AI BOT · LOCAL RAG + LLM SECTION                    -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div style="margin-top:24px;">
+
+    <!-- Section header -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--ai-purple);">
+      <div style="background:var(--ai-purple);color:#fff;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:700;letter-spacing:1px;">RAG + LLM</div>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--text-primary);">GG AI Bot · Local RAG &amp; LLM Integration</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Ask GG Bot · runs on Oracle 26ai or Local LLM (Ollama / Llama3) · RAG over GoldenGate documentation</div>
+      </div>
+    </div>
+
+    <div class="g2" style="margin-bottom:20px;align-items:start;">
+
+      <!-- RAG Architecture flow -->
+      <div class="apex-region">
+        <div class="apex-region-header">
+          <div class="apex-region-title">&#127959; RAG Architecture — How it Works</div>
+          <span class="badge badge-ai">Local / Oracle 26ai</span>
+        </div>
+        <div class="apex-region-body">
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:0;">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--info-bg);border:1px solid var(--info-border);border-radius:8px;">
+              <div style="width:32px;height:32px;border-radius:50%;background:var(--info);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">1</div>
+              <div><div style="font-size:12px;font-weight:600;color:var(--text-primary);">Document Ingestion</div><div style="font-size:11px;color:var(--text-muted);">GoldenGate 21c/26ai docs, MOS notes, param file references &#8594; chunked into 512-token segments</div></div>
+            </div>
+            <div style="text-align:center;font-size:16px;color:var(--border-strong);">&#8595;</div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--ai-purple-bg);border:1px solid var(--ai-purple-border);border-radius:8px;">
+              <div style="width:32px;height:32px;border-radius:50%;background:var(--ai-purple);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">2</div>
+              <div><div style="font-size:12px;font-weight:600;color:var(--text-primary);">Vector Embedding</div><div style="font-size:11px;color:var(--text-muted);">Chunks &#8594; embedding model (Oracle DB 23ai Vector / sentence-transformers) &#8594; stored in FAISS / Oracle Vector DB</div></div>
+            </div>
+            <div style="text-align:center;font-size:16px;color:var(--border-strong);">&#8595;</div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--success-bg);border:1px solid var(--success-border);border-radius:8px;">
+              <div style="width:32px;height:32px;border-radius:50%;background:var(--success);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">3</div>
+              <div><div style="font-size:12px;font-weight:600;color:var(--text-primary);">Semantic Retrieval</div><div style="font-size:11px;color:var(--text-muted);">User query &#8594; embedding &#8594; top-K cosine similarity &#8594; retrieve relevant GoldenGate knowledge chunks</div></div>
+            </div>
+            <div style="text-align:center;font-size:16px;color:var(--border-strong);">&#8595;</div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--danger-bg);border:1px solid var(--danger-border);border-radius:8px;">
+              <div style="width:32px;height:32px;border-radius:50%;background:var(--apex-red);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">4</div>
+              <div><div style="font-size:12px;font-weight:600;color:var(--text-primary);">LLM Augmented Answer</div><div style="font-size:11px;color:var(--text-muted);">Retrieved chunks + user query &#8594; LLM prompt &#8594; grounded, accurate GoldenGate answer with source citations</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LLM Options + Knowledge Sources -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="apex-region">
+          <div class="apex-region-header"><div class="apex-region-title">&#129302; Local LLM Options</div></div>
+          <div class="apex-region-body no-pad">
+            <table class="apex-table">
+              <thead><tr><th>Model</th><th>Type</th><th>Best For</th><th>Size</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Llama 3.2</strong></td><td><span class="badge badge-success">Local</span></td><td>General GGS Q&amp;A</td><td>3B / 11B</td></tr>
+                <tr><td><strong>Mistral 7B</strong></td><td><span class="badge badge-success">Local</span></td><td>Code / SQL gen</td><td>7B</td></tr>
+                <tr><td><strong>Oracle 26ai</strong></td><td><span class="badge badge-ai">Cloud</span></td><td>Oracle-tuned answers</td><td>API</td></tr>
+                <tr><td><strong>Claude claude-sonnet-4-6</strong></td><td><span class="badge badge-ai">API</span></td><td>Complex reasoning</td><td>API</td></tr>
+                <tr><td><strong>Phi-3 Mini</strong></td><td><span class="badge badge-success">Local</span></td><td>Edge / low-resource</td><td>3.8B</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="apex-region">
+          <div class="apex-region-header"><div class="apex-region-title">&#128218; GoldenGate Knowledge Sources</div></div>
+          <div class="apex-region-body no-pad">
+            <table class="apex-table">
+              <thead><tr><th>Source</th><th>Content</th><th>Format</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Oracle Docs 21c/26ai</strong></td><td>Official GGS reference</td><td>PDF / HTML</td></tr>
+                <tr><td><strong>MOS Notes</strong></td><td>Known issues &amp; patches</td><td>HTML</td></tr>
+                <tr><td><strong>Param File Reference</strong></td><td>Extract/Replicat params</td><td>Text</td></tr>
+                <tr><td><strong>OGG Error Codes</strong></td><td>OGG-00XXX diagnostics</td><td>Text</td></tr>
+                <tr><td><strong>Oracle Blog / VRK</strong></td><td>How-to guides</td><td>HTML</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Python Setup Code -->
+    <div class="apex-region" style="margin-bottom:20px;">
+      <div class="apex-region-header">
+        <div class="apex-region-title">&#128187; Local RAG Setup — Python (LangChain + FAISS + Llama / Oracle 26ai)</div>
+        <span class="badge badge-success">Python 3.10+</span>
+      </div>
+      <div class="apex-region-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Step 1 — Install &amp; Ingest</div>
+            <div style="background:#1E2433;border:1px solid #2A3040;border-radius:6px;padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.8;color:#CDD5E0;overflow-x:auto;">
+<span style="color:#546E7A;"># Install dependencies</span>
+<span style="color:#C3E88D;">pip install langchain faiss-cpu</span>
+<span style="color:#C3E88D;">pip install sentence-transformers ollama</span>
+<span style="color:#C3E88D;">pip install pypdf unstructured</span>
+
+<span style="color:#546E7A;"># Ingest GoldenGate docs</span>
+<span style="color:#82AAFF;">from</span> langchain.document_loaders <span style="color:#82AAFF;">import</span> PyPDFLoader
+<span style="color:#82AAFF;">from</span> langchain.text_splitter <span style="color:#82AAFF;">import</span> RecursiveCharacterTextSplitter
+<span style="color:#82AAFF;">from</span> langchain.embeddings <span style="color:#82AAFF;">import</span> HuggingFaceEmbeddings
+<span style="color:#82AAFF;">from</span> langchain.vectorstores <span style="color:#82AAFF;">import</span> FAISS
+
+loader = PyPDFLoader(<span style="color:#F07178;">"goldengate_21c_admin.pdf"</span>)
+docs   = loader.load()
+splitter = RecursiveCharacterTextSplitter(chunk_size=<span style="color:#C3E88D;">512</span>, chunk_overlap=<span style="color:#C3E88D;">64</span>)
+chunks = splitter.split_documents(docs)
+embedder = HuggingFaceEmbeddings(model_name=<span style="color:#F07178;">"sentence-transformers/all-MiniLM-L6-v2"</span>)
+vectorstore = FAISS.from_documents(chunks, embedder)
+vectorstore.save_local(<span style="color:#F07178;">"gg_rag_index"</span>)
+<span style="color:#89DDFF;">print</span>(<span style="color:#F07178;">f"Indexed {len(chunks)} chunks"</span>)
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Step 2 — Query with Local LLM or Oracle 26ai</div>
+            <div style="background:#1E2433;border:1px solid #2A3040;border-radius:6px;padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.8;color:#CDD5E0;overflow-x:auto;">
+<span style="color:#82AAFF;">from</span> langchain.llms <span style="color:#82AAFF;">import</span> Ollama
+<span style="color:#82AAFF;">from</span> langchain.chains <span style="color:#82AAFF;">import</span> RetrievalQA
+
+vectorstore = FAISS.load_local(<span style="color:#F07178;">"gg_rag_index"</span>, embedder,
+    allow_dangerous_deserialization=<span style="color:#C3E88D;">True</span>)
+
+<span style="color:#546E7A;"># Option A: Local (Ollama / Llama3)</span>
+llm = Ollama(model=<span style="color:#F07178;">"llama3.2"</span>)
+
+<span style="color:#546E7A;"># Option B: Oracle 26ai (via Anthropic SDK)</span>
+<span style="color:#546E7A;"># llm = Claude(model="claude-sonnet-4-6")</span>
+
+qa_chain = RetrievalQA.from_chain_type(
+    llm=llm,
+    retriever=vectorstore.as_retriever(search_kwargs={"k": 5}),
+    return_source_documents=<span style="color:#C3E88D;">True</span>
+)
+result = qa_chain.invoke(
+    <span style="color:#F07178;">"What supplemental logging level is needed for Lakehouse?"</span>
+)
+<span style="color:#89DDFF;">print</span>(result[<span style="color:#F07178;">"result"</span>])
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RAG Sample Prompts -->
+    <div class="apex-region">
+      <div class="apex-region-header">
+        <div class="apex-region-title">&#128269; Try GG Bot — RAG Sample Queries</div>
+        <span style="font-size:11px;color:var(--text-muted);">Best answered by a GoldenGate-tuned RAG pipeline</span>
+      </div>
+      <div class="apex-region-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button class="ai-quick-btn" style="border-radius:6px;text-align:left;padding:9px 12px;font-size:12px;" onclick="quickPrompt('What supplemental logging level is required for GoldenGate Lakehouse replication to Apache Iceberg?')">Logging level for Lakehouse / Iceberg replication?</button>
+          <button class="ai-quick-btn" style="border-radius:6px;text-align:left;padding:9px 12px;font-size:12px;" onclick="quickPrompt('Explain Oracle GoldenGate 26ai architecture differences from 21c microservices')">GoldenGate 26ai vs 21c architecture?</button>
+          <button class="ai-quick-btn" style="border-radius:6px;text-align:left;padding:9px 12px;font-size:12px;" onclick="quickPrompt('How does GoldenGate handle ALLCOLS supplemental logging for Lakehouse targets like ADLS Gen2?')">ALLCOLS logging for ADLS Gen2 / Delta Lake?</button>
+          <button class="ai-quick-btn" style="border-radius:6px;text-align:left;padding:9px 12px;font-size:12px;" onclick="quickPrompt('What are the GoldenGate 26ai parameter file changes from 21c for Integrated Extract?')">26ai Extract parameter changes from 21c?</button>
+          <button class="ai-quick-btn" style="border-radius:6px;text-align:left;padding:9px 12px;font-size:12px;" onclick="quickPrompt('How to configure SCHEMATRANDATA for a CDB source in Oracle GoldenGate 26ai?')">SCHEMATRANDATA for CDB source in 26ai?</button>
+          <button class="ai-quick-btn" style="border-radius:6px;text-align:left;padding:9px 12px;font-size:12px;" onclick="quickPrompt('What is the recommended STREAMS_POOL_SIZE for 5 GoldenGate Integrated Extract processes?')">Sizing STREAMS_POOL_SIZE for 5 Extract processes?</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</main>
+<footer>Oracle GoldenGate Technical Simulator Suite · Ravikumar Vasudevan</footer>
+<script>
+/* tab wiring */
+document.querySelectorAll('nav button').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.tab').forEach(function(s){ s.classList.remove('active'); });
+    document.querySelectorAll('nav button').forEach(function(b){ b.classList.remove('active'); });
+    var sec = document.getElementById('view-' + btn.getAttribute('data-view'));
+    if(sec) sec.classList.add('active');
+    btn.classList.add('active');
+  });
+});
+
+function gg$(id){return document.getElementById(id);}
+
+const TABS=['prereq','sizing','concept','commands','internals','simulator','performance','ai26','version'];
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(function(s){ s.classList.remove('active'); });
+  document.querySelectorAll('nav button').forEach(function(b){ b.classList.remove('active'); });
+  var sec = document.getElementById('view-'+id);
+  if(sec) sec.classList.add('active');
+  document.querySelectorAll('nav button[data-view="'+id+'"]').forEach(function(b){ b.classList.add('active'); });
+}
+function toggleCheck(el){el.classList.toggle('checked');}
+;
+var CMD_STEPS=[
+  {title:"Step 1 — SQL*Plus Prompt",badge:"Oracle SQL / AdminClient",code:"<span class=\"c-cm\">-- STEP 1: Check Current DB Status</span>\n<span class=\"c-kw\">SELECT</span> LOG_MODE,\n       SUPPLEMENTAL_LOG_DATA_MIN,\n       SUPPLEMENTAL_LOG_DATA_PK,\n       FORCE_LOGGING\n<span class=\"c-kw\">FROM</span>   V$DATABASE;\n\n<span class=\"c-cm\">-- Check existing log groups:</span>\n<span class=\"c-kw\">SELECT</span> OWNER, TABLE_NAME, LOG_GROUP_TYPE, ALWAYS\n<span class=\"c-kw\">FROM</span>   DBA_LOG_GROUPS\n<span class=\"c-kw\">WHERE</span>  OWNER = <span class=\"c-str\">'HR'</span>;\n\n<span class=\"c-out\">LOG_MODE   MIN  PK   FORCE</span>\n<span class=\"c-out\">ARCHIVELOG NO   NO   NO</span>"},
+  {title:"Step 2 — SQL*Plus Prompt",badge:"Oracle SQL / AdminClient",code:"<span class=\"c-cm\">-- STEP 2: Enable Minimal Supplemental Logging</span>\n<span class=\"c-kw\">ALTER DATABASE ADD SUPPLEMENTAL LOG DATA</span>;\n<span class=\"c-kw\">ALTER SYSTEM SWITCH LOGFILE</span>;\n\n<span class=\"c-cm\">-- Verify:</span>\n<span class=\"c-kw\">SELECT</span> SUPPLEMENTAL_LOG_DATA_MIN <span class=\"c-kw\">FROM</span> V$DATABASE;\n\n<span class=\"c-out\">SUPPLEMENTAL_LOG_DATA_MIN</span>\n<span class=\"c-out\">YES</span>\n\n<span class=\"c-cm\">-- Requires SYSDBA. Must be done BEFORE ADD TRANDATA.</span>"},
+  {title:"Step 3 — SQL*Plus Prompt",badge:"Oracle SQL / AdminClient",code:"<span class=\"c-cm\">-- STEP 3: Enable FORCE LOGGING</span>\n<span class=\"c-kw\">ALTER DATABASE FORCE LOGGING</span>;\n\n<span class=\"c-cm\">-- Verify:</span>\n<span class=\"c-kw\">SELECT</span> FORCE_LOGGING <span class=\"c-kw\">FROM</span> V$DATABASE;\n\n<span class=\"c-out\">FORCE_LOGGING</span>\n<span class=\"c-out\">YES</span>\n\n<span class=\"c-cm\">-- Prevents NOLOGGING, APPEND hints, direct path</span>\n<span class=\"c-cm\">-- loads from bypassing redo capture.</span>"},
+  {title:"Step 4 — AdminClient",badge:"Oracle SQL / AdminClient",code:"<span class=\"c-cm\">-- STEP 4: Connect via AdminClient (26ai / 21c)</span>\n<span class=\"c-out\">$ adminclient</span>\n\n<span class=\"c-kw\">CONNECT</span> https://localhost:9100 deployment/ServiceManager\n\n<span class=\"c-out\">Oracle GoldenGate Administration Client</span>\n<span class=\"c-out\">Version 21.3.0.0.0 ... Connected to ServiceManager.</span>\n\n<span class=\"c-cm\">-- Switch to specific deployment:</span>\n<span class=\"c-kw\">CONNECT</span> https://localhost:9100 deployment/Atlanta\n\n<span class=\"c-cm\">-- AdminClient replaces GGSCI in Microservices 26ai.</span>"},
+  {title:"Step 5 — AdminClient",badge:"Oracle SQL / AdminClient",code:"<span class=\"c-cm\">-- STEP 5: DBLOGIN to Source Database</span>\n<span class=\"c-cm\">-- Non-CDB:</span>\n<span class=\"c-kw\">DBLOGIN</span> USERIDALIAS GGADMIN_ALIAS\n\n<span class=\"c-cm\">-- CDB / Multitenant (c## prefix required):</span>\n<span class=\"c-kw\">DBLOGIN</span> USERIDALIAS C##GGADMIN_ALIAS <span class=\"c-kw\">SYSDBA</span>\n\n<span class=\"c-out\">Successfully logged into database.</span>\n\n<span class=\"c-cm\">-- USERIDALIAS references wallet credential.</span>\n<span class=\"c-cm\">-- Preferred over inline password for production.</span>"},
+  {title:"Step 6 — AdminClient",badge:"Oracle SQL / AdminClient",code:"<span class=\"c-cm\">-- STEP 6: ADD SCHEMATRANDATA</span>\n<span class=\"c-kw\">ADD SCHEMATRANDATA</span> HR\n\n<span class=\"c-out\">Logging of supplemental redo data enabled for schema HR.</span>\n\n<span class=\"c-cm\">-- With ALLCOLS for CDR / Lakehouse targets:</span>\n<span class=\"c-kw\">ADD SCHEMATRANDATA</span> HR <span class=\"c-kw\">ALLCOLS</span>\n\n<span class=\"c-cm\">-- Verify:</span>\n<span class=\"c-kw\">INFO SCHEMATRANDATA</span> HR\n\n<span class=\"c-cm\">-- Auto-applies to new tables. Includes scheduling</span>\n<span class=\"c-cm\">-- cols required for Parallel Replicat.</span>"},
+  {title:"Step 7 — AdminClient",badge:"Oracle SQL / AdminClient",code:"<span class=\"c-cm\">-- STEP 7: ADD TRANDATA (Per Table)</span>\n<span class=\"c-cm\">-- Primary Key only (default):</span>\n<span class=\"c-kw\">ADD TRANDATA</span> HR.EMPLOYEES\n\n<span class=\"c-cm\">-- All columns (CDR / Lakehouse / Iceberg):</span>\n<span class=\"c-kw\">ADD TRANDATA</span> HR.EMPLOYEES <span class=\"c-kw\">ALLCOLS</span>\n\n<span class=\"c-cm\">-- Custom key columns:</span>\n<span class=\"c-kw\">ADD TRANDATA</span> HR.LEGACY_EMP <span class=\"c-kw\">KEYCOLS</span> (BADGE_NO, DEPT)\n\n<span class=\"c-cm\">-- No key (ROWID fallback):</span>\n<span class=\"c-kw\">ADD TRANDATA</span> HR.AUDIT_LOG <span class=\"c-kw\">NOKEY</span>\n\n<span class=\"c-out\">Trandata added for table HR.EMPLOYEES.</span>"},
+  {title:"Step 8 — SQL*Plus &amp; AdminClient",badge:"Oracle SQL / AdminClient",code:"<span class=\"c-cm\">-- STEP 8: Verify Configuration</span>\n<span class=\"c-cm\">-- AdminClient:</span>\n<span class=\"c-kw\">INFO TRANDATA</span> HR.EMPLOYEES\n\n<span class=\"c-out\">Logging of supplemental redo log data is enabled</span>\n<span class=\"c-out\">for table HR.EMPLOYEES. Columns: EMPLOYEE_ID.</span>\n\n<span class=\"c-cm\">-- SQL*Plus Prompt:</span>\n<span class=\"c-kw\">SELECT</span> LOG_GROUP_TYPE, ALWAYS\n<span class=\"c-kw\">FROM</span>   DBA_LOG_GROUPS\n<span class=\"c-kw\">WHERE</span>  OWNER = <span class=\"c-str\">'HR'</span>\n<span class=\"c-kw\">AND</span>    TABLE_NAME = <span class=\"c-str\">'EMPLOYEES'</span>;\n\n<span class=\"c-out\">PRIMARY KEY LOGGING  ALWAYS</span>"}
+];
+function selectStep(n){
+  document.querySelectorAll('.step-row').forEach(function(s,i){
+    s.classList.toggle('s-active',i===n);
+  });
+  var step = CMD_STEPS[n];
+  if(!step) return;
+  var titleEl = document.getElementById('cmdPanelTitle');
+  var badgeEl = document.getElementById('cmdPanelBadge');
+  var codeEl  = document.getElementById('cmdCode');
+  if(titleEl) titleEl.textContent = step.title;
+  if(badgeEl) badgeEl.textContent = step.badge;
+  if(codeEl)  codeEl.innerHTML    = step.code;
+}
+var suppEnabled = false;
+function toggleSupp(){
+  suppEnabled = !suppEnabled;
+  window.suppEnabled = suppEnabled;
+  var track = document.getElementById('suppTrack');
+  var label = document.getElementById('suppLabel');
+  var body  = document.getElementById('redoLogBody');
+  if(track) track.classList.toggle('on', suppEnabled);
+  if(label){
+    label.innerHTML = 'Supplemental Logging: <strong>' + (suppEnabled ? 'ON' : 'OFF') + '</strong>';
+    label.style.color = suppEnabled ? '#2E7D32' : '#5F6368';
+  }
+  // Fade out, swap content, fade in
+  if(body){
+    body.style.transition = 'opacity 0.25s ease';
+    body.style.opacity = '0';
+    setTimeout(function(){
+      renderRedo();
+      body.style.opacity = '1';
+    }, 250);
+  }
+}
+function renderRedo(){
+  var body=document.getElementById('redoLogBody');
+  if(!body) return;
+  body.style.opacity='0';
+  var html='';
+  if(!suppEnabled){
+    html='<div style="padding:4px 0;"><span style="color:#9C3327;font-weight:700;">CHANGE VECTOR #1</span>&nbsp; OP:<span style="color:#C74634;"> 11.4</span> (UPDATE)</div>'+
+      '<div style="padding:4px 0;color:#5F6368;">OBJ: 74521&nbsp; TABLE: <span style="color:#1B6FC9;">HR.EMPLOYEES</span></div>'+
+      '<div style="padding:4px 0;">DATA#5 <span style="color:#5F6368;">[SALARY]</span>: <span style="color:#2E7D32;">95000</span> <span style="color:#5F6368;">&larr; after-image only</span></div>'+
+      '<div style="margin-top:10px;padding:10px 12px;background:#F3E9E7;border:1px solid rgba(199,70,52,.25);border-radius:6px;color:#9C3327;font-size:11.5px;">'+
+        '&#10007; No PK &nbsp;&middot;&nbsp; No before-image &nbsp;&middot;&nbsp; Extract <strong>cannot</strong> identify the row &mdash; replication fails'+
+      '</div>';
+  } else {
+    html='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'+
+      '<div style="background:#F3E9E7;border:1px solid rgba(199,70,52,.2);border-left:3px solid #C74634;border-radius:6px;padding:10px 12px;">'+
+        '<div style="font-size:10px;font-weight:700;color:#9C3327;margin-bottom:5px;">CV #1 &mdash; Standard DML</div>'+
+        '<div>OP: <span style="color:#C74634;">11.4</span> UPDATE &nbsp; OBJ: 74521</div>'+
+        '<div>DATA#5 <span style="color:#5F6368;">[SALARY]</span>: <span style="color:#2E7D32;">95000</span> &larr; after</div>'+
+      '</div>'+
+      '<div style="background:#E7F0FB;border:1px solid rgba(27,111,201,.2);border-left:3px solid #1B6FC9;border-radius:6px;padding:10px 12px;">'+
+        '<div style="font-size:10px;font-weight:700;color:#1B6FC9;margin-bottom:5px;">CV #2 &mdash; Supplemental</div>'+
+        '<div>OP: <span style="color:#C74634;">5.1</span> SUPPL</div>'+
+        '<div>DATA#0 <span style="color:#5F6368;">[EMP_ID]</span>: <span style="color:#2E7D32;">101</span> &#9654; PK &#10003;</div>'+
+        '<div>DATA#4 <span style="color:#5F6368;">[SAL_BI]</span>: <span style="color:#1B6FC9;">85000</span> &#9654; before &#10003;</div>'+
+      '</div>'+
+    '</div>'+
+    '<div style="margin-top:8px;padding:9px 12px;background:#E6F4EA;border:1px solid rgba(46,125,50,.25);border-radius:6px;color:#2E7D32;font-size:11.5px;">'+
+      '&#10003; Both vectors atomic (same SCN) &nbsp;&middot;&nbsp; Extract builds LCR: key=101, before=85000, after=95000'+
+    '</div>';
+  }
+  body.innerHTML=html;
+  setTimeout(function(){ body.style.transition='opacity .25s'; body.style.opacity='1'; },20);
+}
+
+function animatePipeline(){
+  var boxIds  = ['pb0','pb1','pb2','pb3','pb4','pb5'];
+  var arrowIds= ['pa0','pa1','pa2','pa3','pa4'];
+  // reset
+  boxIds.forEach(function(id){var el=document.getElementById(id);if(el){el.classList.remove('active');el.style.opacity='1';}});
+  arrowIds.forEach(function(id){var el=document.getElementById(id);if(el){el.classList.remove('active');el.style.color='var(--border)';}});
+  // animate each box in sequence
+  boxIds.forEach(function(id,i){
+    setTimeout(function(){
+      // dim previous, light current
+      if(i>0){var prev=document.getElementById(boxIds[i-1]);if(prev){prev.classList.remove('active');prev.style.opacity='1';}}
+      var el=document.getElementById(id);
+      if(el){el.classList.add('active');el.style.opacity='1';}
+      // arrow before this box
+      if(i>0){var arr=document.getElementById(arrowIds[i-1]);if(arr){arr.classList.add('active');arr.style.color='var(--apex-red)';}}
+    }, 300 + i*550);
+  });
+  // final: remove active from last box after pause
+  setTimeout(function(){
+    var last=document.getElementById('pb5');if(last)last.classList.remove('active');
+    boxIds.forEach(function(id){var el=document.getElementById(id);if(el)el.style.opacity='1';});
+  }, 300+6*550+800);
+}
+function resetPipeline(){
+  var boxIds   = ['pb0','pb1','pb2','pb3','pb4','pb5'];
+  var arrowIds = ['pa0','pa1','pa2','pa3','pa4'];
+  boxIds.forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){el.classList.remove('active');el.style.opacity='1';}
+  });
+  arrowIds.forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){el.classList.remove('active');el.style.color='';}
+  });
+}
+
+function animateBars(type){
+  var ids=type==='redo'?['rb0','rb1','rb2','rb3','rb4']:['eb0','eb1','eb2','eb3'];
+  ids.forEach(function(id){
+    var el=document.getElementById(id);
+    if(!el)return;
+    el.style.transition='none';
+    el.style.height='0%';
+  });
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      ids.forEach(function(id,i){
+        var el=document.getElementById(id);
+        if(!el)return;
+        var raw=el.getAttribute('data-target')||'50';
+        var pct=raw.replace('%','')+'%';
+        el.style.transition='height 1.1s cubic-bezier(0.34,1.4,0.64,1) '+(i*0.12)+'s';
+        el.style.height=pct;
+      });
+    });
+  });
+}
+function selectTD(el){
+  document.querySelectorAll('.td-option').forEach(function(o){o.classList.remove('selected');});
+  if(el)el.classList.add('selected');
+}
+
+// SIZING CALCULATORS
+function calcMemory(){
+  var n=parseInt(gg$('numExtracts').value)||1;
+  var total=(n*1.25).toFixed(2);
+  var mb=Math.ceil(n*1.25*1024);
+  var r=gg$('memResult');var v=gg$('memSqlVal');
+  if(r)r.textContent='STREAMS_POOL_SIZE = '+total+' GB';
+  if(v)v.textContent=mb;
+}
+function calcTrail(){
+  var logSize=parseFloat(gg$('txnLogSize').value)||1;
+  var switches=parseInt(gg$('logSwitches').value)||10;
+  var days=parseInt(gg$('retDays').value)||7;
+  var result=(logSize*0.33*switches*days).toFixed(1);
+  var r=gg$('trailResult');if(r)r.textContent='Trail Storage = '+result+' GB';
+}
+
+// 26AI ASSISTANT
+function addMsg(role,text,fmt){
+  var area=gg$('aiChatArea');
+  var div=document.createElement('div');div.className='ai-msg '+role;
+  div.innerHTML='<div class="ai-msg-icon">'+(role==='user'?'👤':'26')+'</div><div class="ai-msg-text">'+(fmt?formatAI(text):text)+'</div>';
+  area.appendChild(div);area.scrollTop=area.scrollHeight;
+}
+function formatAI(t){
+  return t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/`([^`\n]+)`/g,'<code style="background:#F0EBFF;color:#6C3FC5;padding:1px 4px;border-radius:3px;font-size:11px;font-family:monospace;">$1</code>')
+    .replace(/\n/g,'<br>');
+}
+function showThinking(){
+  var area=gg$('aiChatArea');
+  var div=document.createElement('div');div.className='ai-msg ai';div.id='aiThinking';
+  div.innerHTML='<div class="ai-msg-icon">GG</div><div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ai-purple);padding:6px 0;"><span>26AI is thinking</span><span style="display:inline-flex;gap:3px;"><span style="width:6px;height:6px;border-radius:50%;background:var(--ai-purple);display:inline-block;animation:ai-bounce 1.2s infinite;"></span><span style="width:6px;height:6px;border-radius:50%;background:var(--ai-purple);display:inline-block;animation:ai-bounce 1.2s .2s infinite;"></span><span style="width:6px;height:6px;border-radius:50%;background:var(--ai-purple);display:inline-block;animation:ai-bounce 1.2s .4s infinite;"></span></span></div>';
+  area.appendChild(div);area.scrollTop=area.scrollHeight;return div;
+}
+async function sendAI(){
+  var input=gg$('aiInput');var q=input.value.trim();if(!q)return;
+  input.value='';addMsg('user',q,false);
+  var btn=gg$('aiSendBtn');btn.disabled=true;btn.textContent='...';
+  var thinking=showThinking();
+  try{
+    var res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,
+        system:"You are GG AI Bot — an expert AI assistant for Oracle GoldenGate Microservices. Specialize in: supplemental logging, ADD TRANDATA, SCHEMATRANDATA, Extract (integrated/classic), AdminClient commands, redo log mechanics, performance tuning, CDB/PDB multitenant setups, GoldenGate user creation (Non-CDB and CDB with c## prefix), sizing guidelines (STREAMS_POOL_SIZE, trail file storage, network latency). Use **bold** for key terms, backticks for commands. Be concise and always include a practical command example.",
+        messages:[{role:"user",content:q}]})
+    });
+    var data=await res.json();
+    var response=(data.content&&data.content[0]&&data.content[0].text)||"Could not get response. Please try again.";
+    thinking.remove();addMsg('ai',response,true);
+  }catch(e){
+    thinking.remove();
+    addMsg('ai','**GG AI Bot** is ready to help!\n\nFor your question about **"'+q+'"**, here are key points:\n\n1. Always enable minimal supplemental logging at DB level first\n2. Use `ADD SCHEMATRANDATA schema` for bulk table coverage\n3. Use `ALLCOLS` only for CDR/bi-directional scenarios\n4. For CDB: use `c##ggadmin` with `CONTAINER=ALL` grants\n5. AdminClient is the recommended interface for GoldenGate 21c MA\n\n*Try asking about specific topics: user creation, OGG errors, sizing, or performance.*',true);
+  }
+  btn.disabled=false;btn.textContent='🤖 Ask GG Bot';
+}
+function quickPrompt(text){gg$('aiInput').value=text;sendAI();switchTab('ai26');}
+
+// ── REDO BLOCK ANATOMY ANIMATION ──
+function animateRedoBlock(){
+  var v1 = document.getElementById('rb-v1');
+  var v2 = document.getElementById('rb-v2');
+  var scnEl = document.getElementById('rb-scn');
+  var footer = document.getElementById('rb-footer');
+  // Reset to visible
+  [v1,v2].forEach(function(el){
+    if(el){
+      el.style.opacity='0';
+      el.style.transform='translateY(10px)';
+      el.style.transition='none';
+      el.classList.remove('active');
+    }
+  });
+  if(scnEl){ scnEl.textContent='Waiting...'; scnEl.style.opacity='0'; }
+  if(footer){ footer.textContent=''; }
+
+  // Step 1: SCN assigned
+  setTimeout(function(){
+    if(scnEl){
+      scnEl.style.transition='opacity .4s';
+      scnEl.style.opacity='1';
+      var n=0; var target=0xA1B2C3;
+      var iv=setInterval(function(){
+        n+=Math.floor(target/18);
+        if(n>=target){n=target;clearInterval(iv);}
+        scnEl.textContent='SCN: 0x'+n.toString(16).toUpperCase().padStart(8,'0');
+      },60);
+    }
+  },100);
+
+  // Step 2: CV#1 appears
+  setTimeout(function(){
+    if(v1){
+      v1.style.transition='opacity .5s ease, transform .5s ease';
+      v1.style.opacity='1';
+      v1.style.transform='translateY(0)';
+      v1.classList.add('active');
+    }
+  },700);
+
+  // Step 3: CV#2 appears
+  setTimeout(function(){
+    if(v2){
+      v2.style.transition='opacity .5s ease, transform .5s ease';
+      v2.style.opacity='1';
+      v2.style.transform='translateY(0)';
+      v2.classList.add('active');
+    }
+  },1400);
+
+  // Step 4: footer message
+  setTimeout(function(){
+    if(footer){
+      footer.style.color='#2E7D32';
+      footer.textContent='✔ Both vectors written atomically by LGWR at same SCN';
+    }
+  },2100);
+}
+
+function animateLogMiner(){
+  var cards = ['lm-s1','lm-s2','lm-s3','lm-s4'];
+  var labels = [
+    'Reading redo stream from LGWR buffer...',
+    'Parsing raw redo vectors with LogMiner engine...',
+    'Filtering by supplemental log group definitions...',
+    'Building complete LCR — key + before-image + after-image ✔'
+  ];
+  var statusEl = document.getElementById('lm-status');
+  // Reset
+  cards.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el){ el.classList.remove('active'); el.style.opacity='0.35'; }
+  });
+  if(statusEl) statusEl.textContent = '';
+  var i = 0;
+  function highlightNext(){
+    if(i > 0){
+      var prev = document.getElementById(cards[i-1]);
+      if(prev){ prev.classList.remove('active'); prev.style.opacity='0.6'; }
+    }
+    if(i >= cards.length){
+      if(statusEl){ statusEl.style.color='#2E7D32'; statusEl.textContent='✔ LCR fully built — Extract writes to trail file'; }
+      return;
+    }
+    var el = document.getElementById(cards[i]);
+    if(el){ el.classList.add('active'); el.style.opacity='1'; }
+    if(statusEl){ statusEl.style.color='#5F6368'; statusEl.textContent=labels[i]; }
+    i++;
+    setTimeout(highlightNext, 900);
+  }
+  highlightNext();
+}
+
+
+function runSim(){
+  var schema  = (gg$('simSchema')||{}).value || 'HR';
+  var tbl     = (gg$('simTable')||{}).value || 'EMPLOYEES';
+  var level   = (gg$('simLevel')||{}).value || 'pk';
+  var dbtype  = (gg$('simDbType')||{}).value || 'noncdb';
+  var term    = gg$('termBody');
+  var resBody = gg$('simResultBody');
+  var dictBody= gg$('simDictBody');
+  if(!term) return;
+
+  var userPrefix = dbtype==='cdb' ? 'C##GGADMIN' : 'GGADMIN';
+  var addTranCmd = 'ADD TRANDATA ' + schema + '.' + tbl;
+  if(level==='allcols') addTranCmd += ' ALLCOLS';
+  else if(level==='nokey') addTranCmd += ' NOKEY';
+  else if(level==='keycols') addTranCmd += ' KEYCOLS (EMP_ID, EMAIL)';
+  else if(level==='schema') addTranCmd = 'ADD SCHEMATRANDATA ' + schema;
+  else addTranCmd += '';   // default = PK
+
+  var lines = [
+    {d:0,   t:'system', m:'AdminClient 21c — Connecting to ServiceManager...'},
+    {d:600, t:'cmd',    m:'CONNECT https://localhost:9100 deployment/ServiceManager'},
+    {d:1200,t:'ok',     m:'Connected. Authenticating as ' + userPrefix + '...'},
+    {d:1800,t:'cmd',    m:'DBLOGIN USERIDALIAS ' + userPrefix + '_ALIAS'},
+    {d:2400,t:'ok',     m:'Database login successful.'},
+    {d:3000,t:'cmd',    m:addTranCmd},
+    {d:3800,t:'ok',     m:'Trandata added for ' + schema + '.' + tbl},
+    {d:4400,t:'cmd',    m:'INFO TRANDATA ' + schema + '.' + tbl},
+    {d:5000,t:'ok',     m:'Logging of supplemental redo log data enabled for table ' + schema + '.' + tbl + '.'},
+    {d:5200,t:'system', m:'▶ Simulation complete.'}
+  ];
+
+  term.innerHTML = '';
+  lines.forEach(function(l){
+    setTimeout(function(){
+      var div = document.createElement('div');
+      div.style.cssText = 'padding:2px 0;font-size:12px;font-family:JetBrains Mono,monospace;';
+      if(l.t==='cmd')    div.innerHTML = '<span style="color:#C74634;font-weight:700;">AdminClient&gt;</span> <span style="color:#CDD5E0;">' + l.m + '</span>';
+      else if(l.t==='ok')div.innerHTML = '<span style="color:#22C55E;">✔</span> <span style="color:#89DDFF;">' + l.m + '</span>';
+      else               div.innerHTML = '<span style="color:#546E7A;">' + l.m + '</span>';
+      term.appendChild(div);
+      term.scrollTop = term.scrollHeight;
+    }, l.d);
+  });
+
+  // Fill DBA_LOG_GROUPS table
+  if(resBody){
+    var logType = level==='allcols' ? 'ALL COLUMN LOGGING' : level==='nokey' ? 'USER LOG GROUP' : 'PRIMARY KEY';
+    resBody.innerHTML =
+      '<tr><td><code>'+schema+'.'+tbl+'</code></td>' +
+      '<td><code>GGS_'+tbl+'_LOG</code></td>' +
+      '<td><span class="badge badge-success">' + logType + '</span></td>' +
+      '<td><span class="badge badge-info">LOG ALWAYS</span></td></tr>';
+  }
+  if(dictBody){
+    var allColsRows = level==='allcols'
+      ? '<tr><td><code>SALARY</code></td><td>5</td><td><span class="badge badge-success">LOG ALWAYS</span></td></tr>' +
+        '<tr><td><code>DEPT_ID</code></td><td>6</td><td><span class="badge badge-success">LOG ALWAYS</span></td></tr>'
+      : '';
+    dictBody.innerHTML =
+      '<tr><td><code>EMP_ID</code></td><td>0</td><td><span class="badge badge-success">LOG ALWAYS</span></td></tr>' +
+      '<tr><td><code>EMAIL</code></td><td>1</td><td><span class="badge badge-success">LOG ALWAYS</span></td></tr>' +
+      allColsRows;
+  }
+}
+function clearSim(){
+  var term=gg$('termBody');if(term)term.innerHTML='<div style="color:#546E7A;font-size:12px;">Terminal cleared.</div>';
+  var r=gg$('simResultBody');if(r)r.innerHTML='';
+  var d=gg$('simDictBody');if(d)d.innerHTML='';
+}
+
+
+// Expose to window for inline onclick handlers
+window.switchTab=switchTab; window.toggleCheck=toggleCheck; window.selectStep=selectStep;
+window.toggleSupp=toggleSupp;
+renderRedo(); window.animatePipeline=animatePipeline;window.resetPipeline=resetPipeline; window.animateBars=animateBars;
+window.selectTD=selectTD; window.calcMemory=calcMemory; window.calcTrail=calcTrail;
+window.sendAI=sendAI; window.quickPrompt=quickPrompt; window.animateRedoBlock=animateRedoBlock;
+window.animateLogMiner=animateLogMiner; window.runSim=runSim; window.clearSim=clearSim;
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ═══ LIVE SIMULATOR ENGINE ═══ */
+(function(){
+  // ---- Guided step unlocking ----
+  function unlock(stepId, statusText){
+    const el = document.getElementById(stepId);
+    el.classList.remove('locked');
+  }
+  function markDone(stepId, statusId, text){
+    document.getElementById(stepId).classList.add('done');
+    document.getElementById(statusId).textContent = text;
+  }
+
+  document.getElementById('btnConnSrc').addEventListener('click', ()=>{
+    markDone('step1','status1','connected');
+    unlock('step2');
+    document.getElementById('status2').textContent = 'ready to configure';
+  });
+
+  document.getElementById('btnStartExtract').addEventListener('click', ()=>{
+    markDone('step2','status2','running');
+    unlock('step3');
+    document.getElementById('status3').textContent = 'capturing';
+    unlock('step4');
+    document.getElementById('status4').textContent = 'not connected';
+    let count = 0;
+    const trailCount = document.getElementById('trailCount');
+    const iv = setInterval(()=>{
+      count += Math.floor(Math.random()*3)+1;
+      trailCount.textContent = count;
+      if(count>40){ clearInterval(iv); markDone('step3','status3','trail filling ✔'); }
+    }, 400);
+  });
+
+  document.getElementById('btnConnTgt').addEventListener('click', ()=>{
+    markDone('step4','status4','connected');
+    unlock('step5');
+    document.getElementById('status5').textContent = 'ready to configure';
+  });
+
+  document.getElementById('btnStartReplicat').addEventListener('click', ()=>{
+    markDone('step5','status5','running');
+    unlock('step6');
+    document.getElementById('status6').textContent = 'ready';
+    document.getElementById('startBtn').disabled = false;
+  });
+
+  // ---- Replicat type definitions ----
+  const TYPES = {
+    classic: {
+      label:'Classic', title:'Classic Replicat',
+      note:'Single process, single DB session, applies transactions strictly in source commit order. Simplest to reason about; throughput bounded by one session.',
+      code:`REPLICAT rep26ai
+USERIDALIAS ggadmin_tgt DOMAIN OracleGoldenGate
+ASSUMETARGETDEFS
+MAP pdb1.sales.orders, TARGET pdb_tgt.sales.orders;`,
+      lanes:1, kernel:false
+    },
+    coordinated: {
+      label:'Coordinated', title:'Coordinated Replicat',
+      note:'Coordinator + a fixed number of threads, each bound to a manually declared range (e.g. primary-key range). Ordering preserved only within a range; ranges must match real data distribution or throughput skews.',
+      code:`REPLICAT rep26ai
+USERIDALIAS ggadmin_tgt DOMAIN OracleGoldenGate
+COORDINATED APPLY 3
+MAP pdb1.sales.orders, TARGET pdb_tgt.sales.orders
+  RANGE (1,3), KEYRANGE (1,3000);`,
+      lanes:3, kernel:false, staticLabels:['PK 1–3000','PK 3001–6000','PK 6001+']
+    },
+    parallel: {
+      label:'Parallel', title:'Parallel Replicat (Non-Integrated)',
+      note:'Coordinator auto-computes transaction dependencies at runtime and dynamically hash-partitions independent transactions across N worker threads — no manual range design. Each thread opens its own native DB session and issues ordinary SQL directly (non-integrated).',
+      code:`REPLICAT rep26ai
+USERIDALIAS ggadmin_tgt DOMAIN OracleGoldenGate
+REPLICAT PARALLEL
+APPLY PARALLELISM (min 2, max 4)
+MAP pdb1.sales.orders, TARGET pdb_tgt.sales.orders;`,
+      lanes:4, kernel:false
+    },
+    integrated: {
+      label:'Integrated', title:'Integrated Replicat',
+      note:'Replicat hands LCRs to the database\u2019s own inbound apply engine inside the kernel — the DB manages apply and conflict handling natively, at its own default (typically low) internal concurrency. You don\u2019t configure thread counts directly.',
+      code:`REPLICAT rep26ai
+USERIDALIAS ggadmin_tgt DOMAIN OracleGoldenGate
+DBOPTIONS INTEGRATEDPARAMS (parallelism 1)
+MAP pdb1.sales.orders, TARGET pdb_tgt.sales.orders;`,
+      lanes:0, kernel:true
+    },
+    integrated_parallel: {
+      label:'Parallel (Integrated)', title:'Parallel Replicat — Integrated',
+      note:'Same kernel-managed inbound apply engine as Integrated Replicat, but with an explicit apply parallelism degree requested via INTEGRATEDPARAMS. The database still owns dependency detection and conflict handling internally — GoldenGate just tells it how many concurrent apply servers to use, which is the combination most Database@Azure deployments use for real, high-volume CDC.',
+      code:`REPLICAT rep26ai
+USERIDALIAS ggadmin_tgt DOMAIN OracleGoldenGate
+DBOPTIONS INTEGRATEDPARAMS (parallelism 4)
+MAP pdb1.sales.orders, TARGET pdb_tgt.sales.orders;`,
+      lanes:0, kernel:true, kernelThreads:4
+    }
+  };
+
+  let currentType = 'classic';
+  const applyViz = document.getElementById('applyViz');
+  const typeNote = document.getElementById('typeNote');
+  const repCode = document.getElementById('repCode');
+  const mMode = document.getElementById('mMode');
+
+  function renderType(){
+    const t = TYPES[currentType];
+    typeNote.innerHTML = `<b>${t.title}:</b> ${t.note}`;
+    repCode.textContent = t.code;
+    mMode.textContent = t.label;
+  }
+
+  function renderApplyViz(){
+    const t = TYPES[currentType];
+    applyViz.innerHTML='';
+    if(t.kernel){
+      const n = t.kernelThreads || 1;
+      let subs = '';
+      for(let i=0;i<n;i++) subs += '<div class="kthread"></div>';
+      applyViz.innerHTML = `
+        <div class="kernel-box">
+          <div class="klabel">DB INBOUND<br>APPLY ENGINE</div>
+          <div class="kernel-subthreads" id="kSubs">${subs}</div>
+          <div class="klabel" style="font-size:8.5px;color:var(--sub);">${n>1? n+' concurrent apply servers':'single apply server'}</div>
+        </div>`;
+      return;
+    }
+    for(let i=0;i<t.lanes;i++){
+      const lane = document.createElement('div');
+      lane.className='lane'; lane.id='lane'+i;
+      const labelText = t.staticLabels ? t.staticLabels[i] : ('T'+i+' (hash)');
+      lane.innerHTML = `<span style="position:relative;z-index:1;">${labelText}</span>`;
+      applyViz.appendChild(lane);
+    }
+  }
+
+  function selectType(type){
+    currentType = type;
+    document.querySelectorAll('#typeSelect .type-btn').forEach(b=>b.classList.toggle('active', b.dataset.type===type));
+    renderType();
+    renderApplyViz();
+  }
+  document.querySelectorAll('#typeSelect .type-btn').forEach(b=>b.addEventListener('click', ()=>selectType(b.dataset.type)));
+  selectType('classic');
+
+  // ---- Path (Option A / B) toggle ----
+  let pipelinePath = 'A';
+  const PATH_NOTES = {
+    A: 'Option A models two GoldenGate deployments (or one deployment replicating across regions): Extract writes a local trail, the Distribution Server ships it over the Interconnect, and a Receiver Server writes a target-side trail that Replicat reads.',
+    B: 'Option B models one GoldenGate deployment serving both databases directly: Replicat reads the same local trail Extract writes, with no Distribution Server, Receiver Server, or second trail in between — the simplest topology when source and target are both reachable from a single deployment.'
+  };
+  const pathNote = document.getElementById('pathNote');
+  const pipelineEl = document.getElementById('pipeline');
+  const midStages = ['stageDist','stageRecv','stageRT'];
+
+  function layoutPipeline(){
+    const showMid = pipelinePath === 'A';
+    midStages.forEach(id=>{ document.getElementById(id).style.display = showMid ? '' : 'none'; });
+    applyViz.style.left = showMid ? '790px' : '390px';
+    document.getElementById('stageTarget').style.left = 'auto';
+    document.getElementById('stageTarget').style.right = '0px';
+    pipelineEl.style.minWidth = showMid ? '1080px' : '760px';
+    pathNote.textContent = PATH_NOTES[pipelinePath];
+  }
+
+  document.querySelectorAll('#pathSelect .type-btn').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      pipelinePath = b.dataset.path;
+      document.querySelectorAll('#pathSelect .type-btn').forEach(x=>x.classList.toggle('active', x===b));
+      layoutPipeline();
+    });
+  });
+  layoutPipeline();
+
+  // ---- Replication run ----
+  const startBtn = document.getElementById('startBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const logPanel = document.getElementById('logPanel');
+  const mScn = document.getElementById('mScn');
+  const mApplied = document.getElementById('mApplied');
+  const mLag = document.getElementById('mLag');
+  const pipeline = document.getElementById('pipeline');
+
+  let scn = 3201884, applied = 0, running = false;
+
+  function log(tag, tagClass, msg){
+    const row = document.createElement('div');
+    row.className='row';
+    const ts = new Date().toLocaleTimeString('en-GB');
+    row.innerHTML = `<span class="ts">${ts}</span><span class="tag ${tagClass}">${tag}</span><span class="msg">${msg}</span>`;
+    logPanel.appendChild(row);
+    logPanel.scrollTop = logPanel.scrollHeight;
+  }
+  function pulse(id, color){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.style.transition='box-shadow .2s, border-color .2s';
+    el.style.borderColor = color;
+    el.style.boxShadow = `0 0 14px ${color}`;
+    setTimeout(()=>{ el.style.borderColor=''; el.style.boxShadow=''; }, 380);
+  }
+  function makeParticle(){
+    const p = document.createElement('div');
+    p.className='particle';
+    p.style.background = 'var(--src)'; p.style.color = 'var(--src)';
+    pipeline.appendChild(p);
+    return p;
+  }
+
+  async function runTransaction(id){
+    const startTime = performance.now();
+    const t = TYPES[currentType];
+    const p = makeParticle();
+    p.style.left='0px'; p.style.top='50%';
+
+    log('EXT','src', `LCR captured (txn#${id}) at SCN ${scn}`);
+    await new Promise(r=>{p.style.transition='left 450ms linear';p.style.left='130px';setTimeout(r,450);});
+    pulse('iconExtract','#9C3327');
+    await new Promise(r=>{p.style.left='260px';setTimeout(r,450);});
+    pulse('iconTrail','#C74634');
+    scn += Math.floor(Math.random()*40)+10;
+    mScn.textContent = scn.toLocaleString();
+
+    p.style.background='var(--gg)'; p.style.color='var(--gg)';
+    if(pipelinePath === 'A'){
+      await new Promise(r=>{p.style.left='390px';setTimeout(r,450);});
+      pulse('iconDist','#C74634');
+      log('DIST','gg', `txn#${id} shipped over the Azure backbone (Network Anchor)`);
+      await new Promise(r=>{p.style.left='520px';setTimeout(r,450);});
+      pulse('iconRecv','#C74634');
+      await new Promise(r=>{p.style.left='650px';setTimeout(r,450);});
+      pulse('iconRT','#1B6FC9');
+    } else {
+      log('REP','gg', `txn#${id} read directly off local trail (et) — same deployment, no network hop`);
+    }
+
+    p.style.background='var(--tgt)'; p.style.color='var(--tgt)';
+    const pipeWidth = pipeline.clientWidth;
+    const applyLeft = pipelinePath === 'A' ? 790 : 390, applyRight = pipeWidth-140;
+
+    if(t.kernel){
+      log('REP','tgt', `txn#${id} handed to DB inbound apply engine`);
+      await new Promise(r=>{p.style.transition='left 400ms linear';p.style.left=(applyLeft+35)+'px';setTimeout(r,400);});
+      const subs = document.querySelectorAll('#kSubs .kthread');
+      const sub = subs[id % subs.length];
+      if(sub){ sub.classList.add('active'); setTimeout(()=>sub.classList.remove('active'),450); }
+      p.style.opacity='0';
+      await new Promise(r=>setTimeout(r,450));
+      p.style.left=(applyRight+35)+'px'; p.style.opacity='1';
+      await new Promise(r=>setTimeout(r,50));
+    } else {
+      const laneIdx = t.lanes>0 ? (id % t.lanes) : 0;
+      log('REP','tgt', `txn#${id} routed to ${t.staticLabels ? t.staticLabels[laneIdx] : ('thread T'+laneIdx)}`);
+      await new Promise(r=>{p.style.transition='left 400ms linear';p.style.left=(applyLeft+25)+'px';setTimeout(r,400);});
+      const lane = document.getElementById('lane'+laneIdx);
+      if(lane){
+        let fill = lane.querySelector('.lfill');
+        if(!fill){ fill=document.createElement('div'); fill.className='lfill'; lane.appendChild(fill); }
+        fill.style.width='100%';
+        setTimeout(()=>{ fill.style.width='0%'; }, 400);
+      }
+      const laneY = t.lanes>1 ? (laneIdx - (t.lanes-1)/2) * 24 : 0;
+      await new Promise(r=>{p.style.transition='left 380ms linear, top .3s ease';p.style.top=`calc(50% + ${laneY}px)`;p.style.left=(applyLeft+80)+'px';setTimeout(r,380);});
+      await new Promise(r=>{p.style.transition='left 380ms linear, top .3s ease';p.style.top='50%';p.style.left=(applyRight+25)+'px';setTimeout(r,380);});
+    }
+
+    await new Promise(r=>{p.style.transition='left 350ms linear';p.style.left=(pipeWidth-45)+'px';setTimeout(r,350);});
+    pulse('iconTarget','#1B6FC9');
+    applied++; mApplied.textContent = applied;
+    mLag.textContent = Math.round(performance.now()-startTime)+' ms';
+    log('REP','tgt', `txn#${id} committed on Oracle Database 26ai`);
+    setTimeout(()=>p.remove(),250);
+  }
+
+  async function startRun(){
+    if(running) return;
+    running = true; startBtn.disabled = true;
+    const t = TYPES[currentType];
+    log('EXT','src','Extract EXT19C reading redo via Logmining Server');
+    log('REP','tgt', t.kernel ? 'Integrated Replicat handing off to DB inbound apply engine' : `Replicat coordinator initialized — mode: ${t.title}`);
+    const count = 8;
+    for(let i=1;i<=count;i++){
+      runTransaction(i);
+      const gap = t.lanes<=1 && !t.kernel ? 850 : (t.kernel ? 480 : 360);
+      await new Promise(r=>setTimeout(r, gap));
+    }
+    setTimeout(()=>{ startBtn.disabled=false; running=false; log('REP','tgt','Run complete — steady-state lag reached'); }, 3200);
+  }
+
+  function resetSim(){
+    running = false; scn = 3201884; applied = 0;
+    mScn.textContent = scn.toLocaleString();
+    mApplied.textContent = '0'; mLag.textContent = '0 ms';
+    logPanel.innerHTML='';
+    document.querySelectorAll('.particle').forEach(p=>p.remove());
+    document.querySelectorAll('.lfill').forEach(f=>f.style.width='0%');
+    startBtn.disabled = false;
+  }
+
+  startBtn.addEventListener('click', startRun);
+  resetBtn.addEventListener('click', resetSim);
+
+})();
+</script>
+</body>
+</html>
