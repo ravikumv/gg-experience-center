@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Ravikumar Vasudevan">
+<meta name="contact" content="ravikumar.v.v@oracle.com">
+<title>Oracle GoldenGate Troubleshooting Simulator | Lag, Errors, Trail, Performance, Security, DDL, Migration &amp; Data Mismatch</title>
+<style>
+  :root{
+    --redwood:#C74634;
+    --redwood-dark:#9C3327;
+    --ink:#1B1B1B;
+    --muted:#5F6368;
+    --line:#E3E1DD;
+    --bg:#FAF9F7;
+    --panel:#FFFFFF;
+    --ok:#2E7D32;
+    --warn:#B45309;
+    --primary-blue:#1B6FC9;
+    --standby-grey:#8A8D91;
+  }
+  *{box-sizing:border-box;}
+  html,body{max-width:100%;overflow-x:hidden;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);}
+  header{background:var(--ink);color:#fff;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  header .title{display:flex;align-items:center;gap:12px;}
+  header .header-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+  header .header-right a.back{color:var(--redwood);text-decoration:none;font-size:12.5px;font-weight:600;}
+  header .header-right a.back:hover{text-decoration:underline;}
+  header .badge{background:var(--redwood);color:#fff;font-size:11px;font-weight:700;letter-spacing:.06em;padding:4px 10px;border-radius:4px;text-transform:uppercase;}
+  header h1{font-size:18px;margin:0;font-weight:600;}
+  header .sub{font-size:12px;color:#C9C9C9;margin-top:2px;}
+  nav{display:flex;gap:2px;background:#fff;border-bottom:2px solid var(--line);padding:0 20px;overflow-x:auto;position:sticky;top:0;z-index:20;}
+  nav button{border:none;background:transparent;padding:14px 16px;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
+  nav button:hover{color:var(--ink);}
+  nav button.active{color:var(--redwood);border-bottom-color:var(--redwood);}
+  main{max-width:1500px;margin:0 auto;padding:26px 32px 60px;}
+  section.tab{display:none;}
+  section.tab.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+  h2{font-size:20px;margin:4px 0 6px;}
+  p.lead{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:900px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;}
+  .card h3{margin:0 0 8px;font-size:14.5px;color:var(--redwood-dark);display:flex;align-items:center;gap:8px;}
+  .card p{margin:0;font-size:13px;color:var(--muted);line-height:1.55;}
+  .pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;background:#F3E9E7;color:var(--redwood-dark);letter-spacing:.03em;margin-right:6px;margin-bottom:6px;}
+  .pill.blue{background:#E7F0FB;color:var(--primary-blue);}
+  .pill.grey{background:#EEEFEF;color:var(--muted);}
+  .pill.green{background:#E6F4EA;color:var(--ok);}
+  .pill.warn{background:#FFF3D6;color:var(--warn);}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+  button.action{background:var(--redwood);color:#fff;border:none;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;}
+  button.action:hover{background:var(--redwood-dark);}
+  button.action.secondary{background:#fff;color:var(--redwood);border:1.5px solid var(--redwood);}
+  button.action.secondary:hover{background:#FBEFED;}
+  button.action:disabled{opacity:.45;cursor:not-allowed;}
+  select.action-select{padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-size:13px;background:#fff;color:var(--ink);}
+  .canvas-wrap{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;}
+  .log{background:#111417;color:#D7F5DE;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;border-radius:8px;padding:12px 14px;height:190px;overflow-y:auto;margin-top:12px;line-height:1.6;}
+  .log .t{color:#7DA6FF;}
+  .log .w{color:#FFD479;}
+  .log .e{color:#FF8A80;}
+  .log .g{color:#8CF0A8;}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px;}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;background:#FAFAF9;}
+  td.mono, th.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;}
+  .note{background:#FFF7EA;border:1px solid #F1DDAF;color:#7A5A12;font-size:12.5px;padding:10px 14px;border-radius:8px;margin-top:14px;}
+  .region-box{border:2px solid var(--line);border-radius:12px;padding:14px;position:relative;}
+  .region-label{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;position:absolute;top:-11px;left:14px;background:var(--bg);padding:0 6px;}
+  .role-tag{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;display:inline-block;margin-top:6px;}
+  footer{text-align:center;font-size:11.5px;color:var(--muted);padding:20px;border-top:1px solid var(--line);}
+  a.back{color:var(--redwood);text-decoration:none;font-size:12.5px;font-weight:600;}
+  .flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+  .status-chip{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:20px;}
+  .status-chip.active{background:#E6F4EA;color:var(--ok);}
+  .status-chip.updating{background:#FFF3D6;color:var(--warn);}
+  .version-badge{background:rgba(255,255,255,.12);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer;border:1px solid rgba(255,255,255,.25);white-space:nowrap;}
+  .version-badge:hover{background:rgba(255,255,255,.2);}
+  #changelogPanel{display:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 20px;max-width:1500px;margin:0 auto 24px;}
+  #changelogPanel.open{display:block;}
+  #changelogPanel h3{margin:0 0 10px;font-size:14px;color:var(--redwood-dark);}
+  .cl-entry{border-left:3px solid var(--redwood);padding:4px 0 4px 12px;margin-bottom:10px;}
+  .cl-entry .cl-ver{font-weight:700;font-size:13px;}
+  .cl-entry .cl-date{color:var(--muted);font-size:11.5px;margin-left:8px;}
+  .cl-entry ul{margin:4px 0 0;padding-left:18px;font-size:12.5px;color:var(--muted);}
+  .cl-close{float:right;background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;}
+
+  /* stage pipeline diagram */
+  .stagegrid{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:6px 2px 14px;}
+  .stagebox{min-width:170px;background:#F3E9E7;border:1px solid #EAD9D5;border-radius:10px;padding:12px;font-size:12px;display:flex;flex-direction:column;gap:4px;cursor:pointer;transition:box-shadow .15s,border-color .15s;}
+  .stagebox:hover{border-color:var(--redwood);box-shadow:0 2px 10px rgba(199,70,52,.15);}
+  .stagebox.sel{border-color:var(--redwood);background:#F6DEDA;}
+  .stagebox .t{font-weight:700;color:var(--redwood-dark);font-size:12.5px;}
+  .stagebox .s{color:var(--muted);font-size:11px;line-height:1.35;}
+  .stagearrow{display:flex;align-items:center;justify-content:center;min-width:32px;color:var(--redwood);font-size:20px;font-weight:700;}
+  #stageDetail{display:none;background:#FBFBFA;border:1px solid var(--line);border-left:3px solid var(--redwood);border-radius:8px;padding:12px 14px;margin-top:12px;font-size:12.5px;}
+  #stageDetail.show{display:block;}
+  #stageDetail h4{margin:0 0 5px;font-size:13px;color:var(--redwood-dark);}
+  #stageDetail p{margin:0;color:var(--muted);line-height:1.65;}
+
+  /* code blocks */
+  pre.code{background:#111417;color:#D7F5DE;padding:14px 16px;border-radius:8px;font-size:12px;overflow-x:auto;line-height:1.55;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word;}
+  .kcode{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:var(--redwood-dark);background:#F3E9E7;padding:1px 5px;border-radius:3px;}
+  .hero{background:#F6DEDA;border:1px solid #EAD9D5;border-radius:10px;padding:18px 22px;margin-bottom:18px;}
+  .hero h2{margin:0 0 8px;color:var(--redwood-dark);}
+  .hero p{margin:0 0 6px;font-size:13.5px;color:var(--ink);line-height:1.7;}
+  .analogy{background:#fff;border-left:3px solid var(--warn);border-radius:8px;padding:11px 14px;margin-top:10px;font-size:12.5px;color:var(--muted);}
+  .analogy b{color:var(--warn);}
+
+  /* ---- Search box (Errors tab) ---- */
+  .search-wrap{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px;}
+  .search-input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;}
+  .search-input:focus{outline:none;border-color:var(--redwood);}
+  .search-meta{font-size:11.5px;color:var(--muted);margin-top:8px;}
+  .search-examples{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+  .search-examples span{font-size:11px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#FAFAF9;border:1px solid var(--line);border-radius:14px;padding:4px 10px;cursor:pointer;color:var(--muted);}
+  .search-examples span:hover{border-color:var(--redwood);color:var(--redwood-dark);}
+  .err-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:12px;}
+  .err-card.hidden{display:none;}
+  .err-card .eh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+  .err-card .ecode{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:700;color:var(--redwood-dark);font-size:14px;}
+  .err-card .emsg{font-size:12.5px;color:var(--ink);font-style:italic;}
+  .err-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 22px;font-size:12.5px;margin-top:8px;}
+  @media(max-width:900px){.err-grid{grid-template-columns:1fr;}}
+  .err-grid .efield{padding:6px 0;border-bottom:1px dashed var(--line);}
+  .err-grid .efield b{display:block;color:var(--redwood-dark);font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;margin-bottom:2px;}
+  .err-grid .efield span{color:var(--muted);line-height:1.55;}
+  .sev{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;}
+  .sev.critical{background:#FDECEA;color:#B3261E;}
+  .sev.high{background:#FFF3D6;color:var(--warn);}
+  .sev.medium{background:#E7F0FB;color:var(--primary-blue);}
+  .sev.low{background:#EEEFEF;color:var(--muted);}
+  .comp-tag{font-size:10.5px;font-weight:700;background:#F3E9E7;color:var(--redwood-dark);padding:2px 8px;border-radius:20px;}
+  #noResults{display:none;text-align:center;padding:40px 20px;color:var(--muted);font-size:13.5px;}
+
+  /* ---- Lag flow diagram ---- */
+  .lagflow{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:6px 2px 14px;}
+  .lagbox{min-width:150px;background:#F3E9E7;border:1px solid #EAD9D5;border-radius:10px;padding:12px;font-size:12px;cursor:pointer;transition:box-shadow .15s,border-color .15s;}
+  .lagbox:hover{border-color:var(--redwood);box-shadow:0 2px 10px rgba(199,70,52,.15);}
+  .lagbox.sel{border-color:var(--redwood);background:#F6DEDA;}
+  .lagbox .t{font-weight:700;color:var(--redwood-dark);font-size:12.5px;}
+  .lagbox .s{color:var(--muted);font-size:10.5px;line-height:1.35;margin-top:3px;}
+  #lagDetail{display:none;background:#FBFBFA;border:1px solid var(--line);border-left:3px solid var(--redwood);border-radius:8px;padding:14px 16px;margin-top:12px;}
+  #lagDetail.show{display:block;}
+  #lagDetail h4{margin:0 0 8px;font-size:14px;color:var(--redwood-dark);}
+  .lag-sub{margin-bottom:10px;}
+  .lag-sub b{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink);display:block;margin-bottom:2px;}
+  .lag-sub span, .lag-sub li{font-size:12.5px;color:var(--muted);line-height:1.6;}
+  .lag-sub ul{margin:2px 0 0;padding-left:18px;}
+
+  /* ---- accordion (FAQ) ---- */
+  .acc-group{margin-bottom:22px;}
+  .acc-group h3{font-size:13.5px;color:var(--redwood-dark);margin:0 0 8px;text-transform:uppercase;letter-spacing:.03em;}
+  .acc-item{background:var(--panel);border:1px solid var(--line);border-radius:8px;margin-bottom:8px;overflow:hidden;}
+  .acc-q{padding:12px 16px;font-size:13.5px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .acc-q:hover{background:#FBFBFA;}
+  .acc-q .arrow{color:var(--redwood);font-size:14px;transition:transform .15s;flex-shrink:0;}
+  .acc-item.open .acc-q .arrow{transform:rotate(90deg);}
+  .acc-a{display:none;padding:0 16px 14px;font-size:12.5px;color:var(--muted);line-height:1.65;}
+  .acc-item.open .acc-a{display:block;}
+
+  /* ---- flow strip (initial load / data mismatch) ---- */
+  .flowstrip{display:flex;align-items:center;gap:0;overflow-x:auto;padding:10px 2px;margin-bottom:16px;}
+  .flowstep{background:var(--panel);border:2px solid var(--redwood);color:var(--redwood-dark);border-radius:24px;padding:8px 18px;font-size:12.5px;font-weight:700;white-space:nowrap;}
+  .flowarrow{color:var(--redwood);font-size:18px;padding:0 8px;}
+
+  /* ---- Performance live simulator ---- */
+  .perf-controls{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px;}
+  .perf-row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;}
+  .perf-field{min-width:200px;flex:1;}
+  .perf-field label{font-size:11px;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em;}
+  .perf-field select,.perf-field input[type=range]{width:100%;}
+  .perf-dash{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px;}
+  @media(max-width:900px){.perf-dash{grid-template-columns:repeat(2,1fr);}}
+  .perf-stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center;position:relative;}
+  .perf-stat .n{font-size:22px;font-weight:700;color:var(--redwood-dark);}
+  .perf-stat .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-top:2px;}
+  .perf-stat.flag{border-color:var(--warn);box-shadow:0 0 0 1px rgba(180,83,9,.2) inset;}
+  .perf-stat.flag .n{color:var(--warn);}
+  .perf-pipeline{display:flex;gap:0;overflow-x:auto;padding:6px 2px 14px;align-items:stretch;}
+  .perf-node{min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:11.5px;text-align:center;}
+  .perf-node .pn-t{font-weight:700;color:var(--redwood-dark);font-size:12px;margin-bottom:4px;}
+  .perf-node .pn-bar{height:8px;border-radius:4px;background:#EEEFEF;margin-top:6px;overflow:hidden;}
+  .perf-node .pn-fill{height:100%;background:var(--ok);border-radius:4px;transition:width .4s ease,background .4s ease;}
+  .perf-node .pn-val{font-size:10.5px;color:var(--muted);margin-top:4px;}
+  .perf-arrow{display:flex;align-items:center;justify-content:center;min-width:24px;color:var(--redwood);font-size:16px;}
+  .concept-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;}
+  .concept-card h4{margin:0 0 6px;font-size:13px;color:var(--redwood-dark);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+  .concept-card .cf{font-size:11.5px;margin-top:6px;}
+  .concept-card .cf b{color:var(--ink);}
+  .scenario-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:14px;}
+  .scenario-card .sc-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+  .scenario-card .sc-title{font-weight:700;color:var(--redwood-dark);font-size:14px;}
+  .sc-step{border-left:3px solid var(--line);padding:6px 0 6px 14px;margin-left:4px;font-size:12.5px;color:var(--muted);}
+  .sc-step b{color:var(--ink);}
+</style>
+<script>
+/* Basic deterrents against casual view-source / copying.
+   NOTE: This does not provide real security — any determined visitor can
+   still access the page source via browser dev tools, curl, or other means. */
+document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+document.addEventListener('keydown', function(e){
+  var k = e.key ? e.key.toUpperCase() : '';
+  if (
+    k === 'F12' ||
+    (e.ctrlKey && k === 'U') ||
+    (e.ctrlKey && e.shiftKey && (k === 'I' || k === 'J' || k === 'C')) ||
+    (e.metaKey && e.altKey && (k === 'I' || k === 'J' || k === 'C'))
+  ) {
+    e.preventDefault();
+  }
+});
+</script>
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <span class="badge">TROUBLESHOOTING</span>
+    <div>
+      <h1>Oracle GoldenGate Troubleshooting Simulator</h1>
+      <div class="sub">Replication Lag &middot; Errors &middot; Trail &middot; Performance (Live) &middot; Security &middot; DDL &middot; Initial Load &amp; Migration &middot; Data Mismatch &middot; Scenarios &middot; FAQ</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="version-badge" id="verBadge">v1.0.1 &middot; Changelog</button>
+    <a class="back" href="https://www.claudeusercontent.com/index.html">&larr; Back to GoldenGate Experience Center</a>
+  </div>
+</header>
+
+<div id="changelogPanel">
+  <button class="cl-close" id="clClose">&#10005; Close</button>
+  <h3>Version History</h3>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.0.1</span><span class="cl-date">2026-08-15</span>
+    <ul>
+      <li>Added a &ldquo;&larr; Back to GoldenGate Experience Center&rdquo; header link, placed beneath the version badge / changelog toggle, matching the standard header pattern used across the GoldenGate Experience Center modules.</li>
+    </ul>
+  </div>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.0.0</span><span class="cl-date">2026-08-09</span>
+    <ul>
+      <li>Initial release: Replication Lag, GoldenGate &amp; Database Errors (searchable), Trail Troubleshooting, Performance Troubleshooting (Live Simulator), Security Troubleshooting, DDL Troubleshooting, Initial Load &amp; Migration Troubleshooting, Source/Target Data Mismatch, Scenarios, and GoldenGate FAQ.</li>
+      <li>Built to match the GoldenGate Experience Center visual language (Redwood red / ink / white), using the Filters Simulator as the structural and styling reference.</li>
+      <li>All error and troubleshooting content reflects generally documented Oracle GoldenGate behavior; version-dependent behavior is explicitly flagged.</li>
+    </ul>
+  </div>
+</div>
+
+<nav id="tabNav">
+  <button data-tab="lag" class="active">Replication Lag</button>
+  <button data-tab="errors">GoldenGate &amp; DB Errors</button>
+  <button data-tab="trail">Trail Troubleshooting</button>
+  <button data-tab="perf">Performance (Live Sim)</button>
+  <button data-tab="security">Security</button>
+  <button data-tab="ddl">DDL Troubleshooting</button>
+  <button data-tab="migration">Initial Load &amp; Migration</button>
+  <button data-tab="mismatch">Data Mismatch</button>
+  <button data-tab="scenarios">Scenarios</button>
+  <button data-tab="faq">FAQ</button>
+</nav>
+
+<main>
+
+<!-- ===================== TAB: REPLICATION LAG ===================== -->
+<section class="tab active" id="tab-lag">
+  <div class="hero">
+    <h2>Replication Lag &mdash; where is the time actually going?</h2>
+    <p>&ldquo;Lag&rdquo; is not one thing. It is the sum of time spent at each stage between a commit on the source and that same change becoming visible on the target. The single most important troubleshooting skill is not fixing lag &mdash; it is <b>isolating which stage owns it</b> before making any change.</p>
+    <div class="analogy"><b>Think of it as&nbsp;&mdash;</b> a parcel moving through a courier network: pickup (Extract), regional sorting hub (Trail/Distribution), highway transit (Network), local depot (Receiver), and final delivery (Replicat). A parcel can be &ldquo;late&rdquo; at any single hop &mdash; you have to check each scan point, not just the final delivery time, to know which hop is slow.</div>
+  </div>
+
+  <h3 style="font-size:14px;color:var(--redwood-dark);margin:20px 0 8px;">End-to-end pipeline &mdash; click a stage to see what to monitor</h3>
+  <div class="lagflow" id="lagFlow">
+    <div class="lagbox" data-stage="source"><div class="t">Source</div><div class="s">App commits change; redo/WAL generated.</div></div>
+    <div class="lagbox" data-stage="extract"><div class="t">Extract</div><div class="s">Mines redo, builds LCRs, writes to trail.</div></div>
+    <div class="lagbox" data-stage="trail"><div class="t">Trail</div><div class="s">On-disk record of captured changes.</div></div>
+    <div class="lagbox" data-stage="distribution"><div class="t">Distribution</div><div class="s">Ships trail records to the target across the network.</div></div>
+    <div class="lagbox" data-stage="receiver"><div class="t">Receiver</div><div class="s">Accepts incoming data, writes remote trail.</div></div>
+    <div class="lagbox" data-stage="replicat"><div class="t">Replicat</div><div class="s">Reads trail, applies DML/DDL to target.</div></div>
+    <div class="lagbox" data-stage="target"><div class="t">Target</div><div class="s">Database commits the applied change.</div></div>
+  </div>
+  <div id="lagDetail"></div>
+
+  <h3 style="font-size:14px;color:var(--redwood-dark);margin:26px 0 8px;">Lag types &amp; contributing factors &mdash; at a glance</h3>
+  <div class="grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="card">
+      <h3>Extract Lag</h3>
+      <p>Delay between a source commit and Extract writing the corresponding record to the trail. Usually reflects how far behind Extract is in mining the redo/WAL stream.</p>
+    </div>
+    <div class="card">
+      <h3>Trail Lag</h3>
+      <p>Time a record spends sitting in the local trail before Distribution Service picks it up. Often small, but grows if Distribution is stalled or the trail is on slow storage.</p>
+    </div>
+    <div class="card">
+      <h3>Distribution Lag</h3>
+      <p>Time to ship trail data across the network to the remote (target-side) trail. Grows with bandwidth constraints, WAN latency, or Distribution Service problems.</p>
+    </div>
+    <div class="card">
+      <h3>Network Lag</h3>
+      <p>Pure transport delay &mdash; latency, packet loss, throughput ceilings, firewall/proxy inspection overhead &mdash; between source and target GoldenGate deployments.</p>
+    </div>
+    <div class="card">
+      <h3>Replicat Lag</h3>
+      <p>Delay between a record arriving in the remote trail and Replicat successfully applying (and committing) it on the target. The most common lag source in practice.</p>
+    </div>
+    <div class="card">
+      <h3>Target Database Performance</h3>
+      <p>Target-side waits &mdash; contention, slow I/O, missing indexes, undo pressure, resource limits &mdash; that make each apply operation take longer, backing up Replicat.</p>
+    </div>
+    <div class="card">
+      <h3>Long Transactions</h3>
+      <p>A transaction open for a long time on the source cannot be written to the trail (or applied) until it commits or rolls back; Extract/Replicat must hold it in memory or spill to disk.</p>
+    </div>
+    <div class="card">
+      <h3>High Transaction Volume</h3>
+      <p>Sustained high change rate can outpace a single Extract or Replicat thread's capacity, causing lag to climb even when every individual component is &ldquo;healthy.&rdquo;</p>
+    </div>
+    <div class="card">
+      <h3>Apply Bottleneck</h3>
+      <p>Serialized or conflict-heavy apply (e.g. hot rows, foreign-key dependency ordering) that prevents Replicat from parallelizing effectively, even with parallelism enabled.</p>
+    </div>
+  </div>
+
+  <h3 style="font-size:14px;color:var(--redwood-dark);margin:26px 0 8px;">How to identify where the lag is occurring</h3>
+  <div class="grid" style="grid-template-columns:1fr 1fr;">
+    <div class="card">
+      <h3>Step 1 &mdash; Compare checkpoints, not just &ldquo;lag&rdquo;</h3>
+      <p>Run <span class="kcode">INFO EXTRACT &lt;name&gt;, DETAIL</span> and <span class="kcode">INFO REPLICAT &lt;name&gt;, DETAIL</span> (or the equivalent Microservices REST/Admin Server calls). Compare &ldquo;At Checkpoint&rdquo; timestamps against &ldquo;Time Since Chkpt&rdquo; to see which process's checkpoint is furthest behind current time.</p>
+    </div>
+    <div class="card">
+      <h3>Step 2 &mdash; Split source-side vs target-side</h3>
+      <p>If Extract lag is low but Replicat lag is high, the problem is on the target/apply side. If Extract lag itself is high, the problem is on the source (redo generation rate, mining overhead, or long-running transactions).</p>
+    </div>
+    <div class="card">
+      <h3>Step 3 &mdash; Check the trail growth rate</h3>
+      <p>A rapidly growing local trail with low Extract lag but high Distribution/Replicat lag points downstream. A rapidly growing trail with high Extract lag points to redo mining being the bottleneck.</p>
+    </div>
+    <div class="card">
+      <h3>Step 4 &mdash; Correlate with a known event</h3>
+      <p>Batch jobs, month-end processing, a missing index deployed on target, or a network change are common lag triggers. Compare the lag onset time to change/maintenance windows before assuming a GoldenGate defect.</p>
+    </div>
+  </div>
+
+  <div class="note">Lag figures reported by GoldenGate reflect checkpoint progress, not necessarily wall-clock &ldquo;user-visible&rdquo; delay. Always corroborate with source and target database time, not GoldenGate output alone, when the discrepancy matters operationally.</div>
+</section>
+<!-- ===================== TAB: GOLDENGATE & DATABASE ERRORS ===================== -->
+<section class="tab" id="tab-errors">
+  <h2>GoldenGate &amp; Database Errors</h2>
+  <p class="lead">Search across GoldenGate error codes, database errors, components, symptoms, and keywords. Results filter dynamically as you type.</p>
+
+  <div class="search-wrap">
+    <input type="text" id="errSearch" class="search-input" placeholder="Search error, symptom, FAQ, component or keyword&hellip;">
+    <div class="search-examples">
+      <span>OGG-00341</span><span>Replicat lag</span><span>Extract abended</span><span>Trail growing</span><span>ORA-01031</span><span>Distribution Service</span><span>Long transaction</span><span>ORA-01555</span><span>OGG-02650</span>
+    </div>
+    <div class="search-meta" id="errCount">Showing all entries</div>
+  </div>
+
+  <div id="noResults">No matches. Try a broader term, an error code prefix like <span class="kcode">OGG-</span> or <span class="kcode">ORA-</span>, or a component name.</div>
+
+  <h3 style="font-size:13.5px;color:var(--redwood-dark);margin:20px 0 10px;text-transform:uppercase;letter-spacing:.03em;">Oracle GoldenGate errors</h3>
+  <div id="oggErrorList"></div>
+
+  <h3 style="font-size:13.5px;color:var(--redwood-dark);margin:26px 0 10px;text-transform:uppercase;letter-spacing:.03em;">Oracle database errors commonly encountered during GoldenGate implementation</h3>
+  <div id="oraErrorList"></div>
+
+  <div class="note">This list is a representative, technically-oriented reference set, not an exhaustive catalog of every OGG-/ORA- error. Where behavior differs across GoldenGate versions or deployment types (Classic vs Microservices), the card is marked <span class="pill warn">Version / Environment Dependent</span>. Always cross-check the exact error text and MOS Doc ID against your installed release.</div>
+</section>
+<!-- ===================== TAB: TRAIL TROUBLESHOOTING ===================== -->
+<section class="tab" id="tab-trail">
+  <h2>Trail Troubleshooting</h2>
+  <p class="lead">The trail is the durable, on-disk record between Extract and Replicat. Most &ldquo;replication stopped&rdquo; incidents trace back to a trail problem: missing files, a full mount point, or a broken path reference.</p>
+
+  <div class="grid" style="grid-template-columns:1fr;">
+    <div class="card">
+      <h3>Trail File Missing</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>Extract or Replicat abends referencing a sequence number that cannot be found; <span class="kcode">INFO</span> shows a gap between expected and actual trail sequence.</span></div>
+        <div class="efield"><b>Cause</b><span>Trail file deleted manually, purged by a retention/cleanup job before it was fully processed, or lost due to a storage failure.</span></div>
+        <div class="efield"><b>Check</b><span>Compare the sequence number in the error against files actually present in the trail directory; check <span class="kcode">PURGEOLDEXTRACTS</span> / housekeeping job history and storage/OS logs for deletions.</span></div>
+        <div class="efield"><b>Fix</b><span>If the file is truly gone and cannot be restored from backup, the reading process must be repositioned past the gap (data loss risk) or the pipeline rebuilt from a fresh instantiation/initial load.</span></div>
+        <div class="efield"><b>Validation</b><span><span class="kcode">INFO EXTRACT/REPLICAT</span> shows a clean, advancing checkpoint with no further &ldquo;file not found&rdquo; errors; reconcile row counts on source/target after recovery.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Trail File Growing (unbounded)</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>Local or remote trail directory size climbs continuously; disk usage alerts fire; Replicat lag increases in parallel.</span></div>
+        <div class="efield"><b>Cause</b><span>Downstream Replicat (or Distribution/Receiver) is not consuming the trail as fast as Extract writes it &mdash; a stalled, slow, or stopped Replicat is the most common cause.</span></div>
+        <div class="efield"><b>Check</b><span><span class="kcode">INFO REPLICAT</span> for status/lag; confirm Replicat is actually RUNNING and not looping on an error; check apply-side database health.</span></div>
+        <div class="efield"><b>Fix</b><span>Resolve the apply-side bottleneck or error causing Replicat to fall behind or stop; once Replicat catches up, trail growth stabilizes and old files age out per retention.</span></div>
+        <div class="efield"><b>Validation</b><span>Trail directory size stabilizes or shrinks; Replicat checkpoint advances at a rate matching Extract's write rate.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Trail Directory Full / Disk Space Issues</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>Extract abends with an I/O or &ldquo;no space left on device&rdquo; style error when attempting to write the next trail file.</span></div>
+        <div class="efield"><b>Cause</b><span>Mount point hosting the trail directory is undersized, retention is too generous for the change volume, or an unrelated process is consuming the same filesystem.</span></div>
+        <div class="efield"><b>Check</b><span>OS-level disk usage (<span class="kcode">df -h</span> on the trail mount); trail retention settings (<span class="kcode">PURGEOLDEXTRACTS</span>); growth trend over recent days.</span></div>
+        <div class="efield"><b>Fix</b><span>Free space immediately (purge already-processed old trail files if safe), then correct the root cause: extend storage, tighten retention, or move the trail to dedicated storage.</span></div>
+        <div class="efield"><b>Validation</b><span>Extract restarts and writes successfully; free space monitoring shows sustainable headroom given the current change rate.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Incorrect Trail Path</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>Process fails to start, or GGSCI <span class="kcode">ADD EXTTRAIL</span>/<span class="kcode">ADD RMTTRAIL</span> commands reference a directory that does not resolve on the target host.</span></div>
+        <div class="efield"><b>Cause</b><span>Parameter file references a trail path/prefix that was moved, mistyped, or never created; mismatch between Classic and Microservices deployment directory conventions.</span></div>
+        <div class="efield"><b>Check</b><span>Compare <span class="kcode">EXTTRAIL</span>/<span class="kcode">RMTTRAIL</span> parameter values against actual deployment directory structure; check GGSCI <span class="kcode">INFO EXTRAIL</span>/<span class="kcode">INFO RMTTRAIL</span>.</span></div>
+        <div class="efield"><b>Fix</b><span>Correct the path in the parameter file or recreate the trail definition with the right path; ensure the directory exists and the GoldenGate OS user has read/write permission.</span></div>
+        <div class="efield"><b>Validation</b><span>Process starts cleanly and begins writing to/reading from the expected directory.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Trail Sequence Issues</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>Checkpoint references a sequence number that does not match what is physically present, or sequence numbers appear to jump/skip.</span></div>
+        <div class="efield"><b>Cause</b><span>Manual trail file manipulation, a botched trail rollover, or checkpoint corruption after an unclean process termination.</span></div>
+        <div class="efield"><b>Check</b><span><span class="kcode">INFO EXTRACT/REPLICAT, DETAIL</span> for checkpoint sequence vs. files on disk; process report for the exact abend message.</span></div>
+        <div class="efield"><b>Fix</b><span>In most cases this requires Oracle Support engagement or a checkpoint reset to a known-good position; a full re-instantiation may be safer than guessing at a manual reposition.</span></div>
+        <div class="efield"><b>Validation</b><span>Process starts and checkpoint sequence advances consistently with no further sequence-mismatch errors.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Remote Trail Issues</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>Distribution Service reports failures delivering to the remote (target-side) trail; Receiver Service errors on write; remote trail not growing despite local trail growth.</span></div>
+        <div class="efield"><b>Cause</b><span>Network interruption, Receiver Service down or unreachable, target-side disk full, or a certificate/authentication failure between Distribution and Receiver.</span></div>
+        <div class="efield"><b>Check</b><span>Distribution Service and Receiver Service status/logs; network connectivity between deployments; target-side disk space.</span></div>
+        <div class="efield"><b>Fix</b><span>Restore network/service connectivity, free target-side disk space, or correct the security configuration blocking the connection (see Security Troubleshooting).</span></div>
+        <div class="efield"><b>Validation</b><span>Remote trail resumes growing in step with the local trail; Distribution Service reports a healthy, low-latency delivery status.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Trail Retention</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>Either trail files accumulate indefinitely (disk pressure) or files are purged before every consuming process has finished with them (data-loss risk on recovery).</span></div>
+        <div class="efield"><b>Cause</b><span>Retention parameters not tuned to the environment &mdash; too loose (unbounded growth) or too aggressive (purged before a lagging Replicat or a required recovery window has used them).</span></div>
+        <div class="efield"><b>Check</b><span><span class="kcode">PURGEOLDEXTRACTS</span> settings in the GLOBALS/parameter file; compare retention window against the worst-case observed Replicat lag and any recovery/DR requirements.</span></div>
+        <div class="efield"><b>Fix</b><span>Set retention (age- or count-based) to comfortably exceed the maximum expected lag plus a safety margin, balanced against available storage.</span></div>
+        <div class="efield"><b>Validation</b><span>Disk usage trends flat over time under steady-state load, and no process ever references a sequence number that has already been purged.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">Trail problems are frequently a symptom of a lag problem (see the Replication Lag tab) rather than an independent root cause &mdash; a trail that is &ldquo;full&rdquo; or &ldquo;growing&rdquo; is very often just downstream of a stalled Replicat or a network bottleneck.</div>
+</section>
+
+<!-- ===================== TAB: PERFORMANCE TROUBLESHOOTING (LIVE SIMULATOR) ===================== -->
+<section class="tab" id="tab-perf">
+  <div class="hero">
+    <h2>Performance Troubleshooting &mdash; Live Simulator</h2>
+    <p>Adjust workload conditions below and watch how they ripple through the pipeline. This simulator is illustrative &mdash; it demonstrates <i>directional relationships</i> between conditions and pipeline health, not a performance predictor for any real environment.</p>
+    <div class="analogy"><b>Think of it as&nbsp;&mdash;</b> a highway on-ramp metering system: increase the inflow (transaction volume), widen or narrow lanes (parallelism), or add a slow toll booth (target bottleneck), and watch where the queue forms.</div>
+  </div>
+
+  <div class="perf-controls">
+    <div class="perf-row">
+      <div class="perf-field">
+        <label>Transaction Volume</label>
+        <select id="perfVolume">
+          <option value="low">Low</option>
+          <option value="normal" selected>Normal</option>
+          <option value="high">High</option>
+          <option value="spike">Spike / Batch Load</option>
+        </select>
+      </div>
+      <div class="perf-field">
+        <label>Transaction Profile</label>
+        <select id="perfProfile">
+          <option value="normal" selected>Typical (short, small)</option>
+          <option value="large">Large Transactions</option>
+          <option value="long">Long-Running Transactions</option>
+        </select>
+      </div>
+      <div class="perf-field">
+        <label>Target Database Health</label>
+        <select id="perfTarget">
+          <option value="healthy" selected>Healthy</option>
+          <option value="contended">Contention / Slow I/O</option>
+          <option value="bottleneck">Severe Bottleneck</option>
+        </select>
+      </div>
+      <div class="perf-field">
+        <label>Network Condition</label>
+        <select id="perfNetwork">
+          <option value="good" selected>Good (LAN / low-latency WAN)</option>
+          <option value="degraded">Degraded (high latency / limited bandwidth)</option>
+        </select>
+      </div>
+      <div class="perf-field">
+        <label>Replicat Parallelism</label>
+        <select id="perfParallel">
+          <option value="low">Low</option>
+          <option value="normal" selected>Normal</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="perf-dash" id="perfDash">
+    <div class="perf-stat" id="pfExtLag"><div class="n">--</div><div class="l">Extract Lag</div></div>
+    <div class="perf-stat" id="pfRepLag"><div class="n">--</div><div class="l">Replicat Lag</div></div>
+    <div class="perf-stat" id="pfThroughput"><div class="n">--</div><div class="l">Apply Throughput</div></div>
+    <div class="perf-stat" id="pfTrailGrowth"><div class="n">--</div><div class="l">Trail Growth Rate</div></div>
+    <div class="perf-stat" id="pfBottleneck"><div class="n">--</div><div class="l">Primary Bottleneck</div></div>
+  </div>
+
+  <div class="perf-pipeline" id="perfPipeline">
+    <div class="perf-node" data-node="source"><div class="pn-t">Source</div><div class="pn-bar"><div class="pn-fill" id="pf-source"></div></div><div class="pn-val" id="pf-source-val">&ndash;</div></div>
+    <div class="perf-arrow">&rarr;</div>
+    <div class="perf-node" data-node="extract"><div class="pn-t">Extract</div><div class="pn-bar"><div class="pn-fill" id="pf-extract"></div></div><div class="pn-val" id="pf-extract-val">&ndash;</div></div>
+    <div class="perf-arrow">&rarr;</div>
+    <div class="perf-node" data-node="trail"><div class="pn-t">Trail</div><div class="pn-bar"><div class="pn-fill" id="pf-trail"></div></div><div class="pn-val" id="pf-trail-val">&ndash;</div></div>
+    <div class="perf-arrow">&rarr;</div>
+    <div class="perf-node" data-node="network"><div class="pn-t">Network</div><div class="pn-bar"><div class="pn-fill" id="pf-network"></div></div><div class="pn-val" id="pf-network-val">&ndash;</div></div>
+    <div class="perf-arrow">&rarr;</div>
+    <div class="perf-node" data-node="replicat"><div class="pn-t">Replicat</div><div class="pn-bar"><div class="pn-fill" id="pf-replicat"></div></div><div class="pn-val" id="pf-replicat-val">&ndash;</div></div>
+    <div class="perf-arrow">&rarr;</div>
+    <div class="perf-node" data-node="target"><div class="pn-t">Target DB</div><div class="pn-bar"><div class="pn-fill" id="pf-target"></div></div><div class="pn-val" id="pf-target-val">&ndash;</div></div>
+  </div>
+
+  <div id="perfNote" class="note" style="display:none;"></div>
+
+  <div class="note">Bar height reflects <b>relative load/stress</b> at each stage for this illustrative combination of settings, not a measured or benchmarked value. Do not use these numbers for capacity planning.</div>
+
+  <h3 style="font-size:14px;color:var(--redwood-dark);margin:26px 0 8px;">Relevant GoldenGate concepts</h3>
+  <p class="lead">Tuning is workload- and environment-dependent. There is no universal production value for any of these parameters &mdash; the descriptions below explain purpose and monitoring signals, not target settings.</p>
+  <div class="grid" style="grid-template-columns:repeat(2,1fr);">
+    <div class="concept-card">
+      <h4>MAP_PARALLELISM</h4>
+      <div class="cf"><b>Purpose:</b> Controls how many parallel apply threads/processes a Parallel Replicat can use for a given mapping.</div>
+      <div class="cf"><b>When relevant:</b> Apply-side throughput is the bottleneck and target dependency ordering permits parallel apply.</div>
+      <div class="cf"><b>Monitor:</b> Replicat lag trend, target CPU/session count, and apply conflicts/errors after any change.</div>
+      <div class="cf"><b>Potential impact:</b> Higher parallelism can raise throughput but also raise contention risk on the target; must be balanced against target capacity.</div>
+    </div>
+    <div class="concept-card">
+      <h4>APPLY_PARALLELISM</h4>
+      <div class="cf"><b>Purpose:</b> Governs the degree of parallel apply within a Parallel Replicat's overall processing model.</div>
+      <div class="cf"><b>When relevant:</b> Similar to MAP_PARALLELISM &mdash; used when apply throughput, not capture or network, is the limiting factor.</div>
+      <div class="cf"><b>Monitor:</b> Thread/worker utilization, apply error rate, target resource consumption.</div>
+      <div class="cf"><b>Potential impact:</b> Improves throughput ceiling when target and workload characteristics support parallel apply; can worsen contention if the workload is highly conflict-prone.</div>
+    </div>
+    <div class="concept-card">
+      <h4>SPLIT_TRANS_RECS</h4>
+      <div class="cf"><b>Purpose:</b> Relates to how large transactions can be split for processing rather than handled as one monolithic unit.</div>
+      <div class="cf"><b>When relevant:</b> Very large transactions are causing memory pressure or serialized, single-threaded apply behavior.</div>
+      <div class="cf"><b>Monitor:</b> Memory/cache usage during large transactions, apply latency spikes coinciding with large batch jobs.</div>
+      <div class="cf"><b>Potential impact:</b> Can help large transactions move through the pipeline more smoothly, but interacts with transaction ordering guarantees and requires careful validation.</div>
+    </div>
+    <div class="concept-card">
+      <h4>GROUPTRANSOPS</h4>
+      <div class="cf"><b>Purpose:</b> Controls how many source operations Replicat groups together into a single target transaction when using grouped/batched apply.</div>
+      <div class="cf"><b>When relevant:</b> High operation volume where transaction-per-operation apply overhead (commit frequency) is limiting throughput.</div>
+      <div class="cf"><b>Monitor:</b> Apply throughput, target redo/commit rate, latency of individual grouped commits.</div>
+      <div class="cf"><b>Potential impact:</b> Larger grouping can raise throughput but increases the amount of work that must be redone/rolled back on a single apply failure.</div>
+    </div>
+    <div class="concept-card">
+      <h4>MAXTRANSOPS</h4>
+      <div class="cf"><b>Purpose:</b> Caps the number of operations Extract holds for a single source transaction before writing/handling it differently.</div>
+      <div class="cf"><b>When relevant:</b> Extremely large source transactions risk exhausting memory or causing outsized trail writes.</div>
+      <div class="cf"><b>Monitor:</b> Extract memory usage, warnings/errors related to oversized transactions.</div>
+      <div class="cf"><b>Potential impact:</b> Protects Extract stability for outlier transactions, but the right threshold depends entirely on typical vs. outlier transaction sizes in the workload.</div>
+    </div>
+    <div class="concept-card">
+      <h4>CACHEMGR</h4>
+      <div class="cf"><b>Purpose:</b> Oracle GoldenGate's memory/cache manager used by Extract and Replicat to buffer transaction data, spilling to disk when memory limits are reached.</div>
+      <div class="cf"><b>When relevant:</b> Long-running or large transactions accumulate significant in-flight data before commit.</div>
+      <div class="cf"><b>Monitor:</b> Cache statistics in the process report (cache used, paged-out volume), disk I/O on the cache spill directory.</div>
+      <div class="cf"><b>Potential impact:</b> Insufficient cache sizing for the workload leads to excessive disk paging, which itself becomes a performance bottleneck.</div>
+    </div>
+    <div class="concept-card">
+      <h4>WARNLONGTRANS</h4>
+      <div class="cf"><b>Purpose:</b> Issues a warning when a transaction has been open longer than a specified threshold, surfacing long-running transactions early.</div>
+      <div class="cf"><b>When relevant:</b> Diagnosing lag or trail growth suspected to be caused by long-open source transactions.</div>
+      <div class="cf"><b>Monitor:</b> Warning messages in the Extract report, correlated against application/batch job schedules.</div>
+      <div class="cf"><b>Potential impact:</b> Purely diagnostic &mdash; does not change behavior, but is often the fastest way to confirm or rule out long transactions as a lag root cause.</div>
+    </div>
+  </div>
+
+  <div class="note">These parameters interact with each other and with database-side settings. Changing one in isolation without measuring the effect on the others (and on the target database) is a common source of new problems. Tuning decisions should always be validated against the specific workload, hardware, and SLAs of the environment in question.</div>
+</section>
+<!-- ===================== TAB: SECURITY TROUBLESHOOTING ===================== -->
+<section class="tab" id="tab-security">
+  <h2>Security Troubleshooting</h2>
+  <p class="lead">Security-related failures usually stop a process cold at startup or at connection time, rather than causing gradual degradation &mdash; making them easier to isolate once you know what to check.</p>
+
+  <div class="grid" style="grid-template-columns:1fr;">
+    <div class="card">
+      <h3>Invalid Credentials</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>Process abends immediately at startup, or DBLOGIN fails with a logon-denied style database error.</span></div>
+        <div class="efield"><b>Cause</b><span>Wrong username/password, an expired database password, or a credential that was rotated in the database but not updated in GoldenGate's credential store/wallet.</span></div>
+        <div class="efield"><b>Check</b><span>Attempt a manual database login with the same credentials outside GoldenGate; check password expiry policy on the account; verify which credential alias the parameter file actually references.</span></div>
+        <div class="efield"><b>Fix</b><span>Update the password in the database and in the credential store (<span class="kcode">ALTER CREDENTIALSTORE</span> or <span class="kcode">ADD USER ... ALIAS</span>), keeping both in sync going forward.</span></div>
+        <div class="efield"><b>Validation</b><span>Manual DBLOGIN succeeds and the process starts and reaches RUNNING status without a security-related abend.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Missing Privileges</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>Process starts but fails on a specific operation &mdash; registering Extract, reading redo, or writing to a target table &mdash; with a permissions-denied database error.</span></div>
+        <div class="efield"><b>Cause</b><span>The GoldenGate database account lacks a required role/privilege (e.g. capture privileges on source, DML/DDL privileges on target, or access to GoldenGate administrative packages).</span></div>
+        <div class="efield"><b>Check</b><span>Compare the account's granted privileges against the documented prerequisite privilege list for the GoldenGate version and capture/apply mode in use.</span></div>
+        <div class="efield"><b>Fix</b><span>Grant the missing privilege(s) using the documented setup scripts or explicit GRANT statements, then retry the failed operation.</span></div>
+        <div class="efield"><b>Validation</b><span>The previously failing operation completes successfully and does not recur across a restart.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Credential Store Issues</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>Process cannot resolve a <span class="kcode">USERIDALIAS</span> reference; error indicates the credential store/wallet could not be opened or the alias could not be found.</span></div>
+        <div class="efield"><b>Cause</b><span>Wallet file missing, corrupted, moved, or created under a different OS user than the one running GoldenGate; alias name typo between the wallet and the parameter file.</span></div>
+        <div class="efield"><b>Check</b><span><span class="kcode">INFO CREDENTIALSTORE</span> in GGSCI; file permissions and ownership on the wallet directory (commonly <span class="kcode">dirwlt</span>).</span></div>
+        <div class="efield"><b>Fix</b><span>Recreate the wallet if corrupted (<span class="kcode">CREATE WALLET</span>), re-add the credential alias, and confirm the OS user running GoldenGate has read access.</span></div>
+        <div class="efield"><b>Validation</b><span><span class="kcode">INFO CREDENTIALSTORE</span> lists the expected alias, and a process referencing that alias starts cleanly.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>TLS Failure</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>Distribution/Receiver Service (or REST API) connection fails during the TLS handshake; connection resets before data transfer begins.</span></div>
+        <div class="efield"><b>Cause</b><span>Mismatched TLS versions/cipher suites between source and target deployments, an untrusted or misconfigured certificate chain, or TLS being enabled on one side but not the other.</span></div>
+        <div class="efield"><b>Check</b><span>Service logs on both Distribution and Receiver Service for the specific handshake failure reason; confirm TLS configuration is symmetric on both ends.</span></div>
+        <div class="efield"><b>Fix</b><span>Align TLS configuration (version, cipher suite, certificate trust) across both deployments per the Microservices security documentation.</span></div>
+        <div class="efield"><b>Validation</b><span>Distribution Service establishes and maintains a stable connection to Receiver Service with no repeated handshake errors.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Certificate Expiry</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>A previously working TLS connection begins failing at a predictable point in time; error explicitly references certificate validity/expiration.</span></div>
+        <div class="efield"><b>Cause</b><span>The TLS certificate used by a Microservices deployment (or an intermediate/CA certificate in the chain) has passed its expiration date.</span></div>
+        <div class="efield"><b>Check</b><span>Certificate expiry date via the OS/keystore tooling for the deployment; whether the failure timing lines up with a known expiry date.</span></div>
+        <div class="efield"><b>Fix</b><span>Renew and redeploy the certificate before expiry as part of routine operations; update the trust store on the peer side if the CA also changed.</span></div>
+        <div class="efield"><b>Validation</b><span>Connection succeeds and the new certificate's validity window comfortably covers the operational period ahead.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Authentication Failure</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>REST API or Administration Server login is rejected; GGSCI/Microservices Web UI login fails despite what looks like a correct password.</span></div>
+        <div class="efield"><b>Cause</b><span>Wrong GoldenGate administrative user, account locked after repeated failed attempts, or an identity/authentication provider (if integrated) rejecting the request.</span></div>
+        <div class="efield"><b>Check</b><span>Administration Server logs for the specific rejection reason; account lock status; any external identity provider configuration.</span></div>
+        <div class="efield"><b>Fix</b><span>Reset or unlock the administrative account, correct the credentials, or fix the identity provider integration as applicable.</span></div>
+        <div class="efield"><b>Validation</b><span>Login succeeds consistently and the account does not re-lock under normal use.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Database Security Configuration</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>Intermittent or environment-specific connection failures that don't reproduce with a simple credential check &mdash; e.g. only from certain hosts, or only after a security patch.</span></div>
+        <div class="efield"><b>Cause</b><span>Database-level restrictions such as listener/firewall ACLs, Database Vault / Unified Audit restrictions, or profile-level connection limits interacting with GoldenGate's connection pattern.</span></div>
+        <div class="efield"><b>Check</b><span>Listener and database alert logs at the time of failure; any recently changed security policies, ACLs, or Database Vault realms affecting the GoldenGate account.</span></div>
+        <div class="efield"><b>Fix</b><span>Work with the DBA/security team to add the necessary exception or realm authorization for the GoldenGate account, scoped as narrowly as the security policy allows.</span></div>
+        <div class="efield"><b>Validation</b><span>Connections succeed reliably across the affected hosts/paths with no recurrence of the intermittent failure.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">Security troubleshooting should always be done in coordination with the database and security teams &mdash; the fix is frequently a policy or grant that GoldenGate administrators may not have authority to change unilaterally.</div>
+</section>
+
+<!-- ===================== TAB: DDL TROUBLESHOOTING ===================== -->
+<section class="tab" id="tab-ddl">
+  <h2>DDL Troubleshooting</h2>
+  <p class="lead">DDL (schema change) replication has more moving parts than DML replication and is a common source of silent divergence between source and target if not actively monitored.</p>
+
+  <div class="grid" style="grid-template-columns:1fr;">
+    <div class="card">
+      <h3>DDL Not Replicated</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>A schema change made on the source (new column, index, etc.) never appears on the target; subsequent DML referencing the new object fails or is silently mismatched.</span></div>
+        <div class="efield"><b>Possible Cause</b><span>DDL replication was never enabled for this configuration, the object is excluded by a DDL filter/scope, or the DDL trigger/metadata capture mechanism failed silently.</span></div>
+        <div class="efield"><b>Investigation</b><span>Confirm DDL replication is enabled in the parameter file/GLOBALS; check the DDL history table (source) for whether the change was even captured; review DDL-related parameters (<span class="kcode">DDL</span>, <span class="kcode">DDLOPTIONS</span>) for scope restrictions.</span></div>
+        <div class="efield"><b>Resolution</b><span>Enable/correct DDL replication configuration, then manually apply the missed DDL on the target and resynchronize before allowing further DML on the affected object.</span></div>
+        <div class="efield"><b>Validation</b><span>A new test DDL change on the source now appears on the target within the expected latency.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>DDL Filtering</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>Some DDL replicates but specific statement types (e.g. certain object types or operations) are consistently skipped.</span></div>
+        <div class="efield"><b>Possible Cause</b><span>An explicit <span class="kcode">DDL INCLUDE</span>/<span class="kcode">EXCLUDE</span> or <span class="kcode">DDLOPTIONS</span> filter scoped the replication to a subset of DDL operation types or object types.</span></div>
+        <div class="efield"><b>Investigation</b><span>Review the exact <span class="kcode">DDL</span> parameter clause for INCLUDE/EXCLUDE mapping and operation-type restrictions; check whether the filtered-out statement type was an intentional exclusion.</span></div>
+        <div class="efield"><b>Resolution</b><span>Adjust the DDL filter scope if the exclusion was unintentional; if intentional, document it so future gaps aren't mistaken for defects.</span></div>
+        <div class="efield"><b>Validation</b><span>DDL of the previously-excluded type now replicates as expected (if the change was intentional), with no unintended new inclusions.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Unsupported DDL</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>A specific DDL statement consistently fails to replicate or triggers an error referencing an unsupported operation/object type.</span></div>
+        <div class="efield"><b>Possible Cause</b><span>The statement type, object type, or database feature involved is outside what GoldenGate DDL replication supports for the source/target combination and version in use.</span></div>
+        <div class="efield"><b>Investigation</b><span>Check the DDL support matrix/restrictions for the specific GoldenGate version and database types involved; reproduce the statement in isolation to confirm it is the actual trigger.</span></div>
+        <div class="efield"><b>Resolution</b><span>Apply that specific DDL manually on the target as a documented exception, or restructure the change (where feasible) into a supported equivalent.</span></div>
+        <div class="efield"><b>Validation</b><span>Target schema matches source after the manual application, and subsequent DML against the affected object replicates cleanly.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Target DDL Failure</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>Replicat abends or logs a DDL apply error when attempting to execute the replicated DDL statement on the target.</span></div>
+        <div class="efield"><b>Possible Cause</b><span>Target object already exists in a conflicting state, insufficient privileges on target, or a target-specific syntax/feature incompatibility (especially in heterogeneous replication).</span></div>
+        <div class="efield"><b>Investigation</b><span>Read the exact database error returned for the DDL apply attempt; compare current target object state against what the DDL statement expects to find.</span></div>
+        <div class="efield"><b>Resolution</b><span>Resolve the specific conflict (drop/adjust the conflicting object, grant privileges, or use <span class="kcode">DDLSUBST</span> / <span class="kcode">DDLOPTIONS MAPPED</span> to adapt syntax for heterogeneous targets), then reprocess the DDL.</span></div>
+        <div class="efield"><b>Validation</b><span>Target schema now matches the intended source-side change, and Replicat resumes normal apply of subsequent operations.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Schema Differences</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>DML apply errors (column not found, data type mismatch) begin appearing without any recent, obviously related DDL event being reported.</span></div>
+        <div class="efield"><b>Possible Cause</b><span>Source and target schemas have quietly drifted apart &mdash; a DDL change was made directly on the target, missed during an earlier gap, or applied out of order.</span></div>
+        <div class="efield"><b>Investigation</b><span>Compare source and target DDL for the affected object directly (e.g. <span class="kcode">DESCRIBE</span>/<span class="kcode">DBMS_METADATA</span> comparison); check DDL history for any gap around the suspected drift point.</span></div>
+        <div class="efield"><b>Resolution</b><span>Reconcile the schema manually to match source intent, then verify no further DDL is pending; consider tightening DDL monitoring/alerting going forward.</span></div>
+        <div class="efield"><b>Validation</b><span>Schema comparison shows source and target aligned, and DML apply errors on the affected object stop recurring.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Privilege Issues (DDL-specific)</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>DDL capture or apply fails specifically, while DML continues to work normally.</span></div>
+        <div class="efield"><b>Possible Cause</b><span>The GoldenGate account lacks the additional privileges DDL support requires beyond standard DML capture/apply privileges (e.g. access to DDL trigger objects, metadata packages, or target DDL execution rights).</span></div>
+        <div class="efield"><b>Investigation</b><span>Compare granted privileges against the documented DDL-support prerequisite list; check for DDL-trigger-specific objects that may be missing or disabled.</span></div>
+        <div class="efield"><b>Resolution</b><span>Grant the missing DDL-specific privileges and re-enable/reinstall the DDL support objects if required.</span></div>
+        <div class="efield"><b>Validation</b><span>A test DDL statement now captures and applies successfully end-to-end.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">Treat DDL and DML as two independently-verifiable pipelines. A healthy DML lag number tells you nothing about whether DDL is keeping schemas in sync &mdash; validate both.</div>
+</section>
+<!-- ===================== TAB: INITIAL LOAD & MIGRATION TROUBLESHOOTING ===================== -->
+<section class="tab" id="tab-migration">
+  <h2>Initial Load &amp; Migration Troubleshooting</h2>
+  <p class="lead">Migration problems tend to surface at predictable points in a well-known sequence. Knowing where you are in that sequence narrows the likely cause dramatically.</p>
+
+  <div class="flowstrip">
+    <div class="flowstep">Initial Load</div><div class="flowarrow">&rarr;</div>
+    <div class="flowstep">CDC</div><div class="flowarrow">&rarr;</div>
+    <div class="flowstep">Synchronization</div><div class="flowarrow">&rarr;</div>
+    <div class="flowstep">Validation</div><div class="flowarrow">&rarr;</div>
+    <div class="flowstep">Cutover</div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr;">
+    <div class="card">
+      <h3>Initial Load Failure</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>The bulk load method (direct load, file-based load, or database-native utility) errors out partway through, or completes with a row count that doesn't match the source.</span></div>
+        <div class="efield"><b>Cause</b><span>Target constraints (PK/FK/unique) rejecting rows, insufficient target storage, network interruption mid-load, or a data type incompatibility only surfaced under real data volume.</span></div>
+        <div class="efield"><b>Check</b><span>Load utility logs for the specific rejected rows/errors; target tablespace/storage headroom; constraint definitions on the target relative to source data.</span></div>
+        <div class="efield"><b>Fix</b><span>Resolve the specific blocking condition (disable/adjust constraints for the load window, add storage, fix data type mapping), then restart or resume the load.</span></div>
+        <div class="efield"><b>Validation</b><span>Row counts and, ideally, checksums/hashes match between source and target for the loaded tables.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>CDC Start Position Issues</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>Data captured after cutover to CDC is missing a window of changes, or the same changes appear to have been applied twice.</span></div>
+        <div class="efield"><b>Cause</b><span>The SCN/LSN/timestamp used to start Extract did not precisely align with the exact point the initial load's data was captured from &mdash; typically too late (gap) or too early (overlap/duplicates).</span></div>
+        <div class="efield"><b>Check</b><span>Confirm the exact SCN/position recorded at the moment of initial load extraction versus the SCN/position Extract was actually started from.</span></div>
+        <div class="efield"><b>Fix</b><span>Restart CDC capture from the precisely correct position; if a gap or overlap already occurred, reconcile the affected window using the Data Mismatch process.</span></div>
+        <div class="efield"><b>Validation</b><span>No gap or duplicate window remains when comparing source transaction history to what was captured.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Missing Transactions</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>Specific known source transactions never appear on the target, discovered via reconciliation or a downstream data-quality check.</span></div>
+        <div class="efield"><b>Cause</b><span>A filter unintentionally excluding relevant rows, a CDC start-position gap, or a transaction that failed apply and was routed to a discard/exceptions path without being noticed.</span></div>
+        <div class="efield"><b>Check</b><span>Discard file and exceptions handling configuration; filter/WHERE clauses on the relevant TABLE/MAP statements; CDC start-position accuracy.</span></div>
+        <div class="efield"><b>Fix</b><span>Correct the filter or start-position issue, then manually apply the specific missing transaction(s) after confirming they are genuinely absent.</span></div>
+        <div class="efield"><b>Validation</b><span>Targeted row-level comparison confirms the previously-missing transaction is now present and correct on the target.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Duplicate Data</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>Row counts on target exceed source for the same logical dataset, or a unique-constraint violation appears during apply.</span></div>
+        <div class="efield"><b>Cause</b><span>Overlap between the initial load window and CDC start position, or a restart/reprocessing of trail data that had already been applied.</span></div>
+        <div class="efield"><b>Check</b><span>Compare the initial load's data-as-of position against the CDC start position for overlap; check for any manual reprocessing of already-applied trail files.</span></div>
+        <div class="efield"><b>Fix</b><span>Identify and remove the duplicate rows using a reliable key, then correct the process (start position or replay procedure) that caused the overlap.</span></div>
+        <div class="efield"><b>Validation</b><span>Row counts reconcile and the unique-constraint condition no longer recurs.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Replication During Migration &mdash; High Migration Lag</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>Lag during the synchronization phase stays persistently high, delaying the point at which cutover can safely occur.</span></div>
+        <div class="efield"><b>Cause</b><span>The same root causes as ordinary replication lag (see the Replication Lag and Performance tabs), often amplified by the initial-load backlog still being drained concurrently with live CDC.</span></div>
+        <div class="efield"><b>Check</b><span>Isolate whether lag is concentrated on the capture side, the apply side, or a target-side bottleneck, exactly as in standard lag troubleshooting.</span></div>
+        <div class="efield"><b>Fix</b><span>Apply the relevant fix from Replication Lag / Performance Troubleshooting; consider a maintenance window with reduced source write volume if migration lag will not close otherwise.</span></div>
+        <div class="efield"><b>Validation</b><span>Lag trends down to, and stays within, the threshold defined as acceptable for cutover.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Cutover Issues</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>Application errors or data inconsistency immediately after traffic is switched to the new (target) system.</span></div>
+        <div class="efield"><b>Cause</b><span>Cutover executed before lag reached zero/near-zero, in-flight transactions at the exact cutover moment not fully drained, or a reverse-replication path not established for rollback safety.</span></div>
+        <div class="efield"><b>Check</b><span>Lag value at the exact cutover timestamp; whether a quiesce period was used to let in-flight transactions drain before redirecting traffic.</span></div>
+        <div class="efield"><b>Fix</b><span>Where possible, briefly quiesce writes, confirm zero lag, then cut over; if cutover already happened with a gap, reconcile the affected transaction window immediately.</span></div>
+        <div class="efield"><b>Validation</b><span>Post-cutover validation (see below) confirms source and target fully agree as of the cutover point.</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Post-Cutover Validation</h3>
+      <div class="err-grid">
+        <div class="efield"><b>Symptom</b><span>N/A &mdash; this is a proactive step, not a symptom-driven one.</span></div>
+        <div class="efield"><b>Cause</b><span>N/A</span></div>
+        <div class="efield"><b>Check</b><span>Row counts and, where feasible, checksums/hashes across critical tables; application-level smoke tests against the new system; any error logs generated in the minutes immediately following cutover.</span></div>
+        <div class="efield"><b>Fix</b><span>Address any discrepancy immediately using the Data Mismatch process before declaring the migration complete.</span></div>
+        <div class="efield"><b>Validation</b><span>A formal sign-off comparing source and target as of the cutover point, retained as part of the migration record.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TAB: DATA MISMATCH ===================== -->
+<section class="tab" id="tab-mismatch">
+  <h2>Source and Target Data Mismatch &mdash; Troubleshooting</h2>
+  <p class="lead">Data mismatch is almost always discovered downstream of GoldenGate (by a reconciliation job or a business user), which means the investigation has to work backward through the pipeline to find where things diverged.</p>
+
+  <div class="grid" style="grid-template-columns:1fr;">
+    <div class="card">
+      <h3>Missing Rows</h3>
+      <p><b style="color:var(--ink)">Identify:</b> Target row count is lower than source for a given table/window; a specific known key is absent on target.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Investigate:</b> Check the discard file for rejected operations referencing that key; check filters/WHERE clauses that might exclude the row; check whether the source transaction was ever captured at all (Extract-side).</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Isolate the transaction:</b> Use the trail's transaction ID / CSN and, if available, GoldenGate logdump or trail scanning to confirm whether the operation ever reached the trail, and if so, whether it reached Replicat.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Validate:</b> Confirm the row is genuinely absent (not a timing artifact of an in-flight comparison) by re-checking after lag reaches zero.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Resolve:</b> Manually apply the specific missing transaction after root-causing why it didn't apply automatically, to prevent recurrence.</p>
+    </div>
+
+    <div class="card">
+      <h3>Extra Rows</h3>
+      <p><b style="color:var(--ink)">Identify:</b> Target row count exceeds source; a key exists on target with no corresponding source row.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Investigate:</b> Check whether the row was inserted directly on the target outside of GoldenGate (a common cause), or whether a delete on the source failed to replicate.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Isolate:</b> Compare the row's last-modified/audit metadata (if available) against GoldenGate's apply history to determine whether it originated from replication or from a direct target write.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Validate:</b> Confirm the source truly has no matching row (not a filter exclusion that is working as intended).</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Resolve:</b> Remove the extra row if confirmed erroneous, and close off whatever direct-write path or replication gap allowed it.</p>
+    </div>
+
+    <div class="card">
+      <h3>Different Column Values</h3>
+      <p><b style="color:var(--ink)">Identify:</b> Row exists on both sides with the same key, but one or more column values differ.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Investigate:</b> Check for column mapping/transformation logic (COLMAP, conversion functions) that may be behaving unexpectedly; check for an update on target applied out of order relative to source.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Isolate:</b> Trace the specific update transaction for that row through the trail to see exactly what value GoldenGate applied and compare it to what the source actually held at that time.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Validate:</b> Re-run the comparison after confirming zero lag, since an in-flight update can look like a mismatch if compared mid-flight.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Resolve:</b> Correct the target value from the authoritative source value, and fix any transformation logic found to be at fault.</p>
+    </div>
+
+    <div class="card">
+      <h3>Duplicate Rows</h3>
+      <p><b style="color:var(--ink)">Identify:</b> The same logical row (by business key) appears more than once on the target where the source has only one.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Investigate:</b> Check for a key-mapping or KEYCOLS misconfiguration causing GoldenGate to treat updates as inserts; check for trail reprocessing/replay overlap (see Initial Load &amp; Migration).</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Isolate:</b> Compare the duplicate rows' apply timestamps/transaction IDs to determine whether they came from a single replay event or from a persistent key-handling defect.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Validate:</b> Confirm the correct unique key definition on target matches the actual source business key.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Resolve:</b> De-duplicate using the authoritative source row, and correct the KEYCOLS/key configuration if that was the root cause.</p>
+    </div>
+
+    <div class="card">
+      <h3>Missing Transactions</h3>
+      <p><b style="color:var(--ink)">Identify:</b> A specific business event (e.g. a known order or payment) is not reflected anywhere on the target, even though related rows otherwise look consistent.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Investigate:</b> Check the discard file, DDLERROR/REPERROR handling rules, and exceptions routing for that time window.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Isolate:</b> Use the source transaction's identifying attributes (timestamp, key, approximate SCN) to search the trail and confirm at which stage it disappeared.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Validate:</b> Confirm against source audit data that the transaction did in fact commit on the source.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Resolve:</b> Manually replay the specific transaction and fix the handling rule or filter that caused it to be dropped.</p>
+    </div>
+
+    <div class="card">
+      <h3>Out-of-Order Transactions</h3>
+      <p><b style="color:var(--ink)">Identify:</b> Final column values on target don't match the source's final state, even though the individual updates all appear to have arrived &mdash; symptomatic of updates applied in the wrong sequence.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Investigate:</b> Check for parallel apply configurations (parallelism/grouping) that may have relaxed strict commit ordering on interdependent rows; check for multiple concurrent Replicat threads applying to the same row without adequate coordination.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Isolate:</b> Reconstruct the actual apply order from Replicat's transaction history/log and compare it to the true source commit order for that row.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Validate:</b> Confirm the row's current value equals the source's true final value once ordering is corrected.</p>
+      <p style="margin-top:6px;"><b style="color:var(--ink)">Resolve:</b> Correct the value from source, and reassess parallelism/grouping settings for rows with strict ordering dependencies.</p>
+    </div>
+  </div>
+
+  <div class="note"><b>Oracle GoldenGate Veridata</b> is Oracle's dedicated data-comparison product and is the appropriate tool for systematic, repeatable, large-scale source/target comparison &mdash; rather than ad hoc row counting &mdash; especially for periodic reconciliation, post-migration validation, or ongoing data-quality assurance on high-value tables. It identifies out-of-sync rows without requiring replication to be paused, and is the recommended option wherever mismatch detection needs to be routine rather than one-off.</div>
+</section>
+<!-- ===================== TAB: SCENARIOS ===================== -->
+<section class="tab" id="tab-scenarios">
+  <h2>Scenarios</h2>
+  <p class="lead">Worked, end-to-end troubleshooting walkthroughs that combine several of the topics above the way a real incident usually does.</p>
+
+  <div class="scenario-card">
+    <div class="sc-h"><span class="sc-title">Scenario 1 &mdash; Replicat lag climbing steadily over 3 hours</span><span class="pill blue">Lag &middot; Performance</span></div>
+    <div class="sc-step"><b>Observed:</b> Replicat lag rises from under a minute to over 40 minutes across a business day; Extract lag stays low the whole time.</div>
+    <div class="sc-step"><b>Step 1:</b> Since Extract lag is low, focus target-side: check target database CPU, I/O wait, and blocking sessions during the lag window.</div>
+    <div class="sc-step"><b>Step 2:</b> Target-side monitoring shows rising I/O wait correlated with a nightly index-rebuild job that overlaps business hours today due to a scheduling error.</div>
+    <div class="sc-step"><b>Step 3:</b> Confirm via <span class="kcode">INFO REPLICAT, DETAIL</span> that apply throughput (ops/sec) drops in lockstep with the I/O wait spikes &mdash; consistent with a target database performance bottleneck, not a GoldenGate defect.</div>
+    <div class="sc-step"><b>Resolution:</b> Reschedule the index rebuild outside business hours; lag drains back to baseline once target I/O contention clears.</div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="sc-h"><span class="sc-title">Scenario 2 &mdash; Extract abends with OGG-02650 after a schema rename</span><span class="pill">Errors &middot; DDL</span></div>
+    <div class="sc-step"><b>Observed:</b> Extract abends citing a source wildcard specification catalog-name mismatch shortly after a PDB/catalog-related schema reorganization.</div>
+    <div class="sc-step"><b>Step 1:</b> Search the Errors tab for OGG-02650; confirm the cause matches &mdash; a TABLE wildcard specification that doesn't include a catalog name while the resolved source table name does.</div>
+    <div class="sc-step"><b>Step 2:</b> Compare the TABLE statement in the parameter file against the actual fully-qualified table name Extract resolved from the catalog after the reorganization.</div>
+    <div class="sc-step"><b>Resolution:</b> Update the TABLE wildcard specification to include the catalog name consistently, matching the new schema structure, and restart Extract.</div>
+    <div class="sc-step"><b>Validation:</b> Extract starts cleanly and begins capturing the affected tables with no further OGG-02650 occurrences.</div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="sc-h"><span class="sc-title">Scenario 3 &mdash; Reconciliation job reports 40 missing rows after a migration cutover</span><span class="pill warn">Migration &middot; Mismatch</span></div>
+    <div class="sc-step"><b>Observed:</b> A post-cutover reconciliation job flags 40 rows present on source but absent on target, all with timestamps within a five-minute window around the cutover time.</div>
+    <div class="sc-step"><b>Step 1:</b> Check the CDC start position used when Extract began capturing versus the SCN recorded at the moment the initial load extracted its data &mdash; a classic CDC start-position gap.</div>
+    <div class="sc-step"><b>Step 2:</b> Confirm the gap: the CDC start SCN is found to be several seconds later than the initial load's true as-of SCN, exactly enough to explain the missing window.</div>
+    <div class="sc-step"><b>Step 3:</b> Isolate the 40 specific transactions from source audit data for that window.</div>
+    <div class="sc-step"><b>Resolution:</b> Manually apply the 40 missing transactions to target, then update the migration runbook to always capture the CDC start SCN from the same query used for the initial load's as-of point.</div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="sc-h"><span class="sc-title">Scenario 4 &mdash; Distribution Service repeatedly disconnects from Receiver Service</span><span class="pill green">Security &middot; Trail</span></div>
+    <div class="sc-step"><b>Observed:</b> Remote trail growth is intermittent; Distribution Service logs show repeated connection resets to the target-side Receiver Service every few minutes.</div>
+    <div class="sc-step"><b>Step 1:</b> Check for a TLS handshake failure or certificate issue in the Distribution/Receiver logs at the exact disconnect times.</div>
+    <div class="sc-step"><b>Step 2:</b> Logs show the target-side certificate expired two days prior &mdash; the connection succeeds briefly on retry due to a load balancer occasionally routing to a node with a still-valid cached session, then fails again.</div>
+    <div class="sc-step"><b>Resolution:</b> Renew and redeploy the certificate on the target-side Microservices deployment; confirm the trust store on the source side references the correct, current CA.</div>
+    <div class="sc-step"><b>Validation:</b> Distribution Service maintains a stable, uninterrupted connection and remote trail growth becomes continuous again.</div>
+  </div>
+
+  <div class="scenario-card">
+    <div class="sc-h"><span class="sc-title">Scenario 5 &mdash; Same value appears different on source and target for a subset of updates</span><span class="pill blue">Data Mismatch</span></div>
+    <div class="sc-step"><b>Observed:</b> Veridata comparison flags column-value mismatches on roughly 2% of rows in a high-write table, all involving rows updated multiple times in quick succession.</div>
+    <div class="sc-step"><b>Step 1:</b> Check whether Parallel Replicat with high parallelism is applying updates to the same row from different worker threads without guaranteed ordering for that row's key.</div>
+    <div class="sc-step"><b>Step 2:</b> Reconstruct apply order from Replicat's transaction history for a sample of mismatched rows; confirm updates were applied out of source-commit order.</div>
+    <div class="sc-step"><b>Resolution:</b> Correct the mismatched rows from source, then review parallelism/grouping configuration for this table's hot-row update pattern, since default parallel apply assumed independence between rows that was not actually present.</div>
+    <div class="sc-step"><b>Validation:</b> Subsequent Veridata comparisons over the same table window show no new column-value mismatches.</div>
+  </div>
+</section>
+
+<!-- ===================== TAB: FAQ ===================== -->
+<section class="tab" id="tab-faq">
+  <h2>GoldenGate FAQ</h2>
+  <p class="lead">Click a question to expand the answer.</p>
+  <div id="faqRoot"></div>
+</section>
+</main>
+
+<footer>Oracle GoldenGate Troubleshooting Simulator &middot; part of the GoldenGate Experience Center &middot; Ravikumar Vasudevan</footer>
+
+<script>
+/* ============ Changelog toggle ============ */
+var verBadge = document.getElementById('verBadge');
+var changelogPanel = document.getElementById('changelogPanel');
+verBadge.addEventListener('click', function(){ changelogPanel.classList.toggle('open'); });
+document.getElementById('clClose').addEventListener('click', function(){ changelogPanel.classList.remove('open'); });
+
+/* ============ Tab switching ============ */
+document.querySelectorAll('#tabNav button').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('#tabNav button').forEach(function(b){ b.classList.remove('active'); });
+    document.querySelectorAll('section.tab').forEach(function(s){ s.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ============ Replication Lag stage detail ============ */
+var lagInfo = {
+  source: {
+    t: 'Source',
+    sub: [
+      { h: 'What to monitor', b: 'Application transaction volume, commit rate, and redo/WAL generation rate.' },
+      { h: 'What indicates a problem', b: 'A sudden spike in commit rate or an unusually large/long-running transaction beginning.' },
+      { h: 'Logs / reports to check', b: 'Database AWR/Statspack (Oracle) or equivalent workload reports; application job schedules.' },
+      { h: 'Possible root causes', b: 'Batch jobs, month-end processing, an unplanned surge in application traffic.' },
+      { h: 'Recommended actions', b: 'Correlate the lag onset time with source-side activity before assuming a GoldenGate-side cause.' }
+    ]
+  },
+  extract: {
+    t: 'Extract',
+    sub: [
+      { h: 'What to monitor', b: 'Extract checkpoint position vs. current redo/WAL position; Extract lag as reported by INFO EXTRACT.' },
+      { h: 'What indicates a problem', b: 'Checkpoint falling further behind the current log position over time rather than holding steady.' },
+      { h: 'Logs / reports to check', b: 'Extract process report (.rpt), ggserr.log, and GGSCI INFO EXTRACT, DETAIL.' },
+      { h: 'Possible root causes', b: 'High redo generation rate outpacing mining throughput, long-running transactions held in memory/cache, undersized CACHEMGR causing disk paging.' },
+      { h: 'Recommended actions', b: 'Check WARNLONGTRANS output for long transactions; review cache statistics in the report; confirm Extract is not competing for host resources.' }
+    ]
+  },
+  trail: {
+    t: 'Trail',
+    sub: [
+      { h: 'What to monitor', b: 'Local trail file growth rate and disk headroom on the trail mount point.' },
+      { h: 'What indicates a problem', b: 'Trail growing steadily with no corresponding advance in the reading process (Distribution or Replicat) checkpoint.' },
+      { h: 'Logs / reports to check', b: 'GGSCI INFO EXTTRAIL / INFO RMTTRAIL; OS-level disk usage.' },
+      { h: 'Possible root causes', b: 'Downstream consumer (Distribution Service or Replicat) stalled, stopped, or simply slower than the write rate.' },
+      { h: 'Recommended actions', b: 'Identify and fix the downstream bottleneck rather than the trail itself; the trail is a symptom location, not usually a root cause.' }
+    ]
+  },
+  distribution: {
+    t: 'Distribution',
+    sub: [
+      { h: 'What to monitor', b: 'Distribution Service throughput, connection status to Receiver Service, and network utilization.' },
+      { h: 'What indicates a problem', b: 'Falling behind the local trail write rate; repeated reconnect attempts to Receiver Service.' },
+      { h: 'Logs / reports to check', b: 'Distribution Service log; network monitoring between source and target deployments.' },
+      { h: 'Possible root causes', b: 'Bandwidth ceiling, WAN latency, firewall/proxy inspection overhead, or a Receiver Service that is down or unreachable.' },
+      { h: 'Recommended actions', b: 'Confirm network path health independently of GoldenGate; verify Receiver Service availability; check TLS/authentication status (see Security Troubleshooting).' }
+    ]
+  },
+  receiver: {
+    t: 'Receiver',
+    sub: [
+      { h: 'What to monitor', b: 'Receiver Service status and remote trail write rate on the target side.' },
+      { h: 'What indicates a problem', b: 'Remote trail not growing despite Distribution Service reporting data sent.' },
+      { h: 'Logs / reports to check', b: 'Receiver Service log; target-side disk usage on the remote trail mount.' },
+      { h: 'Possible root causes', b: 'Receiver Service stopped or crashed, target-side disk full, or a permissions issue writing to the remote trail directory.' },
+      { h: 'Recommended actions', b: 'Restart/verify Receiver Service health, free target-side disk space, and confirm write permissions on the remote trail directory.' }
+    ]
+  },
+  replicat: {
+    t: 'Replicat',
+    sub: [
+      { h: 'What to monitor', b: 'Replicat checkpoint position vs. remote trail end; apply throughput (operations/second); Replicat lag as reported by INFO REPLICAT.' },
+      { h: 'What indicates a problem', b: 'Checkpoint falling behind the remote trail, or repeated apply errors/retries.' },
+      { h: 'Logs / reports to check', b: 'Replicat process report (.rpt), ggserr.log, discard file, and GGSCI INFO REPLICAT, DETAIL.' },
+      { h: 'Possible root causes', b: 'Target database contention, insufficient parallelism for the workload, conflict-heavy apply pattern, or a persistent apply error looping.' },
+      { h: 'Recommended actions', b: 'Check the discard file and report for recurring errors first; if apply is simply slow rather than erroring, evaluate target health and parallelism settings.' }
+    ]
+  },
+  target: {
+    t: 'Target',
+    sub: [
+      { h: 'What to monitor', b: 'Target database commit latency, wait events, and resource utilization (CPU, I/O, memory).' },
+      { h: 'What indicates a problem', b: 'Rising wait times or contention that correlate with the onset of Replicat lag.' },
+      { h: 'Logs / reports to check', b: 'Target database AWR/Statspack or equivalent; blocking session reports; storage/I/O monitoring.' },
+      { h: 'Possible root causes', b: 'Missing indexes, undo/redo pressure, concurrent batch jobs competing for the same resources, or general capacity limits.' },
+      { h: 'Recommended actions', b: 'Engage the target DBA team to resolve the specific database bottleneck; this is very often the true root cause behind what first appears as "Replicat lag."' }
+    ]
+  }
+};
+document.querySelectorAll('#lagFlow .lagbox').forEach(function(box){
+  box.addEventListener('click', function(){
+    document.querySelectorAll('#lagFlow .lagbox').forEach(function(b){ b.classList.remove('sel'); });
+    box.classList.add('sel');
+    var info = lagInfo[box.dataset.stage];
+    var det = document.getElementById('lagDetail');
+    var html = '<h4>' + info.t + '</h4>';
+    info.sub.forEach(function(s){
+      html += '<div class="lag-sub"><b>' + s.h + '</b><span>' + s.b + '</span></div>';
+    });
+    det.innerHTML = html;
+    det.classList.add('show');
+  });
+});
+
+/* ============ GoldenGate & Database Errors ============ */
+var oggErrors = [
+  {
+    code: 'OGG-00341', sev: 'medium', comp: 'Extract / Replicat (SQLEXEC)',
+    msg: 'Error in SQLEXEC clause, id {0}: Missing/invalid argument for {1}',
+    meaning: 'A SQLEXEC clause in a TABLE or MAP statement is missing a required argument, or an argument supplied is not valid for the option it belongs to.',
+    symptoms: 'Process fails to start (parameter file parse error); GGSCI or the process report points at the specific SQLEXEC clause and argument.',
+    causes: 'Typo in a SQLEXEC option name or value; an option left without its required value; copy-pasted SQLEXEC syntax from a different GoldenGate version.',
+    check: 'Locate the exact SQLEXEC clause named in the error; compare each option against current SQLEXEC syntax for QUERY/SPNAME, PARAMS, ID, and TRACE.',
+    steps: 'Re-read the SQLEXEC clause option-by-option; confirm every option that requires a value has one, and that value types match (e.g. numeric where expected).',
+    fix: 'Correct the malformed argument in the parameter file and restart the process.',
+    validation: 'Process starts cleanly with no further OGG-00341 in the report.',
+    related: 'OGG-00338, OGG-00342, OGG-00345, OGG-00346, OGG-00347',
+    versionNote: false
+  },
+  {
+    code: 'OGG-02650', sev: 'medium', comp: 'Extract (wildcard resolution)',
+    msg: 'Source wildcard specification {0} does not include a catalog name, but the source table name {1} includes a catalog name.',
+    meaning: 'A TABLE wildcard specification in the Extract parameter file does not qualify the catalog (e.g. a multitenant/PDB-style prefix), but the actual resolved source table name does include one, so the wildcard cannot match consistently.',
+    symptoms: 'Extract abends at startup or during dynamic wildcard resolution; tables under the affected schema are not captured.',
+    causes: 'A schema/catalog reorganization (e.g. PDB rename, consolidation) changed how table names resolve, without the TABLE statement being updated to match.',
+    check: 'Compare the exact TABLE wildcard syntax in the parameter file against how GoldenGate resolves the fully-qualified table name post-reorganization.',
+    steps: 'Review recent catalog/PDB-level schema changes; test the wildcard resolution against the current catalog structure.',
+    fix: 'Update the TABLE wildcard specification to consistently include (or exclude) the catalog name, matching the current schema structure.',
+    validation: 'Extract starts and captures the expected tables with no further OGG-02650 occurrences.',
+    related: 'OGG-00264, OGG-00257, OGG-00261',
+    versionNote: true
+  },
+  {
+    code: 'OGG-08221', sev: 'high', comp: 'Extract (registration)',
+    msg: 'Cannot register or unregister EXTRACT {0} because of the following SQL error: {1}',
+    meaning: 'Extract could not complete database-side registration (or unregistration) for integrated capture, and the database returned the specific SQL/OCI error shown.',
+    symptoms: 'REGISTER EXTRACT (or UNREGISTER EXTRACT) command fails; the underlying database error accompanying OGG-08221 identifies the true cause (e.g. missing privileges, ARCHIVELOG not enabled, tablespace quota, resource limits).',
+    causes: 'Missing supplemental logging or ARCHIVELOG mode, insufficient privileges/tablespace quota on the GoldenGate account, or a database resource limit (extents, library cache) being hit during registration.',
+    check: 'Read the specific SQL/OCI error number embedded in the message and treat it as the primary diagnostic clue rather than OGG-08221 itself.',
+    steps: 'Resolve the underlying database condition indicated by the embedded error (grant privileges, enable ARCHIVELOG/supplemental logging, extend quota, or resolve the resource limit).',
+    fix: 'Re-run REGISTER EXTRACT once the underlying database condition is corrected.',
+    validation: 'REGISTER EXTRACT completes successfully and INFO EXTRACT shows the group registered.',
+    related: 'OGG-02058, OGG-02042, OGG-02003',
+    versionNote: true
+  },
+  {
+    code: 'OGG-15128', sev: 'medium', comp: 'Extract (DDL metadata)',
+    msg: 'Could not find definition for {0}. Error: {1}',
+    meaning: 'GoldenGate DDL support could not retrieve the metadata it needed for the named object from the source database, and the database returned the error shown.',
+    symptoms: 'DDL capture fails for the affected object; subsequent DML on that object may error on apply due to unresolved metadata.',
+    causes: 'The object was dropped or altered in a way that raced with metadata retrieval, insufficient privileges on the DDL-support account, or an underlying database error interrupting the metadata query.',
+    check: 'Read the embedded database error for the specific cause; confirm the object still exists in the expected state on the source.',
+    steps: 'Resolve the underlying database error first (privileges, object existence); retry the DDL metadata retrieval.',
+    fix: 'Once the root cause is resolved, allow GoldenGate to re-attempt metadata retrieval, or manually refresh definitions if the process does not self-recover.',
+    validation: 'DDL capture for the affected object succeeds with no further OGG-15128 occurrences.',
+    related: 'OGG-15129, OGG-15130',
+    versionNote: true
+  },
+  {
+    code: 'OGG-01668', sev: 'critical', comp: 'Extract / Replicat (process control)',
+    msg: 'PROCESS ABENDING',
+    meaning: 'A generic, terminal message indicating the process is shutting down abnormally after a preceding fatal error.',
+    symptoms: 'Process status changes to ABENDED; this message always appears alongside an earlier, more specific error in the same report that identifies the true cause.',
+    causes: 'Any unrecovered fatal condition &mdash; credential/connectivity failure, unhandled apply error, resource exhaustion, or an internal error.',
+    check: 'Always read backward in the process report from OGG-01668 to find the preceding error message; OGG-01668 itself carries no diagnostic detail.',
+    steps: 'Diagnose and resolve the preceding root-cause error rather than treating OGG-01668 as the problem.',
+    fix: 'Fix the underlying condition, then start the process.',
+    validation: 'Process reaches RUNNING status and remains stable.',
+    related: 'Whatever error immediately precedes it in the report',
+    versionNote: false
+  },
+  {
+    code: 'OGG-02058', sev: 'high', comp: 'Extract (integrated capture registration)',
+    msg: 'ARCHIVELOG mode must be enabled on this Oracle database',
+    meaning: 'Integrated Extract registration requires the source Oracle database to be running in ARCHIVELOG mode, and it is not.',
+    symptoms: 'REGISTER EXTRACT fails immediately with this message.',
+    causes: 'Source database was never placed in ARCHIVELOG mode, or was temporarily switched to NOARCHIVELOG for a maintenance operation and not switched back.',
+    check: 'Query the database log mode directly to confirm current state.',
+    steps: 'Coordinate with the source DBA to enable ARCHIVELOG mode, which has broader backup/recovery implications and requires proper change control.',
+    fix: 'Enable ARCHIVELOG mode on the source database, then retry registration.',
+    validation: 'REGISTER EXTRACT completes successfully.',
+    related: 'OGG-08221',
+    versionNote: false
+  },
+  {
+    code: 'OGG-02028', sev: 'high', comp: 'Extract (log mining server)',
+    msg: 'Failed to attach to logmining server {0}',
+    meaning: 'Extract could not attach to its associated Oracle LogMiner-based capture server, typically accompanied by an underlying ORA- error (commonly a subordinate process error).',
+    symptoms: 'Extract abends shortly after startup with this message and an accompanying ORA- error such as ORA-01304.',
+    causes: 'The log mining server process failed to start on the database side, often due to a database-level configuration or resource problem; can also follow a database restart that did not cleanly restart the mining infrastructure.',
+    check: 'Review the database alert log and trace files referenced by the accompanying ORA- error for the true underlying cause.',
+    steps: 'Resolve the database-side condition identified in the alert/trace logs; consider restarting the log mining server infrastructure per the integrated capture documentation.',
+    fix: 'Once the database-side issue is resolved, restart Extract.',
+    validation: 'Extract attaches successfully and reaches RUNNING status.',
+    related: 'OGG-01668',
+    versionNote: true
+  },
+  {
+    code: 'OGG-00303', sev: 'low', comp: 'General (parameter file / credential store)',
+    msg: '{0}',
+    meaning: 'A generic wrapper message whose actual text is filled in dynamically &mdash; commonly seen reporting a parameter syntax problem or, in some releases, a credential store issue such as "Unable to open credential store."',
+    symptoms: 'Varies with the substituted text; process typically fails to start or fails at the point credentials are needed.',
+    causes: 'Parameter syntax error, or (for the credential-store variant) a missing/inaccessible wallet, environment variable misconfiguration, or a permissions problem on the wallet directory.',
+    check: 'Read the full substituted message text carefully &mdash; it is the actual diagnostic content, not the OGG-00303 code itself.',
+    steps: 'Treat the substituted text as you would any other specific error; for credential-store variants, check wallet location, permissions, and required environment variables (e.g. ORACLE_HOME, ORACLE_SID).',
+    fix: 'Correct the parameter syntax or credential store condition described in the substituted text.',
+    validation: 'Process starts cleanly past the point that previously failed.',
+    related: 'OGG-00303 (credential store variant), OGG-00019 through OGG-00299 (parameter syntax family)',
+    versionNote: true
+  }
+];
+
+var oggCategories = [
+  { cat: 'Parameter File &amp; Syntax Errors', range: 'OGG-00001 &ndash; OGG-00450 range', note: 'Missing/invalid parameter options, macro syntax, DDL/DDLOPTIONS/DDLERROR syntax, REPERROR/DDLERROR handling clauses.' },
+  { cat: 'Database Connectivity &amp; Registration', range: 'OGG-02xxx / OGG-08xxx range', note: 'Login failures, registration/unregistration of Integrated Extract, wildcard/catalog resolution.' },
+  { cat: 'Trail &amp; Checkpoint Errors', range: 'OGG-00438 &ndash; OGG-00450 range', note: 'Checkpoint read/write errors, trail sequencing problems.' },
+  { cat: 'DDL Support Errors', range: 'OGG-15xxx range', note: 'DDL metadata retrieval, primary key metadata, supplemental logging status for DDL-tracked tables.' },
+  { cat: 'Microservices / REST API Errors', range: 'OGG-12xxx range', note: 'Malformed service requests, URI/payload/header validation for the Microservices REST API.' },
+  { cat: 'Process Control Messages', range: 'OGG-01668 and related', note: 'Generic abend/termination signaling &mdash; always pair with the preceding specific error in the report.' }
+];
+
+var oraErrors = [
+  {
+    code: 'ORA-00001', meaning: 'Unique constraint violated.',
+    impact: 'Replicat apply fails on INSERT (or an UPDATE that changes a unique/key column) when the value already exists on the target.',
+    cause: 'Duplicate data from an out-of-order apply, a re-processed trail segment, or a row inserted directly on the target outside of replication.',
+    check: 'Identify the conflicting row by key on the target; check whether it originated from replication or a direct target write.',
+    fix: 'Resolve per the Data Mismatch process &mdash; reconcile from the authoritative source value and close off whatever caused the duplicate.',
+    validation: 'The specific transaction re-applies (manually or automatically) without a further ORA-00001 for that key.'
+  },
+  {
+    code: 'ORA-00942', meaning: 'Table or view does not exist.',
+    impact: 'Replicat cannot resolve the target object named in a MAP statement; apply fails immediately for that table.',
+    cause: 'Target table not yet created, misspelled table/schema name in the MAP statement, or a DDL drop that was not reflected back into the MAP configuration.',
+    check: 'Confirm the exact table/schema referenced by the error actually exists on the target with that exact name and case.',
+    fix: 'Create the missing target object, correct the MAP statement, or adjust for a legitimate DDL-driven object removal.',
+    validation: 'Replicat resumes applying to the table without further ORA-00942 for that object.'
+  },
+  {
+    code: 'ORA-01031', meaning: 'Insufficient privileges.',
+    impact: 'A database operation GoldenGate attempted (capture registration, DML apply, DDL apply, or an administrative package call) was denied due to missing privileges.',
+    cause: 'The GoldenGate database account is missing one or more required grants for its role (capture on source, apply on target, or administrative package access).',
+    check: 'Compare the account\'s current grants against the documented prerequisite privilege list for the specific operation that failed.',
+    fix: 'Grant the missing privilege(s), then retry the failed operation.',
+    validation: 'The previously-failing operation now completes successfully.'
+  },
+  {
+    code: 'ORA-01555', meaning: 'Snapshot too old.',
+    impact: 'Most relevant during initial load or SQLEXEC-based lookups reading a consistent point-in-time view; the read fails because required undo has been overwritten.',
+    cause: 'Undo retention too short relative to the duration of a long-running read (e.g. a large initial load extraction) combined with high undo-generating activity elsewhere.',
+    check: 'Compare UNDO_RETENTION and undo tablespace sizing against the actual duration of the long-running read operation.',
+    fix: 'Increase undo retention/tablespace sizing for the duration of the operation, or break the long read into smaller, faster chunks.',
+    validation: 'The previously-failing long-running read completes without ORA-01555.'
+  },
+  {
+    code: 'ORA-01653', meaning: 'Unable to extend table/index by n in tablespace.',
+    impact: 'A DML or DDL operation GoldenGate is applying fails because the target tablespace cannot allocate additional space.',
+    cause: 'Tablespace autoextend disabled or maxsize reached, or underlying storage genuinely full.',
+    check: 'Check tablespace datafile sizing, autoextend settings, and available underlying storage.',
+    fix: 'Extend the tablespace/datafile or add storage, coordinating with the DBA team.',
+    validation: 'The previously-failing operation applies successfully once space is available.'
+  },
+  {
+    code: 'ORA-04031', meaning: 'Unable to allocate shared memory (shared pool / large pool / etc.).',
+    impact: 'Database-side memory pressure can cause GoldenGate-related SQL (including SQLEXEC calls or capture-side operations) to fail intermittently.',
+    cause: 'Shared pool fragmentation, undersized shared/large pool relative to workload, or excessive hard parsing.',
+    check: 'Review shared pool advisory statistics and recent memory-related alert log entries.',
+    fix: 'Work with the DBA team to size memory pools appropriately or reduce hard-parse-heavy activity contributing to fragmentation.',
+    validation: 'The intermittent failure stops recurring under equivalent load.'
+  },
+  {
+    code: 'ORA-12514', meaning: 'TNS: listener does not currently know of service requested in connect descriptor.',
+    impact: 'GoldenGate cannot establish a database connection at all &mdash; process fails at DBLOGIN or connection time.',
+    cause: 'Service name in the connect descriptor does not match a service currently registered with the listener; service not yet started, or a typo in the TNS entry.',
+    check: 'Compare the service name in the connection string/TNS entry against `lsnrctl status` output on the database host.',
+    fix: 'Correct the service name, or ensure the intended service is registered and started.',
+    validation: 'DBLOGIN / connection succeeds consistently.'
+  },
+  {
+    code: 'ORA-12541', meaning: 'TNS: no listener.',
+    impact: 'GoldenGate cannot reach any listener at the configured host/port &mdash; connection fails outright.',
+    cause: 'Listener process not running, wrong port in the connection string, or a network/firewall path blocking the listener port.',
+    check: 'Confirm the listener is running on the target host and port; test basic network reachability to that port.',
+    fix: 'Start the listener if stopped, correct the port, or resolve the network/firewall path.',
+    validation: 'Connection succeeds and the process reaches RUNNING status.'
+  },
+  {
+    code: 'ORA-12154', meaning: 'TNS: could not resolve the connect identifier specified.',
+    impact: 'GoldenGate cannot resolve the TNS alias used in the connection string; connection fails before even reaching the listener.',
+    cause: 'tnsnames.ora missing the entry, wrong TNS_ADMIN path for the GoldenGate process environment, or a typo in the alias.',
+    check: 'Confirm which tnsnames.ora the GoldenGate process is actually reading (TNS_ADMIN) and that the alias exists there.',
+    fix: 'Correct the TNS_ADMIN path or add/fix the missing alias entry.',
+    validation: 'Connection using that alias succeeds.'
+  },
+  {
+    code: 'ORA-02291', meaning: 'Integrity constraint violated &ndash; parent key not found.',
+    impact: 'Replicat apply fails on an INSERT/UPDATE that violates a foreign key because the referenced parent row does not yet exist on the target.',
+    cause: 'Parent and child table changes applied out of dependency order, most commonly under aggressive parallel apply without proper dependency handling.',
+    check: 'Confirm whether the parent row exists on target as of the same point in time, and review parallelism/grouping settings relative to FK dependencies.',
+    fix: 'Ensure dependency-aware apply ordering (e.g. adjust parallelism scope or apply parent/child tables in the same coordinated unit); apply the missing parent transaction if it is genuinely absent.',
+    validation: 'The FK violation does not recur for subsequent related transactions.'
+  }
+];
+
+function sevBadge(sev){
+  return '<span class="sev ' + sev + '">' + sev + '</span>';
+}
+
+function renderOggErrors(){
+  var root = document.getElementById('oggErrorList');
+  var html = '';
+  oggErrors.forEach(function(e){
+    var vnote = e.versionNote ? '<span class="pill warn" style="margin-left:6px;">Version / Environment Dependent</span>' : '';
+    html += '<div class="err-card" data-search="' + (e.code + ' ' + e.msg + ' ' + e.comp + ' ' + e.symptoms + ' ' + e.causes).toLowerCase().replace(/"/g,'&quot;') + '">';
+    html += '<div class="eh"><span class="ecode">' + e.code + '</span>' + sevBadge(e.sev) + '<span class="comp-tag">' + e.comp + '</span>' + vnote + '</div>';
+    html += '<div class="emsg">&ldquo;' + e.msg + '&rdquo;</div>';
+    html += '<div class="err-grid">';
+    html += '<div class="efield"><b>Meaning</b><span>' + e.meaning + '</span></div>';
+    html += '<div class="efield"><b>Common Symptoms</b><span>' + e.symptoms + '</span></div>';
+    html += '<div class="efield"><b>Possible Root Causes</b><span>' + e.causes + '</span></div>';
+    html += '<div class="efield"><b>What to Check</b><span>' + e.check + '</span></div>';
+    html += '<div class="efield"><b>Troubleshooting Steps</b><span>' + e.steps + '</span></div>';
+    html += '<div class="efield"><b>Recommended Fix</b><span>' + e.fix + '</span></div>';
+    html += '<div class="efield"><b>Validation</b><span>' + e.validation + '</span></div>';
+    html += '<div class="efield"><b>Related Errors</b><span>' + e.related + '</span></div>';
+    html += '</div></div>';
+  });
+  html += '<div class="card" style="margin-top:4px;"><h3>Additional commonly encountered OGG error categories</h3><div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:8px;">';
+  oggCategories.forEach(function(c){
+    html += '<div class="err-card" style="margin-bottom:0;" data-search="' + (c.cat + ' ' + c.range + ' ' + c.note).toLowerCase().replace(/"/g,'&quot;') + '"><b style="color:var(--redwood-dark);font-size:12.5px;">' + c.cat + '</b><div style="font-size:10.5px;color:var(--muted);margin:2px 0 6px;">' + c.range + '</div><p style="font-size:12px;color:var(--muted);margin:0;">' + c.note + '</p></div>';
+  });
+  html += '</div></div>';
+  root.innerHTML = html;
+}
+
+function renderOraErrors(){
+  var root = document.getElementById('oraErrorList');
+  var html = '';
+  oraErrors.forEach(function(e){
+    html += '<div class="err-card" data-search="' + (e.code + ' ' + e.meaning + ' ' + e.impact + ' ' + e.cause).toLowerCase().replace(/"/g,'&quot;') + '">';
+    html += '<div class="eh"><span class="ecode">' + e.code + '</span><span class="comp-tag">Database Error</span></div>';
+    html += '<div class="emsg">' + e.meaning + '</div>';
+    html += '<div class="err-grid">';
+    html += '<div class="efield"><b>GoldenGate Impact</b><span>' + e.impact + '</span></div>';
+    html += '<div class="efield"><b>Possible Cause</b><span>' + e.cause + '</span></div>';
+    html += '<div class="efield"><b>What to Check</b><span>' + e.check + '</span></div>';
+    html += '<div class="efield"><b>Recommended Fix</b><span>' + e.fix + '</span></div>';
+    html += '<div class="efield"><b>Validation</b><span>' + e.validation + '</span></div>';
+    html += '</div></div>';
+  });
+  root.innerHTML = html;
+}
+
+renderOggErrors();
+renderOraErrors();
+
+var errSearch = document.getElementById('errSearch');
+var errCount = document.getElementById('errCount');
+var noResults = document.getElementById('noResults');
+function runErrSearch(){
+  var q = errSearch.value.trim().toLowerCase();
+  var cards = document.querySelectorAll('.err-card');
+  var shown = 0;
+  cards.forEach(function(c){
+    var hay = c.getAttribute('data-search') || c.textContent.toLowerCase();
+    if(!q || hay.indexOf(q) !== -1){
+      c.classList.remove('hidden');
+      shown++;
+    } else {
+      c.classList.add('hidden');
+    }
+  });
+  errCount.textContent = q ? ('Showing ' + shown + ' matching entr' + (shown===1?'y':'ies') + ' for "' + errSearch.value.trim() + '"') : 'Showing all entries';
+  noResults.style.display = shown === 0 ? 'block' : 'none';
+}
+errSearch.addEventListener('input', runErrSearch);
+document.querySelectorAll('.search-examples span').forEach(function(ex){
+  ex.addEventListener('click', function(){
+    errSearch.value = ex.textContent;
+    runErrSearch();
+    errSearch.focus();
+  });
+});
+
+/* ============ Performance Troubleshooting Live Simulator ============ */
+var perfVolume = document.getElementById('perfVolume');
+var perfProfile = document.getElementById('perfProfile');
+var perfTarget = document.getElementById('perfTarget');
+var perfNetwork = document.getElementById('perfNetwork');
+var perfParallel = document.getElementById('perfParallel');
+var perfNote = document.getElementById('perfNote');
+
+function clamp(v){ return Math.max(4, Math.min(100, v)); }
+function barColor(pct){
+  if(pct >= 80) return '#B3261E';
+  if(pct >= 55) return 'var(--warn)';
+  return 'var(--ok)';
+}
+function setBar(node, pct, label){
+  var fill = document.getElementById('pf-' + node);
+  var val = document.getElementById('pf-' + node + '-val');
+  pct = clamp(pct);
+  fill.style.width = pct + '%';
+  fill.style.background = barColor(pct);
+  val.textContent = label;
+}
+function setStat(id, val, flag){
+  var el = document.getElementById(id);
+  el.querySelector('.n').textContent = val;
+  el.classList.toggle('flag', !!flag);
+}
+
+function runPerfSim(){
+  var vol = perfVolume.value;
+  var prof = perfProfile.value;
+  var tgt = perfTarget.value;
+  var net = perfNetwork.value;
+  var par = perfParallel.value;
+
+  var volLoad = { low: 20, normal: 40, high: 70, spike: 92 }[vol];
+  var sourceLoad = volLoad;
+  var extractLoad = volLoad + (prof === 'long' ? 15 : prof === 'large' ? 10 : 0);
+  var trailLoad = Math.round(extractLoad * 0.7);
+  var netLoad = (net === 'degraded' ? 55 : 15) + Math.round(volLoad * 0.25);
+  var parBoost = { low: 15, normal: 0, high: -18 }[par];
+  var tgtStress = { healthy: 10, contended: 45, bottleneck: 80 }[tgt];
+  var replicatLoad = clamp(volLoad + tgtStress * 0.5 + parBoost + (prof === 'large' ? 15 : 0));
+  var targetLoad = tgtStress + Math.round(volLoad * 0.3);
+
+  setBar('source', sourceLoad, vol.charAt(0).toUpperCase()+vol.slice(1)+' volume');
+  setBar('extract', extractLoad, prof === 'long' ? 'Long txns held' : prof === 'large' ? 'Large txns' : 'Normal capture');
+  setBar('trail', trailLoad, trailLoad > 65 ? 'Growing' : 'Stable');
+  setBar('network', netLoad, net === 'degraded' ? 'Degraded link' : 'Good link');
+  setBar('replicat', replicatLoad, par.charAt(0).toUpperCase()+par.slice(1)+' parallelism');
+  setBar('target', targetLoad, tgt === 'healthy' ? 'Healthy' : tgt === 'contended' ? 'Contended' : 'Severe bottleneck');
+
+  /* Derived headline stats (illustrative, relative units only) */
+  var extLagSec = Math.round((extractLoad/100) * 45);
+  var repLagSec = Math.round((replicatLoad/100) * 600 + (net === 'degraded' ? 60 : 0));
+  var throughputPct = clamp(100 - replicatLoad);
+  var trailGrowth = trailLoad > 65 ? 'Rising' : trailLoad > 40 ? 'Steady' : 'Low';
+
+  setStat('pfExtLag', extLagSec < 60 ? (extLagSec + 's') : (Math.round(extLagSec/60) + 'm'), extLagSec > 30);
+  setStat('pfRepLag', repLagSec < 60 ? (repLagSec + 's') : (Math.round(repLagSec/60) + 'm'), repLagSec > 120);
+  setStat('pfThroughput', throughputPct + '%', throughputPct < 45);
+  setStat('pfTrailGrowth', trailGrowth, trailGrowth === 'Rising');
+
+  /* Identify primary bottleneck = highest relative load among the 6 nodes */
+  var nodes = [
+    { k: 'Source Volume', v: sourceLoad },
+    { k: 'Extract / Capture', v: extractLoad },
+    { k: 'Network', v: netLoad },
+    { k: 'Replicat / Apply', v: replicatLoad },
+    { k: 'Target Database', v: targetLoad }
+  ];
+  nodes.sort(function(a,b){ return b.v - a.v; });
+  var top = nodes[0];
+  setStat('pfBottleneck', top.v > 55 ? top.k : 'None dominant', top.v > 70);
+
+  var noteMsgs = [];
+  if(prof === 'long') noteMsgs.push('Long-running transactions increase Extract memory/cache pressure and can delay trail writes until commit &mdash; consider whether WARNLONGTRANS output correlates with this pattern.');
+  if(prof === 'large') noteMsgs.push('Large transactions raise both Extract and Replicat load as a single unit of work &mdash; SPLIT_TRANS_RECS and GROUPTRANSOPS behavior become relevant here.');
+  if(tgt !== 'healthy') noteMsgs.push('Target database stress is the dominant contributor to Replicat lag in this combination &mdash; apply-side parallelism changes will have limited effect until target contention is resolved.');
+  if(net === 'degraded') noteMsgs.push('A degraded network path adds latency independent of GoldenGate configuration &mdash; check raw network throughput/latency before tuning GoldenGate parameters.');
+  if(par === 'high' && tgt !== 'healthy') noteMsgs.push('High parallelism against an already-contended target can worsen contention rather than improve throughput.');
+  if(noteMsgs.length){
+    perfNote.style.display = 'block';
+    perfNote.innerHTML = '<b>Illustrative observation:</b> ' + noteMsgs.join(' ');
+  } else {
+    perfNote.style.display = 'none';
+  }
+}
+[perfVolume, perfProfile, perfTarget, perfNetwork, perfParallel].forEach(function(el){
+  el.addEventListener('change', runPerfSim);
+});
+runPerfSim();
+
+/* ============ GoldenGate FAQ ============ */
+var faqData = [
+  { group: 'GoldenGate Fundamentals', items: [
+    { q: 'What is Oracle GoldenGate?', a: 'A real-time data integration and replication platform that captures, routes, transforms, and applies transactional changes between databases, typically with low latency and minimal impact on source systems.' },
+    { q: 'How does GoldenGate replication work?', a: 'Extract captures committed changes from the source (commonly by mining the redo/transaction log), writes them to a trail file, and Replicat reads that trail and applies the equivalent changes to the target, independently of the original transaction boundaries where configured.' },
+    { q: 'What are Extract, Trail, and Replicat?', a: 'Extract is the capture process on the source; the trail is the on-disk, sequential store of captured changes; Replicat is the apply process that reads the trail and writes changes to the target.' },
+    { q: 'What is Data Pump?', a: 'A secondary Extract process, typically configured as a pass-through, that reads the local trail and forwards data across the network to a remote trail, decoupling capture from network transport.' },
+    { q: 'What is Distribution Service?', a: 'A Microservices component responsible for shipping trail data from the source deployment to the target deployment\'s Receiver Service over the network.' },
+    { q: 'What is Receiver Service?', a: 'A Microservices component on the target side that accepts incoming trail data from Distribution Service and writes it to the local (remote) trail for Replicat to consume.' },
+    { q: 'What is Service Manager?', a: 'The top-level Microservices process that manages the lifecycle of all other services (Administration Server, Distribution Service, Receiver Service, etc.) within a deployment.' },
+    { q: 'What is a GoldenGate Deployment?', a: 'A named, isolated instance of the Microservices architecture &mdash; its own set of services, parameter files, trails, and credentials &mdash; managed under a single Service Manager.' },
+    { q: 'What is Integrated Extract?', a: 'An Extract capture mode that interacts directly with the database\'s internal log-mining infrastructure (rather than an external, independent log reader), used for supported Oracle configurations.' },
+    { q: 'What is Integrated Replicat?', a: 'A Replicat apply mode that uses an inbound server within the database to apply changes, allowing the database to manage aspects of transaction coordination and parallelism internally.' },
+    { q: 'What is Parallel Replicat?', a: 'A Replicat architecture that applies changes using multiple coordinated worker threads/processes in parallel, aiming to increase apply throughput beyond what a single serial apply stream can achieve.' },
+    { q: 'What is Supplemental Logging?', a: 'Additional information the source database is configured to write to its redo/transaction log (beyond the minimum needed for its own recovery) so that GoldenGate has enough data &mdash; particularly key column values &mdash; to construct a complete, applicable change record.' },
+    { q: 'What is Checkpoint?', a: 'A persisted marker of exactly how far a process (Extract or Replicat) has progressed through its input, used to resume correctly after a restart without reprocessing or skipping data.' },
+    { q: 'What is Replication Lag?', a: 'The elapsed time between a change committing at its origin and that same change being fully reflected at its destination, measured at whichever stage boundary is relevant (see the Replication Lag tab for the full breakdown).' },
+    { q: 'What is a GoldenGate HUB?', a: 'A deployment pattern where GoldenGate processes run on a dedicated intermediate host (rather than directly on the source or target database servers), centralizing administration and reducing load on the database hosts themselves.' }
+  ]},
+  { group: 'Installation & Configuration', items: [
+    { q: 'What are the GoldenGate prerequisites?', a: 'A supported combination of database version/edition, sufficient host resources (CPU, memory, disk for trails), the required database privileges for the GoldenGate account, and (for Oracle sources) appropriate log mode and supplemental logging configuration.' },
+    { q: 'How is GoldenGate Microservices installed?', a: 'Via the Microservices installer/RPM appropriate to the platform, followed by creating a deployment through Service Manager, which provisions the Administration Server, Distribution Service, Receiver Service, and other components for that deployment.' },
+    { q: 'What are the database user requirements?', a: 'A dedicated database account with the specific privileges documented for the capture or apply role in use (integrated vs. classic capture, administrative package access, target DML/DDL privileges), rather than a broadly privileged generic account.' },
+    { q: 'What is required for database connectivity?', a: 'A working network path and valid connection descriptor (e.g. TNS entry) between the GoldenGate deployment and the database, plus credentials registered either directly or via the credential store/wallet.' },
+    { q: 'What network and port requirements exist?', a: 'Open, reachable ports for the Microservices Administration Server, Distribution Service, and Receiver Service (as configured), plus standard database listener connectivity &mdash; exact ports are deployment-configurable and should be confirmed against the current install.' },
+    { q: 'What is the Credential Store?', a: 'A secure wallet-based store that holds database credentials referenced by alias in parameter files, avoiding plain-text passwords and centralizing credential management and rotation.' },
+    { q: 'What is Service Manager (in configuration)?', a: 'The entry point for creating, starting, and managing deployments; configuration of a new deployment begins with Service Manager provisioning its directory structure and services.' },
+    { q: 'What is deployment configuration?', a: 'The set of choices made when a deployment is created or modified &mdash; port assignments, security/TLS settings, associated database connections, and the services enabled within that deployment.' },
+    { q: 'How are source and target configured?', a: 'Each side is configured with its own deployment (or Classic installation), database connectivity, and the appropriate Extract (source) or Replicat (target) parameter files defining what to capture or apply.' }
+  ]},
+  { group: 'Replication', items: [
+    { q: 'Why is Extract not capturing transactions?', a: 'Common causes include Extract not running/abended, the relevant table not covered by any TABLE statement (or excluded by wildcard scope), a filter unintentionally excluding the rows, or supplemental logging not enabled on the table.' },
+    { q: 'Why is Replicat not applying transactions?', a: 'Common causes include Replicat abended on an apply error, transactions routed to a discard file due to a REPERROR/DDLERROR rule, or a MAP statement not covering the target table.' },
+    { q: 'Why is replication stopped?', a: 'Check process status first (ABENDED vs. STOPPED vs. RUNNING); review the process report for the specific error that caused the stop, since "stopped" always has an explicit, logged cause.' },
+    { q: 'Why is the trail growing?', a: 'The process consuming the trail (Replicat, or Distribution Service for a local trail feeding a remote one) is not keeping pace with the writer &mdash; see Trail Troubleshooting for the full breakdown.' },
+    { q: 'Why is replication lag increasing?', a: 'Isolate whether the growth is on the capture side or the apply side by comparing Extract and Replicat checkpoints, then use the Replication Lag tab\'s stage-by-stage method to narrow further.' },
+    { q: 'Why are transactions missing?', a: 'Most commonly a filter/WHERE clause exclusion, a CDC start-position gap during migration, or a transaction routed to the discard file &mdash; see Data Mismatch for the full investigation method.' },
+    { q: 'Why is data not synchronized?', a: 'This is a symptom, not a single cause &mdash; work through Replication Lag (is it just behind?), Trail Troubleshooting (is data stuck?), and Data Mismatch (is data actually wrong or missing?) to locate the true issue.' },
+    { q: 'How do I restart Extract or Replicat?', a: 'From GGSCI (or the equivalent Microservices interface), issue START EXTRACT/REPLICAT group_name after confirming and resolving the cause of the prior stop; check INFO afterward to confirm it reaches RUNNING.' },
+    { q: 'How do I validate replication?', a: 'Compare row counts and, ideally, checksums/hashes between source and target for the affected tables, confirm lag is at or near zero at the comparison time, and consider Oracle GoldenGate Veridata for systematic, repeatable validation.' }
+  ]},
+  { group: 'Performance', items: [
+    { q: 'How do I troubleshoot Extract lag?', a: 'Check checkpoint progress against current redo/WAL position, review WARNLONGTRANS output for long transactions, and check CACHEMGR statistics for excessive disk paging &mdash; see the Replication Lag tab.' },
+    { q: 'How do I troubleshoot Replicat lag?', a: 'Check whether the bottleneck is target database contention, insufficient parallelism for the workload, or a recurring apply error causing retries &mdash; see the Performance Troubleshooting Live Simulator.' },
+    { q: 'How do I identify the replication bottleneck?', a: 'Follow the stage-by-stage method in the Replication Lag tab: compare checkpoints across Extract, trail, Distribution, Receiver, and Replicat to see which stage is furthest behind.' },
+    { q: 'How do I troubleshoot high transaction volume?', a: 'Confirm whether Extract or Replicat (or both) are falling behind under the volume, and evaluate parallelism settings for the apply side, always validating any change against the specific workload rather than applying universal values.' },
+    { q: 'How do I troubleshoot long-running transactions?', a: 'Use WARNLONGTRANS to surface them, correlate with application/batch schedules, and review CACHEMGR behavior, since long transactions are held until commit before being fully writable to the trail.' },
+    { q: 'How can I improve Replicat performance?', a: 'Investigate target database health first (it is the most common bottleneck), then consider parallelism and grouping settings appropriate to the workload\'s dependency structure &mdash; there is no universal tuning value; see the Performance tab.' },
+    { q: 'What factors affect GoldenGate throughput?', a: 'Source change volume and transaction shape, network bandwidth/latency, target database capacity and contention, and the parallelism/grouping configuration on the apply side all interact to determine achievable throughput.' }
+  ]},
+  { group: 'Migration', items: [
+    { q: 'How does GoldenGate support database migration?', a: 'By combining an initial bulk load of existing data with continuous CDC capture of ongoing changes, allowing the target to reach and then maintain synchronization with the source ahead of cutover.' },
+    { q: 'How is initial load performed?', a: 'Using a bulk-load method appropriate to the source/target combination (direct load, file-based load, or a database-native utility), performed alongside or before CDC capture begins, with a precisely recorded as-of position.' },
+    { q: 'How is CDC performed after initial load?', a: 'Extract is started from the exact SCN/LSN/position corresponding to the initial load\'s as-of point, ensuring no gap or overlap between loaded data and captured changes.' },
+    { q: 'How can downtime be minimized?', a: 'By performing the bulk load while the source remains live, letting CDC catch up the intervening changes, and cutting over only once lag reaches zero or near-zero &mdash; minimizing the write-quiesce window to the smallest necessary interval.' },
+    { q: 'How is migration validated?', a: 'Through row-count and checksum/hash comparisons before and after cutover, application-level smoke testing, and (for ongoing assurance) Oracle GoldenGate Veridata.' },
+    { q: 'How do I troubleshoot migration replication issues?', a: 'Use the Initial Load & Migration Troubleshooting tab\'s flow (Initial Load &rarr; CDC &rarr; Synchronization &rarr; Validation &rarr; Cutover) to identify which phase the issue belongs to before investigating further.' }
+  ]},
+  { group: 'Microservices', items: [
+    { q: 'What causes Administration Service issues?', a: 'Service not running, port conflicts, or authentication/authorization failures against the deployment\'s configured users &mdash; check the Administration Server log for the specific cause.' },
+    { q: 'What causes Distribution Service issues?', a: 'Network connectivity problems to the target Receiver Service, TLS/certificate failures, or the service itself being stopped &mdash; see Security Troubleshooting and Trail Troubleshooting.' },
+    { q: 'What causes Receiver Service issues?', a: 'Service stopped, target-side disk full, or permission problems writing to the remote trail directory &mdash; see Trail Troubleshooting.' },
+    { q: 'What causes Service Manager issues?', a: 'Host-level resource exhaustion, port conflicts at the Service Manager level, or a corrupted deployment registry &mdash; typically requires reviewing Service Manager\'s own log output.' },
+    { q: 'What causes deployment issues?', a: 'Misconfiguration during deployment creation (ports, paths, security settings), or a deployment left in a partially-created state after an interrupted setup.' },
+    { q: 'What causes REST API connectivity issues?', a: 'Network/firewall blocking the API port, TLS misconfiguration, or authentication failures &mdash; confirm basic reachability to the port first, then work through TLS and credentials.' }
+  ]}
+];
+
+function renderFaq(){
+  var root = document.getElementById('faqRoot');
+  var html = '';
+  faqData.forEach(function(g, gi){
+    html += '<div class="acc-group"><h3>' + g.group + '</h3>';
+    g.items.forEach(function(item, ii){
+      var id = 'faq-' + gi + '-' + ii;
+      html += '<div class="acc-item" id="' + id + '">';
+      html += '<div class="acc-q"><span>' + item.q + '</span><span class="arrow">&#9656;</span></div>';
+      html += '<div class="acc-a">' + item.a + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+  root.innerHTML = html;
+  document.querySelectorAll('.acc-q').forEach(function(q){
+    q.addEventListener('click', function(){
+      q.parentElement.classList.toggle('open');
+    });
+  });
+}
+renderFaq();
+</script>
+</body>
+</html>

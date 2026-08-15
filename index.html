@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <!--
-  Oracle GoldenGate Interactive Technical Simulator — Landing Dashboard
-  Author: Ravikumar Vasudevan | Version: 2.0
-  Neutral slate/indigo light theme — white background, no Oracle Redwood styling.
-  Self-contained, no external CDN dependencies. Links to four learning modules.
+  Oracle GoldenGate Experience Center — Landing Dashboard
+  Author: Ravikumar Vasudevan | Version: 3.0
+  Neutral slate/indigo light theme, Oracle Redwood accent (matches REST API module).
+  Self-contained, no external CDN dependencies. Links to seventeen modules.
 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="author" content="Ravikumar Vasudevan"/>
-<meta name="version" content="2.0"/>
-<title>Oracle GoldenGate Interactive Technical Simulator</title>
+<meta name="version" content="3.0"/>
+<title>Oracle GoldenGate Experience Center</title>
 <style>
   :root{
     --bg:#FFFFFF;
@@ -57,6 +57,21 @@
     --indigo:#4338CA;
     --indigo-bg:#EDEBFC;
     --indigo-border:#C7C2F5;
+    --slate:#475569;
+    --slate-bg:#EEF1F4;
+    --slate-border:#CBD5E1;
+    --emerald:#059669;
+    --emerald-bg:#E6F7F1;
+    --emerald-border:#A7E8D1;
+    --fuchsia:#C026D3;
+    --fuchsia-bg:#FBE8FA;
+    --fuchsia-border:#F0B8ED;
+    --gold:#A16207;
+    --gold-bg:#FDF3DA;
+    --gold-border:#F3D98B;
+    --crimson:#991B1B;
+    --crimson-bg:#FBE9E7;
+    --crimson-border:#F0B4AC;
     --mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
     --disp:-apple-system,'Segoe UI Semibold','Avenir Next',ui-sans-serif,system-ui,sans-serif;
     --body:-apple-system,'Segoe UI',ui-sans-serif,system-ui,sans-serif;
@@ -134,6 +149,11 @@
   .icon.avdf{background:var(--rose-bg);color:var(--rose);}
   .icon.ocigg{background:var(--sky-bg);color:var(--sky);}
   .icon.filters{background:var(--indigo-bg);color:var(--indigo);}
+  .icon.commands{background:var(--slate-bg);color:var(--slate);}
+  .icon.implementation{background:var(--emerald-bg);color:var(--emerald);}
+  .icon.realtime{background:var(--fuchsia-bg);color:var(--fuchsia);}
+  .icon.migration{background:var(--gold-bg);color:var(--gold);}
+  .icon.troubleshooting{background:var(--crimson-bg);color:var(--crimson);}
 
   .card .module-no{
     font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
@@ -181,6 +201,11 @@
   .card.avdf .card-head{border-top:3px solid var(--rose);}
   .card.ocigg .card-head{border-top:3px solid var(--sky);}
   .card.filters .card-head{border-top:3px solid var(--indigo);}
+  .card.commands .card-head{border-top:3px solid var(--slate);}
+  .card.implementation .card-head{border-top:3px solid var(--emerald);}
+  .card.realtime .card-head{border-top:3px solid var(--fuchsia);}
+  .card.migration .card-head{border-top:3px solid var(--gold);}
+  .card.troubleshooting .card-head{border-top:3px solid var(--crimson);}
 
   /* ---------- FOOTER ---------- */
   footer{
@@ -198,32 +223,32 @@
     <div class="brand">
       <div class="mark">GG</div>
       <div class="titles">
-        <h1>Oracle GoldenGate Interactive Technical Simulator</h1>
-        <p>Hands-on module dashboard · Extract, Replicat &amp; Trail File Concepts</p>
+        <h1>Oracle GoldenGate Experience Center</h1>
+        <p>Explore • Experience • Demonstrate Oracle GoldenGate</p>
       </div>
     </div>
-    <div class="topbar-meta">v2.0 · Author: Ravikumar Vasudevan</div>
+    <div class="topbar-meta">v3.0 · Author: Ravikumar Vasudevan</div>
   </div>
 </header>
 
 <section class="hero">
   <p class="eyebrow">Module Dashboard</p>
-  <h2>Choose a technical module to begin</h2>
-  <p class="lead">A self-contained interactive simulators covering core Oracle GoldenGate concepts — from
+  <h2>Choose an experience to begin</h2>
+  <p class="lead">A self-contained suite of interactive experiences covering core Oracle GoldenGate concepts — from
   supplemental logging fundamentals through mining database topologies, multi-cloud deployment, and
   medallion-architecture data lake house delivery. Each module opens independently in a new page.</p>
 </section>
 
 <div class="stats">
-  <div class="stat">📦 <b>12</b> Modules</div>
-  <div class="stat">🧪 <b>Interactive</b> Simulators</div>
+  <div class="stat">📦 <b>17</b> Modules</div>
+  <div class="stat">🧪 <b>Interactive</b> Experiences</div>
   <div class="stat">🎨 <b>Self-Contained</b> HTML</div>
 </div>
 
 <div class="grid-wrap">
   <div class="grid">
 
-    <!-- Module 1: Fundamentals -->
+    <!-- Module 01: Fundamentals -->
     <div class="card fundamentals">
       <div class="card-head">
         <div class="icon fundamentals">📝</div>
@@ -248,12 +273,81 @@
       </div>
     </div>
 
-    <!-- Module 2: Mining Database -->
+    <!-- Module 02: Commands -->
+    <div class="card commands">
+      <div class="card-head">
+        <div class="icon commands">💻</div>
+        <div>
+          <p class="module-no">Module 02 · Operations</p>
+          <h3>GoldenGate Commands</h3>
+        </div>
+      </div>
+      <div class="card-body">
+        <p>Practice core GoldenGate Admin Client commands in a live terminal — a full command catalog,
+        an interactive command builder, quick reference, and side-by-side command comparisons.</p>
+        <div class="tag-row">
+          <span class="tag">Admin Client</span>
+          <span class="tag">Command Builder</span>
+          <span class="tag">Reference</span>
+        </div>
+      </div>
+      <div class="card-foot">
+        <a class="btn-open" href="https://ravikumv.github.io/gg-technical-simulator/gg-commands-simulator.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- Module 03: Implementation -->
+    <div class="card implementation">
+      <div class="card-head">
+        <div class="icon implementation">🏗️</div>
+        <div>
+          <p class="module-no">Module 03 · Deployment</p>
+          <h3>GoldenGate Implementation</h3>
+        </div>
+      </div>
+      <div class="card-body">
+        <p>Walk through a real-world GoldenGate implementation plan — architecture decisions, rollout
+        sequencing, and the best practices that keep a deployment on track from design through go-live.</p>
+        <div class="tag-row">
+          <span class="tag">Deployment Planning</span>
+          <span class="tag">Rollout Sequence</span>
+          <span class="tag">Best Practices</span>
+        </div>
+      </div>
+      <div class="card-foot">
+        <a class="btn-open" href="https://ravikumv.github.io/gg-technical-simulator/gg-implementation-simulator.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- Module 04: Real-Time Replication -->
+    <div class="card realtime">
+      <div class="card-head">
+        <div class="icon realtime">⚡</div>
+        <div>
+          <p class="module-no">Module 04 · Replication</p>
+          <h3>GoldenGate Real-Time Replication</h3>
+        </div>
+      </div>
+      <div class="card-body">
+        <p>See low-latency capture and apply in action — how GoldenGate keeps source and target in sync
+        in near real time, with visibility into throughput and end-to-end lag.</p>
+        <div class="tag-row">
+          <span class="tag">Low Latency</span>
+          <span class="tag">Capture &amp; Apply</span>
+          <span class="tag">Live Sync</span>
+        </div>
+      </div>
+      <div class="card-foot">
+        <a class="btn-open" href="https://ravikumv.github.io/gg-technical-simulator/gg-realtime-replication-simulator.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- Module 05: Mining Database -->
     <div class="card mining">
       <div class="card-head">
         <div class="icon mining">⛏️</div>
         <div>
-          <p class="module-no">Module 02 · Topology</p>
+          <p class="module-no">Module 05 · Topology</p>
           <h3>GoldenGate Mining Database</h3>
         </div>
       </div>
@@ -272,60 +366,12 @@
       </div>
     </div>
 
-    <!-- Module 3: Multi-cloud -->
-    <div class="card multicloud">
-      <div class="card-head">
-        <div class="icon multicloud">☁️</div>
-        <div>
-          <p class="module-no">Module 03 · Deployment</p>
-          <h3>GoldenGate Multi-Cloud</h3>
-        </div>
-      </div>
-      <div class="card-body">
-        <p>See how Oracle Database@Azure and the OCI GoldenGate managed service deploy inside an Azure
-        region using Multicloud Partner Region, Resource Anchor, and Network Anchor — plus Extract/Replicat
-        configuration across the two clouds.</p>
-        <div class="tag-row">
-          <span class="tag">Database@Azure</span>
-          <span class="tag">Resource Anchor</span>
-          <span class="tag">OCI GoldenGate</span>
-        </div>
-      </div>
-      <div class="card-foot">
-        <a class="btn-open" href="https://ravikumv.github.io/gg-technical-simulator/gg-databaseAzure-replication-simulator.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
-      </div>
-    </div>
-
-    <!-- Module 4: Data Lake House -->
-    <div class="card lakehouse">
-      <div class="card-head">
-        <div class="icon lakehouse">🏞️</div>
-        <div>
-          <p class="module-no">Module 04 · Architecture</p>
-          <h3>GoldenGate Data Lake House (Medallion Architecture)</h3>
-        </div>
-      </div>
-      <div class="card-body">
-        <p>Walk through Medallion Architecture delivery — GoldenGate Replicat landing changes in the
-        Bronze layer across Snowflake, Iceberg, ADLS Gen2, Fabric, and AIDP — with independent Silver/Gold
-        transforms and a Gold-layer business report.</p>
-        <div class="tag-row">
-          <span class="tag">Bronze / Silver / Gold</span>
-          <span class="tag">Multi-Target Replicat</span>
-          <span class="tag">BI Report</span>
-        </div>
-      </div>
-      <div class="card-foot">
-        <a class="btn-open" href="https://ravikumv.github.io/gg-technical-simulator/Oracle_GoldenGate_for_Medallion_Architecture_Dashboard.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
-      </div>
-    </div>
-
-    <!-- Module 5: Bi-Directional Replication -->
+    <!-- Module 06: Bi-Directional Replication -->
     <div class="card bidir">
       <div class="card-head">
         <div class="icon bidir">🔁</div>
         <div>
-          <p class="module-no">Module 05 · Topology</p>
+          <p class="module-no">Module 06 · Topology</p>
           <h3>GoldenGate Bi-Directional Replication</h3>
         </div>
       </div>
@@ -344,84 +390,83 @@
       </div>
     </div>
 
-    <!-- Module 6: Macros -->
-    <div class="card macros">
+    <!-- Module 07: Database Migration -->
+    <div class="card migration">
       <div class="card-head">
-        <div class="icon macros">🧩</div>
+        <div class="icon migration">📦</div>
         <div>
-          <p class="module-no">Module 06 · Configuration</p>
-          <h3>GoldenGate Macros</h3>
+          <p class="module-no">Module 07 · Migration</p>
+          <h3>GoldenGate Database Migration</h3>
         </div>
       </div>
       <div class="card-body">
-        <p>Learn how GoldenGate macros simplify and standardize Extract/Replicat parameter files —
-        reusable templates, macro libraries, and parameter substitution for consistent multi-environment
-        configuration.</p>
+        <p>Use GoldenGate for near-zero-downtime database migrations — initial load coordination, ongoing
+        change capture, and a controlled cutover strategy to move workloads with minimal disruption.</p>
         <div class="tag-row">
-          <span class="tag">Macro Library</span>
-          <span class="tag">Parameter Files</span>
-          <span class="tag">Reusability</span>
+          <span class="tag">Zero-Downtime</span>
+          <span class="tag">Cutover Strategy</span>
+          <span class="tag">Initial Load</span>
         </div>
       </div>
       <div class="card-foot">
-        <a class="btn-open" href="https://ravikumv.github.io/gg-technical-simulator/gg-macros-simulator.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
+        <a class="btn-open" href="https://ravikumv.github.io/gg-technical-simulator/gg-database-migration-simulator.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
       </div>
     </div>
 
-    <!-- Module 7: LLM vs Agent -->
-    <div class="card agent">
+    <!-- Module 08: Multi-cloud -->
+    <div class="card multicloud">
       <div class="card-head">
-        <div class="icon agent">🤖</div>
+        <div class="icon multicloud">☁️</div>
         <div>
-          <p class="module-no">Module 07 · AI Operations</p>
-          <h3>GoldenGate LLM vs. AI Agent</h3>
+          <p class="module-no">Module 08 · Deployment</p>
+          <h3>GoldenGate Multi-Cloud</h3>
         </div>
       </div>
       <div class="card-body">
-        <p>Compare a plain LLM assistant against a true AI agent for GoldenGate 26ai operations —
-        reasoning vs. acting, tool-calling against live REST APIs, and why destructive actions must be
-        gated behind human approval.</p>
+        <p>See how Oracle Database@Azure and the OCI GoldenGate managed service deploy inside an Azure
+        region using Multicloud Partner Region, Resource Anchor, and Network Anchor — plus Extract/Replicat
+        configuration across the two clouds.</p>
         <div class="tag-row">
-          <span class="tag">LLM vs Agent</span>
-          <span class="tag">Tool Calling</span>
-          <span class="tag">Human Approval</span>
+          <span class="tag">Database@Azure</span>
+          <span class="tag">Resource Anchor</span>
+          <span class="tag">OCI GoldenGate</span>
         </div>
       </div>
       <div class="card-foot">
-        <a class="btn-open" href="https://ravikumv.github.io/gg-technical-simulator/gg-agent-simulator.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
+        <a class="btn-open" href="https://ravikumv.github.io/gg-technical-simulator/gg-databaseAzure-replication-simulator.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
       </div>
     </div>
 
-    <!-- Module 8: REST API -->
-    <div class="card restapi">
+    <!-- Module 09: Data Lake House -->
+    <div class="card lakehouse">
       <div class="card-head">
-        <div class="icon restapi">🔌</div>
+        <div class="icon lakehouse">🏞️</div>
         <div>
-          <p class="module-no">Module 08 · Integration</p>
-          <h3>GoldenGate REST API</h3>
+          <p class="module-no">Module 09 · Architecture</p>
+          <h3>GoldenGate Data Lake House (Medallion Architecture)</h3>
         </div>
       </div>
       <div class="card-body">
-        <p>Interact with the GoldenGate Microservices REST API — Extract/Replicat lifecycle endpoints,
-        deployment and service manager calls, and a live Monitor tab for tracking process status and
-        lag.</p>
+        <p>Walk through Medallion Architecture delivery — GoldenGate Replicat landing changes in the
+        Bronze layer across Snowflake, Iceberg, ADLS Gen2, Fabric, and AIDP — with independent Silver/Gold
+        transforms and a Gold-layer business report.</p>
         <div class="tag-row">
-          <span class="tag">REST Endpoints</span>
-          <span class="tag">Service Manager</span>
-          <span class="tag">Monitor Tab</span>
+          <span class="tag">Bronze / Silver / Gold</span>
+          <span class="tag">Multi-Target Replicat</span>
+          <span class="tag">BI Report</span>
         </div>
       </div>
       <div class="card-foot">
-        <a class="btn-open" href="https://ravikumv.github.io/gg-technical-simulator/goldengate-restapi-simulator.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
+        <a class="btn-open" href="https://ravikumv.github.io/gg-technical-simulator/Oracle_GoldenGate_for_Medallion_Architecture_Dashboard.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
       </div>
     </div>
 
-    <!-- Module 9: HA & DR -->
+    <!-- Module 10: HA & DR -->
     <div class="card hadr">
       <div class="card-head">
         <div class="icon hadr">🛡️</div>
         <div>
-          <p class="module-no">Module 09 · Resilience</p>
+          <p class="module-no">Module 10 · Resilience</p>
           <h3>GoldenGate HA &amp; DR</h3>
         </div>
       </div>
@@ -437,30 +482,6 @@
       </div>
       <div class="card-foot">
         <a class="btn-open" href="https://ravikumv.github.io/gg-technical-simulator/gg-ha-dr-simulator.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
-      </div>
-    </div>
-
-    <!-- Module 10: AVDF -->
-    <div class="card avdf">
-      <div class="card-head">
-        <div class="icon avdf">🔒</div>
-        <div>
-          <p class="module-no">Module 10 · Security</p>
-          <h3>GoldenGate AVDF</h3>
-        </div>
-      </div>
-      <div class="card-body">
-        <p>Explore integration between GoldenGate and Oracle Audit Vault &amp; Database Firewall —
-        capturing audit trail data, monitoring database activity, and enforcing security policies across
-        replicated environments.</p>
-        <div class="tag-row">
-          <span class="tag">Audit Vault</span>
-          <span class="tag">Database Firewall</span>
-          <span class="tag">Compliance</span>
-        </div>
-      </div>
-      <div class="card-foot">
-        <a class="btn-open" href="https://ravikumv.github.io/gg-technical-simulator/gg-avdf-transaction-log-simulator.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
       </div>
     </div>
 
@@ -512,11 +533,130 @@
       </div>
     </div>
 
+    <!-- Module 13: Macros -->
+    <div class="card macros">
+      <div class="card-head">
+        <div class="icon macros">🧩</div>
+        <div>
+          <p class="module-no">Module 13 · Configuration</p>
+          <h3>GoldenGate Macros</h3>
+        </div>
+      </div>
+      <div class="card-body">
+        <p>Learn how GoldenGate macros simplify and standardize Extract/Replicat parameter files —
+        reusable templates, macro libraries, and parameter substitution for consistent multi-environment
+        configuration.</p>
+        <div class="tag-row">
+          <span class="tag">Macro Library</span>
+          <span class="tag">Parameter Files</span>
+          <span class="tag">Reusability</span>
+        </div>
+      </div>
+      <div class="card-foot">
+        <a class="btn-open" href="https://ravikumv.github.io/gg-technical-simulator/gg-macros-simulator.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- Module 14: REST API -->
+    <div class="card restapi">
+      <div class="card-head">
+        <div class="icon restapi">🔌</div>
+        <div>
+          <p class="module-no">Module 14 · Integration</p>
+          <h3>GoldenGate REST API</h3>
+        </div>
+      </div>
+      <div class="card-body">
+        <p>Interact with the GoldenGate Microservices REST API — Extract/Replicat lifecycle endpoints,
+        deployment and service manager calls, and a live Monitor tab for tracking process status and
+        lag.</p>
+        <div class="tag-row">
+          <span class="tag">REST Endpoints</span>
+          <span class="tag">Service Manager</span>
+          <span class="tag">Monitor Tab</span>
+        </div>
+      </div>
+      <div class="card-foot">
+        <a class="btn-open" href="https://ravikumv.github.io/gg-technical-simulator/goldengate-restapi-simulator.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- Module 15: AVDF -->
+    <div class="card avdf">
+      <div class="card-head">
+        <div class="icon avdf">🔒</div>
+        <div>
+          <p class="module-no">Module 15 · Security</p>
+          <h3>GoldenGate AVDF</h3>
+        </div>
+      </div>
+      <div class="card-body">
+        <p>Explore integration between GoldenGate and Oracle Audit Vault &amp; Database Firewall —
+        capturing audit trail data, monitoring database activity, and enforcing security policies across
+        replicated environments.</p>
+        <div class="tag-row">
+          <span class="tag">Audit Vault</span>
+          <span class="tag">Database Firewall</span>
+          <span class="tag">Compliance</span>
+        </div>
+      </div>
+      <div class="card-foot">
+        <a class="btn-open" href="https://ravikumv.github.io/gg-technical-simulator/gg-avdf-transaction-log-simulator.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- Module 16: Troubleshooting -->
+    <div class="card troubleshooting">
+      <div class="card-head">
+        <div class="icon troubleshooting">🛠️</div>
+        <div>
+          <p class="module-no">Module 16 · Diagnostics</p>
+          <h3>GoldenGate Troubleshooting</h3>
+        </div>
+      </div>
+      <div class="card-body">
+        <p>Diagnose common Extract and Replicat problems — reading process logs, isolating the root
+        cause of abends and lag spikes, and working through a structured resolution path.</p>
+        <div class="tag-row">
+          <span class="tag">Error Diagnosis</span>
+          <span class="tag">Log Analysis</span>
+          <span class="tag">Resolution Steps</span>
+        </div>
+      </div>
+      <div class="card-foot">
+        <a class="btn-open" href="https://ravikumv.github.io/gg-technical-simulator/gg-troubleshooting-simulator.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- Module 17: LLM vs Agent -->
+    <div class="card agent">
+      <div class="card-head">
+        <div class="icon agent">🤖</div>
+        <div>
+          <p class="module-no">Module 17 · AI Operations</p>
+          <h3>GoldenGate LLM vs. AI Agent</h3>
+        </div>
+      </div>
+      <div class="card-body">
+        <p>Compare a plain LLM assistant against a true AI agent for GoldenGate 26ai operations —
+        reasoning vs. acting, tool-calling against live REST APIs, and why destructive actions must be
+        gated behind human approval.</p>
+        <div class="tag-row">
+          <span class="tag">LLM vs Agent</span>
+          <span class="tag">Tool Calling</span>
+          <span class="tag">Human Approval</span>
+        </div>
+      </div>
+      <div class="card-foot">
+        <a class="btn-open" href="https://ravikumv.github.io/gg-technical-simulator/gg-agent-simulator.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
+      </div>
+    </div>
+
   </div>
 </div>
 
 <footer>
-  <span>Oracle GoldenGate Interactive Technical Simulator · v2.0</span>
+  <span>Oracle GoldenGate Experience Center · v3.0</span>
   <span>Author: Ravikumar Vasudevan</span>
 </footer>
 

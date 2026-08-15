@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Ravikumar Vasudevan">
+<meta name="contact" content="ravikumar.v.v@oracle.com">
+<title>Oracle GoldenGate Real-Time Data Replication Simulator | Architecture, Microservices &amp; Live Pipeline</title>
+<style>
+:root{
+  --redwood:#C74634;
+  --redwood-dark:#9C3327;
+  --redwood-light:#F3E9E7;
+  --ink:#1B1B1B;
+  --muted:#5F6368;
+  --panel:#FFFFFF;
+  --line:#E3E1DD;
+  --bg:#FAF9F7;
+  --ok:#2E7D32;
+  --warn:#B45309;
+  --primary-blue:#1B6FC9;
+  --standby-grey:#8A8D91;
+  /* aliases kept for internal component compatibility */
+  --src:var(--primary-blue);
+  --src-light:#E7F0FB;
+  --tgt:var(--ok);
+  --tgt-light:#E6F4EA;
+  --gg:var(--redwood);
+  --term-bg:#111417;
+  --term-green:#8CF0A8;
+  --term-amber:#FFD479;
+  --radius:10px;
+  --shadow:0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;max-width:100%;overflow-x:hidden;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.5;
+}
+a{color:var(--redwood);}
+::selection{background:var(--redwood-light);}
+
+/* ===== Header ===== */
+header{
+  background:var(--ink);color:#fff;padding:18px 28px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+}
+header .title{display:flex;align-items:center;gap:12px;}
+header .badge{
+  background:var(--redwood);color:#fff;font-size:11px;font-weight:700;
+  letter-spacing:.06em;padding:4px 10px;border-radius:4px;text-transform:uppercase;
+}
+h1{margin:0;font-size:18px;font-weight:600;color:#fff;}
+.subtitle{font-size:12px;color:#C9C9C9;margin-top:2px;}
+.version-badge{
+  background:rgba(255,255,255,.12);color:#fff;font-size:11px;font-weight:700;
+  padding:4px 10px;border-radius:20px;cursor:pointer;border:1px solid rgba(255,255,255,.25);
+  white-space:nowrap;
+}
+.version-badge:hover{background:rgba(255,255,255,.2);}
+a.back{color:var(--redwood);text-decoration:none;font-size:12.5px;font-weight:600;}
+#changelogPanel{
+  display:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:16px 20px;max-width:1500px;margin:0 auto 24px;
+}
+#changelogPanel.open{display:block;}
+#changelogPanel h3{margin:0 0 10px;font-size:14px;color:var(--redwood-dark);}
+.cl-entry{border-left:3px solid var(--redwood);padding:4px 0 4px 12px;margin-bottom:10px;}
+.cl-entry .cl-ver{font-weight:700;font-size:13px;}
+.cl-entry .cl-date{color:var(--muted);font-size:11.5px;margin-left:8px;}
+.cl-entry ul{margin:4px 0 0;padding-left:18px;font-size:12.5px;color:var(--muted);}
+.cl-close{float:right;background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;}
+
+/* ===== Tabs ===== */
+nav.tabbar{
+  display:flex;gap:2px;background:#fff;border-bottom:2px solid var(--line);
+  padding:0 20px;overflow-x:auto;position:sticky;top:0;z-index:20;
+}
+nav.tabbar::-webkit-scrollbar{height:4px;}
+.tab-btn{
+  border:none;background:transparent;padding:14px 16px;
+  font-size:13.5px;font-weight:600;color:var(--muted);
+  cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;
+  transition:.15s;
+}
+.tab-btn:hover{color:var(--ink);}
+.tab-btn.active{color:var(--redwood);border-bottom-color:var(--redwood);}
+
+main{max-width:1500px;margin:0 auto;padding:26px 32px 60px;}
+section.tab{display:none;animation:fadein .25s ease;}
+section.tab.active{display:block;}
+@keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+.hero{background:var(--redwood-light);border:1px solid #EAD9D5;border-radius:10px;padding:18px 22px;margin-bottom:18px;}
+.hero h2{margin:0 0 8px;color:var(--redwood-dark);}
+.hero p{margin:0 0 6px;font-size:13.5px;color:var(--ink);line-height:1.7;}
+.analogy{background:#fff;border-left:3px solid var(--warn);border-radius:8px;padding:11px 14px;margin-top:10px;font-size:12.5px;color:var(--muted);}
+.analogy b{color:var(--warn);}
+.kcode{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:var(--redwood-dark);background:var(--redwood-light);padding:1px 5px;border-radius:3px;}
+
+h2{font-size:20px;margin:4px 0 6px;}
+p.lead{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:900px;}
+
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px 20px;box-shadow:var(--shadow);
+}
+.card h3{margin:0 0 8px;font-size:14.5px;color:var(--redwood-dark);display:flex;align-items:center;gap:8px;}
+.card>p{margin:0;font-size:13px;color:var(--muted);line-height:1.55;}
+.grid{display:grid;gap:16px;}
+.grid-2{grid-template-columns:repeat(2,1fr);}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-5{grid-template-columns:repeat(5,1fr);}
+@media(max-width:900px){.grid-2,.grid-3,.grid-5{grid-template-columns:1fr;}}
+
+.pill{
+  display:inline-block;background:var(--redwood-light);color:var(--redwood-dark);
+  font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.03em;
+  text-transform:uppercase;margin-right:6px;margin-bottom:6px;
+}
+.pill.blue{background:#E7F0FB;color:var(--primary-blue);}
+.pill.grey{background:#EEEFEF;color:var(--muted);}
+.pill.green{background:#E6F4EA;color:var(--ok);}
+.icon-circle{
+  width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-size:17px;flex-shrink:0;
+}
+
+/* ===== Overview tab ===== */
+.overview-hero{
+  display:grid;grid-template-columns:1.3fr 1fr;gap:20px;margin-bottom:20px;
+}
+@media(max-width:900px){.overview-hero{grid-template-columns:1fr;}}
+.stat-row{display:flex;gap:14px;margin-top:14px;flex-wrap:wrap;}
+.stat-box{flex:1;min-width:110px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;}
+.stat-box .num{font-size:20px;font-weight:800;color:var(--redwood);}
+.stat-box .lbl{font-size:11.5px;color:var(--muted);margin-top:2px;}
+
+.feature-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);}
+.feature-item:last-child{border-bottom:none;}
+.feature-item .icon-circle{background:var(--redwood-light);color:var(--redwood-dark);}
+.feature-item h4{margin:0 0 3px;font-size:13.5px;}
+.feature-item p{margin:0;font-size:12.5px;color:var(--muted);}
+
+/* ===== Architecture flow ===== */
+.flow-wrap{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:26px 18px 34px;overflow-x:auto;box-shadow:var(--shadow);
+}
+.flow-track{
+  position:relative;display:flex;align-items:center;gap:0;min-width:1080px;
+  padding:10px 0 26px;
+}
+.flow-node{
+  flex:0 0 auto;width:120px;text-align:center;position:relative;z-index:2;
+}
+.flow-node .node-box{
+  border:2px solid var(--line);background:#fff;border-radius:10px;
+  padding:12px 8px;font-size:11.5px;font-weight:700;color:var(--ink);
+  box-shadow:var(--shadow);min-height:62px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:4px;
+}
+.flow-node .node-icon{font-size:18px;}
+.flow-node .node-sub{font-size:9.5px;color:var(--muted);font-weight:500;margin-top:1px;}
+.flow-node.src .node-box{border-color:var(--src);}
+.flow-node.tgt .node-box{border-color:var(--tgt);}
+.flow-node.gg .node-box{border-color:var(--redwood);}
+.flow-connector{
+  flex:1 1 auto;height:2px;background:var(--line);position:relative;min-width:34px;
+}
+.flow-connector.active-lane::after{
+  content:'';position:absolute;top:-4px;left:0;right:0;height:10px;
+}
+.flow-connector .arrowhead{
+  position:absolute;right:-1px;top:50%;transform:translateY(-50%);
+  width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;
+  border-left:7px solid var(--line);
+}
+.packet{
+  position:absolute;top:50%;left:0;width:11px;height:11px;border-radius:3px;
+  background:var(--redwood);transform:translate(-50%,-50%);
+  box-shadow:0 0 0 3px rgba(199,70,52,.15);
+  animation:flowmove linear infinite;
+}
+@keyframes flowmove{
+  0%{left:0%;opacity:0;}
+  4%{opacity:1;}
+  96%{opacity:1;}
+  100%{left:100%;opacity:0;}
+}
+.flow-caption{text-align:center;font-size:12px;color:var(--muted);margin-top:6px;}
+.flow-toggle-row{display:flex;justify-content:center;gap:10px;margin-top:16px;}
+.toggle-btn{
+  border:1px solid var(--line);background:#fff;padding:8px 16px;border-radius:8px;
+  font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;transition:.15s;
+}
+.toggle-btn.active{background:var(--redwood);color:#fff;border-color:var(--redwood);}
+
+/* ===== Microservices ===== */
+.svc-card{position:relative;overflow:hidden;}
+.svc-card .icon-circle{background:var(--redwood-light);color:var(--redwood-dark);margin-bottom:10px;}
+.svc-card h4{margin:0 0 4px;font-size:14.5px;}
+.svc-card p{margin:0 0 10px;font-size:12.5px;color:var(--muted);}
+.svc-meta{display:flex;gap:8px;flex-wrap:wrap;}
+.svc-meta span{font-size:10.5px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:3px 8px;color:var(--muted);}
+.svc-status{position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--tgt);font-weight:700;}
+.svc-status .dot{width:6px;height:6px;border-radius:50%;background:var(--tgt);animation:pulse 1.6s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+/* ===== Concepts accordion ===== */
+.concept-item{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden;background:#fff;}
+.concept-head{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;
+  justify-content:space-between;
+}
+.concept-head .left{display:flex;align-items:center;gap:12px;}
+.concept-head h4{margin:0;font-size:14px;}
+.concept-head .chev{transition:.2s;color:var(--muted);font-size:13px;}
+.concept-item.open .chev{transform:rotate(180deg);}
+.concept-body{max-height:0;overflow:hidden;transition:max-height .25s ease;padding:0 16px;}
+.concept-item.open .concept-body{max-height:400px;padding:0 16px 16px;}
+.concept-body p{margin:0 0 10px;font-size:12.5px;color:var(--muted);}
+.concept-demo{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:11.5px;font-family:'SF Mono',Consolas,monospace;color:var(--ink);white-space:pre-wrap;}
+
+/* ===== Concepts matrix (rows & columns grid) ===== */
+.concept-matrix{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+  background:var(--line);gap:1px;
+}
+@media(max-width:980px){.concept-matrix{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:640px){.concept-matrix{grid-template-columns:1fr;}}
+.cm-cell{
+  background:#fff;padding:16px;display:flex;flex-direction:column;gap:10px;
+}
+.cm-head{display:flex;align-items:center;gap:10px;}
+.cm-head h4{margin:0;font-size:13.5px;}
+.cm-cell p{margin:0;font-size:12px;color:var(--muted);flex:1;}
+.cm-cell .concept-demo{margin-top:auto;}
+
+/* ===== Live simulator ===== */
+.sim-layout{display:grid;grid-template-columns:280px 1fr;gap:18px;}
+@media(max-width:980px){.sim-layout{grid-template-columns:1fr;}}
+.sim-panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);}
+.sim-panel h4{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);}
+.field-group{margin-bottom:12px;}
+.field-group label{display:block;font-size:11.5px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+select,input[type=text]{
+  width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;
+  font-size:12.5px;background:#fff;color:var(--ink);
+}
+.op-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;}
+.op-btn{
+  border:1px solid var(--line);background:#fff;padding:10px 8px;border-radius:8px;
+  font-size:12px;font-weight:700;cursor:pointer;transition:.15s;text-align:center;
+}
+.op-btn.insert{color:var(--tgt);}
+.op-btn.update{color:var(--warn);}
+.op-btn.delete{color:var(--redwood);}
+.op-btn.ddl{color:var(--src);}
+.op-btn:hover{transform:translateY(-1px);box-shadow:var(--shadow);}
+.op-btn:active{transform:translateY(0);}
+
+.metric-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px;}
+@media(max-width:900px){.metric-strip{grid-template-columns:repeat(2,1fr);}}
+.metric-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;box-shadow:var(--shadow);}
+.metric-card .m-label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;}
+.metric-card .m-value{font-size:19px;font-weight:800;color:var(--ink);margin-top:2px;}
+.metric-card .m-unit{font-size:10.5px;color:var(--muted);font-weight:600;}
+.metric-card.warn-metric .m-value{color:var(--warn);}
+.metric-card.good-metric .m-value{color:var(--tgt);}
+
+.mini-flow{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:16px;}
+.mini-track{display:flex;align-items:center;gap:0;position:relative;}
+.mini-node{flex:0 0 auto;width:92px;text-align:center;}
+.mini-node .box{border:2px solid var(--line);border-radius:8px;background:#fff;padding:10px 6px;font-size:10.5px;font-weight:700;min-height:44px;display:flex;align-items:center;justify-content:center;}
+.mini-node.hot .box{border-color:var(--redwood);background:var(--redwood-light);}
+.mini-conn{flex:1;height:2px;background:var(--line);position:relative;}
+.mini-packet{position:absolute;top:50%;width:10px;height:10px;border-radius:3px;background:var(--redwood);transform:translate(-50%,-50%);opacity:0;}
+
+.log{
+  background:#111417;color:#D7F5DE;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:12px;border-radius:8px;padding:12px 14px;height:150px;overflow-y:auto;line-height:1.6;
+}
+.log .line{margin-bottom:2px;white-space:pre-wrap;}
+.log .t{color:#7DA6FF;}
+.log .w{color:#FFD479;}
+.log .e{color:#FF8A80;}
+.log .g{color:#8CF0A8;}
+.log .dim{color:#8a8a8a;}
+
+/* ===== Initial Load vs CDC ===== */
+.mode-switch{display:flex;justify-content:center;margin-bottom:20px;}
+.mode-switch-inner{
+  display:flex;background:#fff;border:1px solid var(--line);border-radius:30px;padding:4px;box-shadow:var(--shadow);
+}
+.mode-switch-inner button{
+  border:none;background:transparent;padding:10px 22px;border-radius:24px;
+  font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:.15s;
+}
+.mode-switch-inner button.active{background:var(--redwood);color:#fff;}
+
+.compare-panel{display:none;}
+.compare-panel.active{display:block;animation:fadein .3s ease;}
+.il-flow, .cdc-flow{display:flex;align-items:center;justify-content:center;gap:0;padding:30px 10px;flex-wrap:wrap;}
+.bulk-arrow{position:relative;width:140px;height:4px;background:var(--line);margin:0 6px;}
+.bulk-arrow .chunk{
+  position:absolute;top:50%;width:16px;height:16px;border-radius:4px;background:var(--src);
+  transform:translate(-50%,-50%);animation:bulkmove 1.4s linear infinite;
+}
+@keyframes bulkmove{0%{left:0%;opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{left:100%;opacity:0;}}
+
+.compare-desc{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px;}
+@media(max-width:900px){.compare-desc{grid-template-columns:1fr;}}
+.compare-desc .card h4{margin:0 0 8px;font-size:14px;}
+.compare-desc .card ul{margin:0;padding-left:18px;font-size:12.5px;color:var(--muted);}
+.compare-desc .card ul li{margin-bottom:5px;}
+
+/* ===== Performance tuning ===== */
+.tune-layout{display:grid;grid-template-columns:320px 1fr;gap:18px;}
+@media(max-width:980px){.tune-layout{grid-template-columns:1fr;}}
+.slider-group{margin-bottom:20px;}
+.slider-group label{display:flex;justify-content:space-between;font-size:12.5px;font-weight:700;margin-bottom:6px;}
+.slider-group label span.val{color:var(--redwood);font-weight:800;}
+input[type=range]{width:100%;accent-color:var(--redwood);}
+.slider-hint{font-size:10.5px;color:var(--muted);margin-top:3px;}
+
+.chart-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:16px;}
+.chart-card h4{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);}
+canvas{width:100%;display:block;}
+
+.bar-meter{margin-bottom:14px;}
+.bar-meter .lbl-row{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:5px;}
+.bar-track{height:10px;background:var(--bg);border:1px solid var(--line);border-radius:6px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:6px;transition:width .3s ease,background .3s ease;}
+
+/* ===== Footer ===== */
+footer{text-align:center;font-size:11.5px;color:var(--muted);padding:20px;border-top:1px solid var(--line);}
+</style>
+<script>
+/* Basic deterrents against casual view-source / copying.
+   NOTE: This does not provide real security — any determined visitor can
+   still access the page source via browser dev tools, curl, or other means. */
+document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+document.addEventListener('keydown', function(e){
+  var k = e.key ? e.key.toUpperCase() : '';
+  if (
+    k === 'F12' ||
+    (e.ctrlKey && k === 'U') ||
+    (e.ctrlKey && e.shiftKey && (k === 'I' || k === 'J' || k === 'C')) ||
+    (e.metaKey && e.altKey && (k === 'I' || k === 'J' || k === 'C'))
+  ) {
+    e.preventDefault();
+  }
+});
+</script>
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <span class="badge">REPLICATION</span>
+    <div>
+      <h1>Oracle GoldenGate Real-Time Data Replication Simulator</h1>
+      <div class="subtitle">Overview &middot; Microservices &middot; Architecture &middot; Concepts &middot; Initial Load vs CDC &middot; Performance Tuning &middot; Live Transaction Simulator &middot; Scenarios</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <button class="version-badge" id="versionBadge">v1.1.0 &middot; Changelog</button>
+    <a class="back" href="https://www.claudeusercontent.com/index.html">&larr; Back to GoldenGate Experience Center</a>
+  </div>
+</header>
+
+<div id="changelogPanel">
+  <button class="cl-close" id="clClose">&#10005; Close</button>
+  <h3>Version History</h3>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.1.0</span><span class="cl-date">2026-08-15</span>
+    <ul>
+      <li>Added a "&larr; Back to GoldenGate Experience Center" link in the header, next to the version badge.</li>
+    </ul>
+  </div>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.0.0</span><span class="cl-date">2026-08-09</span>
+    <ul>
+      <li>Initial release: Data Replication Overview, GoldenGate Microservices Architecture, End-to-End Replication Flow (animated), 12 Core Concepts, Initial Load vs CDC comparison, Performance Tuning Simulator, Live Transaction Simulator, and Scenarios.</li>
+      <li>Built to match the GoldenGate Experience Center visual language (Redwood red / ink / white).</li>
+    </ul>
+  </div>
+</div>
+
+<nav class="tabbar" id="tabbar">
+  <button class="tab-btn active" data-tab="overview">Overview</button>
+  <button class="tab-btn" data-tab="microservices">Microservices</button>
+  <button class="tab-btn" data-tab="architecture">Architecture</button>
+  <button class="tab-btn" data-tab="concepts">Concepts</button>
+  <button class="tab-btn" data-tab="ilcdc">Initial Load vs CDC</button>
+  <button class="tab-btn" data-tab="perftune">Performance Tuning</button>
+  <button class="tab-btn" data-tab="livesim">Live Transaction Simulator</button>
+  <button class="tab-btn" data-tab="scenarios">Scenarios</button>
+</nav>
+
+<main>
+
+
+<!-- ============ OVERVIEW ============ -->
+<section class="tab active" id="tab-overview">
+  <div class="hero">
+    <h2>Data Replication Overview</h2>
+    <p>Oracle GoldenGate captures committed transactions from a source database's <span class="kcode">redo/transaction logs</span> the moment they occur, and applies them to one or more target databases with sub-second latency — without relying on triggers or heavy source-side overhead. Because capture reads log records rather than querying tables, replication has minimal impact on production workloads.</p>
+    <p>This makes GoldenGate the foundation for real-time analytics, zero-downtime migration, high availability &amp; DR, active-active systems, and heterogeneous cross-platform replication — all explored across the tabs in this simulator.</p>
+    <div class="analogy"><b>Think of it as&nbsp;&mdash;</b> a courier reading a package manifest the instant it's stamped, rather than periodically walking the warehouse checking for new boxes. The manifest (redo log) is read once, in order, and the courier (Extract) never touches the shelves (tables) themselves — which is exactly why the overhead on the source system stays so low.</div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1.3fr 1fr;">
+    <div class="card">
+      <h3>Key Characteristics</h3>
+      <span class="pill">Real-Time</span><span class="pill blue">Low-Impact</span><span class="pill green">Heterogeneous</span>
+      <div class="stat-row" style="margin-top:14px;">
+        <div class="stat-box"><div class="num">&lt;1s</div><div class="lbl">Typical Latency</div></div>
+        <div class="stat-box"><div class="num">30+</div><div class="lbl">Supported Databases</div></div>
+        <div class="stat-box"><div class="num">24/7</div><div class="lbl">Continuous Capture</div></div>
+        <div class="stat-box"><div class="num">Zero</div><div class="lbl">Downtime Migration</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Why It Matters</h3>
+      <div class="feature-item">
+        <div class="icon-circle">⚡</div>
+        <div><h4>Real-Time Analytics</h4><p>Feed data lakes and warehouses continuously instead of via nightly batch.</p></div>
+      </div>
+      <div class="feature-item">
+        <div class="icon-circle">🔄</div>
+        <div><h4>Zero-Downtime Migration</h4><p>Move to new platforms or cloud while the source stays online.</p></div>
+      </div>
+      <div class="feature-item">
+        <div class="icon-circle">🛡️</div>
+        <div><h4>High Availability &amp; DR</h4><p>Keep standby systems continuously synchronized for fast failover.</p></div>
+      </div>
+      <div class="feature-item">
+        <div class="icon-circle">🔀</div>
+        <div><h4>Active-Active Systems</h4><p>Bi-directional replication for multi-region, always-on applications.</p></div>
+      </div>
+      <div class="feature-item">
+        <div class="icon-circle">🧬</div>
+        <div><h4>Heterogeneous Replication</h4><p>Capture from one database technology and apply to a different one — Oracle, SQL Server, MySQL, PostgreSQL, DB2, SAP, MongoDB and more — with automatic data type conversion.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3>The Replication Path, In Short</h3>
+    <p style="font-size:13px;color:var(--ink);">
+      <b>Extract</b> reads committed changes from the source's redo/transaction logs and writes them to a
+      <b>Trail</b> file in a database-independent format. The trail is shipped over the network to the target,
+      where <b>Replicat</b> reads it and applies the changes to the target database — continuously, in the order
+      transactions committed. Explore the full animated flow in the <b>Architecture</b> tab, or trigger live
+      transactions yourself in the <b>Live Transaction Simulator</b>.
+    </p>
+  </div>
+</section>
+
+<section class="tab" id="tab-microservices">
+  <h2>GoldenGate Microservices Architecture</h2>
+  <p class="lead">Modern GoldenGate runs as a set of REST-managed microservices rather than classic standalone processes.</p>
+
+  <div class="grid grid-3">
+    <div class="card svc-card">
+      <div class="svc-status"><span class="dot"></span>Running</div>
+      <div class="icon-circle">🧭</div>
+      <h4>Service Manager</h4>
+      <p>The top-level control process. Registers, starts, stops, and monitors every other GoldenGate service; hosts the deployment's REST entry point.</p>
+      <div class="svc-meta"><span>Port 9100</span><span>REST Root</span><span>Always-On</span></div>
+    </div>
+    <div class="card svc-card">
+      <div class="svc-status"><span class="dot"></span>Running</div>
+      <div class="icon-circle">🛠️</div>
+      <h4>Administrator Service</h4>
+      <p>Configures and manages Extract and Replicat processes within a deployment — create, edit, start, stop, monitor via REST API or Admin Client.</p>
+      <div class="svc-meta"><span>Manages Extract</span><span>Manages Replicat</span><span>Per-Deployment</span></div>
+    </div>
+    <div class="card svc-card">
+      <div class="svc-status"><span class="dot"></span>Running</div>
+      <div class="icon-circle">📤</div>
+      <h4>Distribution Service</h4>
+      <p>Ships trail data from the source deployment across the network to one or more remote Receiver Services, with optional compression and encryption.</p>
+      <div class="svc-meta"><span>Outbound</span><span>Path Config</span><span>Compression</span></div>
+    </div>
+    <div class="card svc-card">
+      <div class="svc-status"><span class="dot"></span>Running</div>
+      <div class="icon-circle">📥</div>
+      <h4>Receiver Service</h4>
+      <p>Listens for incoming trail data on the target deployment and writes it to the remote trail for Replicat to consume.</p>
+      <div class="svc-meta"><span>Inbound</span><span>Remote Trail Writer</span><span>Target-Side</span></div>
+    </div>
+    <div class="card svc-card">
+      <div class="svc-status"><span class="dot"></span>Running</div>
+      <div class="icon-circle">📊</div>
+      <h4>Performance Metrics Service</h4>
+      <p>Collects and exposes real-time statistics — lag, throughput, checkpoint position — for every Extract and Replicat, consumable via REST.</p>
+      <div class="svc-meta"><span>Metrics API</span><span>PMSRVR</span><span>Dashboards</span></div>
+    </div>
+    <div class="card svc-card" style="border-style:dashed;">
+      <div class="icon-circle" style="background:var(--bg);color:var(--muted);">🔗</div>
+      <h4 style="color:var(--muted);">All REST-Managed</h4>
+      <p>Every service exposes a REST API, enabling automation, orchestration, and integration with monitoring tools like OCI, Grafana, or custom dashboards.</p>
+    </div>
+  </div>
+</section>
+
+<section class="tab" id="tab-architecture">
+  <h2>End-to-End Replication Flow</h2>
+  <p class="lead">Animated architecture — data packets flow continuously from source to target.</p>
+
+  <div class="flow-toggle-row">
+    <button class="toggle-btn active" id="extractClassicBtn">Extract: Classic</button>
+    <button class="toggle-btn" id="extractIntegratedBtn">Extract: Integrated</button>
+  </div>
+
+  <div class="flow-wrap">
+    <div class="flow-track" id="flowTrack">
+      <div class="flow-node src">
+        <div class="node-box"><span class="node-icon">🗄️</span>Source DB<span class="node-sub" id="srcDbLabel">Oracle</span></div>
+      </div>
+      <div class="flow-connector"><span class="arrowhead"></span></div>
+      <div class="flow-node src">
+        <div class="node-box"><span class="node-icon">📜</span>Redo / Txn Logs<span class="node-sub">Online + Archive</span></div>
+      </div>
+      <div class="flow-connector"><span class="arrowhead"></span>
+        <div class="packet" style="animation-duration:2.4s;animation-delay:0s;"></div>
+        <div class="packet" style="animation-duration:2.4s;animation-delay:.8s;"></div>
+        <div class="packet" style="animation-duration:2.4s;animation-delay:1.6s;"></div>
+      </div>
+      <div class="flow-node gg">
+        <div class="node-box"><span class="node-icon">⚙️</span><span id="extractLabel">Extract (Classic)</span></div>
+      </div>
+      <div class="flow-connector"><span class="arrowhead"></span>
+        <div class="packet" style="animation-duration:2.2s;animation-delay:.3s;"></div>
+        <div class="packet" style="animation-duration:2.2s;animation-delay:1.1s;"></div>
+        <div class="packet" style="animation-duration:2.2s;animation-delay:1.9s;"></div>
+      </div>
+      <div class="flow-node gg">
+        <div class="node-box"><span class="node-icon">📁</span>Local Trail<span class="node-sub">.trl files</span></div>
+      </div>
+      <div class="flow-connector"><span class="arrowhead"></span>
+        <div class="packet" style="animation-duration:2.6s;animation-delay:.5s;"></div>
+        <div class="packet" style="animation-duration:2.6s;animation-delay:1.4s;"></div>
+      </div>
+      <div class="flow-node gg">
+        <div class="node-box"><span class="node-icon">🌐</span>Network<span class="node-sub">TCP/IP, compressed</span></div>
+      </div>
+      <div class="flow-connector"><span class="arrowhead"></span>
+        <div class="packet" style="animation-duration:2.6s;animation-delay:.9s;"></div>
+        <div class="packet" style="animation-duration:2.6s;animation-delay:1.8s;"></div>
+      </div>
+      <div class="flow-node gg">
+        <div class="node-box"><span class="node-icon">📁</span>Remote Trail<span class="node-sub">Receiver Service</span></div>
+      </div>
+      <div class="flow-connector"><span class="arrowhead"></span>
+        <div class="packet" style="animation-duration:2.2s;animation-delay:.2s;"></div>
+        <div class="packet" style="animation-duration:2.2s;animation-delay:1s;"></div>
+        <div class="packet" style="animation-duration:2.2s;animation-delay:1.8s;"></div>
+      </div>
+      <div class="flow-node gg">
+        <div class="node-box"><span class="node-icon">⚙️</span>Replicat<span class="node-sub">Apply</span></div>
+      </div>
+      <div class="flow-connector"><span class="arrowhead"></span>
+        <div class="packet" style="animation-duration:2.4s;animation-delay:.6s;"></div>
+        <div class="packet" style="animation-duration:2.4s;animation-delay:1.5s;"></div>
+      </div>
+      <div class="flow-node tgt">
+        <div class="node-box"><span class="node-icon">🗄️</span>Target DB<span class="node-sub">Oracle / AVDF / Cloud</span></div>
+      </div>
+    </div>
+    <p class="flow-caption">Packets animate continuously to represent the steady stream of committed transactions moving through the pipeline.</p>
+  </div>
+
+  <div class="grid grid-2" style="margin-top:18px;">
+    <div class="card">
+      <h4 style="margin:0 0 8px;font-size:14px;">Source Database Options</h4>
+      <p style="font-size:12.5px;color:var(--muted);margin:0;">Oracle, SQL Server, MySQL, PostgreSQL, DB2, SAP ASE/HANA, MongoDB, and more — GoldenGate supports heterogeneous capture across most major RDBMS and NoSQL platforms.</p>
+    </div>
+    <div class="card">
+      <h4 style="margin:0 0 8px;font-size:14px;">Target Database Options</h4>
+      <p style="font-size:12.5px;color:var(--muted);margin:0;">Any supported target — including cross-platform (Oracle → PostgreSQL), cloud (Autonomous Database, OCI), data lakes/warehouses (Kafka, BigQuery, Databricks), and audit targets like AVDF.</p>
+    </div>
+  </div>
+</section>
+
+<section class="tab" id="tab-concepts">
+  <h2>Core Concepts</h2>
+  <p class="lead">Twelve foundational building blocks every GoldenGate implementation relies on.</p>
+
+  <div class="concept-matrix" id="conceptsList">
+    <div class="cm-cell">
+      <div class="cm-head"><div class="icon-circle" style="background:var(--redwood-light);color:var(--redwood-dark);">📝</div><h4>Supplemental Logging</h4></div>
+      <p>Redo logs normally contain only changed columns. Supplemental logging forces Oracle to also log key/unique-index column values for updated rows, so Extract has enough information to uniquely identify each row on the target — essential for UPDATE and DELETE operations.</p>
+      <div class="concept-demo">ALTER TABLE hr.employees ADD SUPPLEMENTAL LOG DATA (PRIMARY KEY, UNIQUE INDEX) COLUMNS;</div>
+    </div>
+    <div class="cm-cell">
+      <div class="cm-head"><div class="icon-circle" style="background:var(--redwood-light);color:var(--redwood-dark);">🎯</div><h4>Trandata</h4></div>
+      <p>Table-level logging enabled via GGSCI's <b>ADD TRANDATA</b> — the operational counterpart to database-level supplemental logging. It marks individual tables (or a whole schema with SCHEMATRANDATA) so Extract captures the key columns it needs for each one, and is the standard method for non-Oracle sources.</p>
+      <div class="concept-demo">GGSCI> DBLOGIN USERIDALIAS ora_src
+GGSCI> ADD TRANDATA hr.employees
+GGSCI> ADD SCHEMATRANDATA hr ALLCOLS</div>
+    </div>
+    <div class="cm-cell">
+      <div class="cm-head"><div class="icon-circle" style="background:var(--redwood-light);color:var(--redwood-dark);">🗃️</div><h4>Archive Logging</h4></div>
+      <p>The source database must run in ARCHIVELOG mode so that redo logs are preserved after being overwritten online. Integrated Extract in particular depends on archived logs to catch up if it falls behind or is restarted.</p>
+      <div class="concept-demo">SELECT log_mode FROM v$database;  -- must return ARCHIVELOG</div>
+    </div>
+    <div class="cm-cell">
+      <div class="cm-head"><div class="icon-circle" style="background:var(--redwood-light);color:var(--redwood-dark);">🔐</div><h4>Credential Store</h4></div>
+      <p>A secure wallet (CREDENTIALSTORE) that holds database and admin credentials as encrypted aliases, so parameter files reference an alias instead of a plaintext username/password — meeting security and audit requirements.</p>
+      <div class="concept-demo">ADD CREDENTIALSTORE
+ALTER CREDENTIALSTORE ADD USER ggadmin@orclpdb1 ALIAS ora_src</div>
+    </div>
+    <div class="cm-cell">
+      <div class="cm-head"><div class="icon-circle" style="background:var(--redwood-light);color:var(--redwood-dark);">💓</div><h4>Heartbeat Tables</h4></div>
+      <p>Small system tables that GoldenGate updates on a timer and replicates end-to-end through the same pipeline as user data, allowing accurate end-to-end lag measurement even when there's no application activity.</p>
+      <div class="concept-demo">GGSCI> ADD HEARTBEATTABLE</div>
+    </div>
+    <div class="cm-cell">
+      <div class="cm-head"><div class="icon-circle" style="background:var(--redwood-light);color:var(--redwood-dark);">📍</div><h4>Checkpoint Tables / Files</h4></div>
+      <p>Extract and Replicat persist their exact read/write position (trail file + RBA offset) to checkpoints, so after a restart or failover processing resumes exactly where it left off — with no data loss or duplication.</p>
+      <div class="concept-demo">GGSCI> INFO REPLICAT rep1, DETAIL
+Checkpoint: seqno 000000123, rba 45021088</div>
+    </div>
+    <div class="cm-cell">
+      <div class="cm-head"><div class="icon-circle" style="background:var(--redwood-light);color:var(--redwood-dark);">📂</div><h4>Trail Management</h4></div>
+      <p>Trail files store captured changes in a compact, database-independent format. Purging policy, file size, and retention are tuned to balance disk usage against the ability to reprocess history after an outage.</p>
+      <div class="concept-demo">ADD EXTTRAIL /ogg/dirdat/lt, EXTRACT ext1, MEGABYTES 500
+PURGE OLDEXTRACTS /ogg/dirdat/lt*, USECHECKPOINTS, MINKEEPHOURS 24</div>
+    </div>
+    <div class="cm-cell">
+      <div class="cm-head"><div class="icon-circle" style="background:var(--redwood-light);color:var(--redwood-dark);">⚔️</div><h4>Conflict Detection &amp; Resolution</h4></div>
+      <p>In bi-directional/active-active topologies, the same row can change on both sides near-simultaneously. CDR detects these collisions and resolves them automatically using configurable rules such as latest-timestamp-wins or site-priority.</p>
+      <div class="concept-demo">MAP src.orders, TARGET tgt.orders,
+  COLSEXCEPT(row_ts), RESOLUTIONS (
+   (INSERTROWEXISTS, OVERWRITE));</div>
+    </div>
+    <div class="cm-cell">
+      <div class="cm-head"><div class="icon-circle" style="background:var(--redwood-light);color:var(--redwood-dark);">🏛️</div><h4>DDL Replication</h4></div>
+      <p>GoldenGate can capture and replicate schema changes — CREATE, ALTER, DROP — alongside data changes, keeping target structures in sync automatically instead of requiring manual DDL coordination.</p>
+      <div class="concept-demo">GGSCI> DBLOGIN USERIDALIAS ora_src
+GGSCI> ADD SCHEMATRANDATA hr
+-- extract param: DDL INCLUDE MAPPED</div>
+    </div>
+    <div class="cm-cell">
+      <div class="cm-head"><div class="icon-circle" style="background:var(--redwood-light);color:var(--redwood-dark);">⚙️</div><h4>Parameter Files</h4></div>
+      <p>Extract, Replicat, and the Manager are each configured through plain-text parameter files (.prm) that define what to capture, where trails live, mapping rules, filters, and runtime behavior — the operational contract for every process.</p>
+      <div class="concept-demo">EXTRACT ext1
+USERIDALIAS ora_src
+EXTTRAIL /ogg/dirdat/lt
+TABLE hr.employees;</div>
+    </div>
+    <div class="cm-cell">
+      <div class="cm-head"><div class="icon-circle" style="background:var(--redwood-light);color:var(--redwood-dark);">🔒</div><h4>Compression &amp; Encryption</h4></div>
+      <p>Trail data can be compressed to reduce network bandwidth and encrypted in transit (and at rest) to meet security requirements — configured at the Distribution Path level without changing capture or apply logic.</p>
+      <div class="concept-demo">ALTER DISTPATH path1, COMPRESSION ENABLED
+ALTER DISTPATH path1, ENCRYPT ENABLED</div>
+    </div>
+    <div class="cm-cell">
+      <div class="cm-head"><div class="icon-circle" style="background:var(--redwood-light);color:var(--redwood-dark);">🧵</div><h4>Coordinated / Parallel Replicat</h4></div>
+      <p>Instead of a single apply thread, Coordinated Replicat splits work across multiple parallel threads by key range, dramatically increasing apply throughput for high-volume targets while preserving transactional integrity.</p>
+      <div class="concept-demo">ADD REPLICAT rep1, COORDINATED
+  EXTTRAIL /ogg/dirdat/rt, THREADS 8</div>
+    </div>
+  </div>
+</section>
+
+<section class="tab" id="tab-ilcdc">
+  <h2>Initial Load vs. Continuous Data Capture</h2>
+  <p class="lead">Two distinct phases of a GoldenGate implementation — compare how each moves data.</p>
+
+  <div class="mode-switch">
+    <div class="mode-switch-inner">
+      <button class="active" id="ilBtn">Initial Load</button>
+      <button id="cdcBtn">Continuous Data Capture (CDC)</button>
+    </div>
+  </div>
+
+  <div class="compare-panel active" id="ilPanel">
+    <div class="card">
+      <h4 style="margin:0 0 4px;">Initial Load — Bulk Baseline Sync</h4>
+      <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px;">Moves the existing, historical data set from source to target once, in parallel bulk streams, before CDC takes over for ongoing changes.</p>
+      <div class="il-flow">
+        <div class="flow-node src"><div class="node-box"><span class="node-icon">🗄️</span>Source Table<span class="node-sub">Full Data Set</span></div></div>
+        <div class="bulk-arrow"><div class="chunk" style="animation-delay:0s;background:var(--src);"></div></div>
+        <div class="bulk-arrow"><div class="chunk" style="animation-delay:.3s;background:var(--src);"></div></div>
+        <div class="bulk-arrow"><div class="chunk" style="animation-delay:.6s;background:var(--src);"></div></div>
+        <div class="flow-node tgt"><div class="node-box"><span class="node-icon">🗄️</span>Target Table<span class="node-sub">Being Loaded</span></div></div>
+      </div>
+    </div>
+    <div class="compare-desc">
+      <div class="card">
+        <h4>How It Works</h4>
+        <ul>
+          <li>Uses direct bulk-load methods (e.g. Oracle Data Pump, direct path load, or GoldenGate's own file-to-database load) — not the trail pipeline.</li>
+          <li>Runs in parallel across multiple threads/tables to move large volumes quickly.</li>
+          <li>Captures a defined SCN/checkpoint at load start so CDC can pick up exactly from that point with no gap or duplication.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>When It's Used</h4>
+        <ul>
+          <li>First-time synchronization before enabling ongoing replication.</li>
+          <li>Re-instantiating a target after extended downtime.</li>
+          <li>Migrations where the target must match source state at a single point in time.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="compare-panel" id="cdcPanel">
+    <div class="card">
+      <h4 style="margin:0 0 4px;">Continuous Data Capture — Ongoing Replication</h4>
+      <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px;">After the initial load completes, CDC captures every subsequent committed change from the redo stream and applies it continuously, keeping source and target in sync in real time.</p>
+      <div class="cdc-flow">
+        <div class="flow-node src"><div class="node-box"><span class="node-icon">📜</span>Redo Logs</div></div>
+        <div class="flow-connector" style="min-width:70px;"><span class="arrowhead"></span>
+          <div class="packet" style="animation-duration:1.6s;animation-delay:0s;"></div>
+          <div class="packet" style="animation-duration:1.6s;animation-delay:.5s;"></div>
+          <div class="packet" style="animation-duration:1.6s;animation-delay:1s;"></div>
+        </div>
+        <div class="flow-node gg"><div class="node-box"><span class="node-icon">⚙️</span>Extract</div></div>
+        <div class="flow-connector" style="min-width:70px;"><span class="arrowhead"></span>
+          <div class="packet" style="animation-duration:1.6s;animation-delay:.2s;"></div>
+          <div class="packet" style="animation-duration:1.6s;animation-delay:.8s;"></div>
+        </div>
+        <div class="flow-node gg"><div class="node-box"><span class="node-icon">📁</span>Trail</div></div>
+        <div class="flow-connector" style="min-width:70px;"><span class="arrowhead"></span>
+          <div class="packet" style="animation-duration:1.6s;animation-delay:.1s;"></div>
+          <div class="packet" style="animation-duration:1.6s;animation-delay:.7s;"></div>
+        </div>
+        <div class="flow-node gg"><div class="node-box"><span class="node-icon">⚙️</span>Replicat</div></div>
+        <div class="flow-connector" style="min-width:70px;"><span class="arrowhead"></span>
+          <div class="packet" style="animation-duration:1.6s;animation-delay:.4s;"></div>
+        </div>
+        <div class="flow-node tgt"><div class="node-box"><span class="node-icon">🗄️</span>Target</div></div>
+      </div>
+    </div>
+    <div class="compare-desc">
+      <div class="card">
+        <h4>How It Works</h4>
+        <ul>
+          <li>Extract reads committed transactions from redo/archive logs continuously — no polling, no triggers.</li>
+          <li>Changes flow through the trail pipeline and are applied by Replicat, typically within sub-second to a few seconds.</li>
+          <li>Checkpoints ensure exactly-once delivery even across restarts.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>When It's Used</h4>
+        <ul>
+          <li>Ongoing steady-state replication for HA/DR, reporting, or active-active systems.</li>
+          <li>Feeding real-time analytics and data lakes/warehouses.</li>
+          <li>Any scenario requiring near-zero replication lag after the initial baseline is in place.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="tab" id="tab-perftune">
+  <h2>Performance Tuning Simulator</h2>
+  <p class="lead">Adjust key parameters and see the projected impact on throughput and replication lag.</p>
+
+  <div class="tune-layout">
+    <div class="sim-panel">
+      <h4>Tuning Parameters</h4>
+      <div class="slider-group">
+        <label>Parallelism <span class="val" id="valParallel">4</span></label>
+        <input type="range" id="sldParallel" min="1" max="32" value="4">
+        <div class="slider-hint">Number of parallel apply/capture threads</div>
+      </div>
+      <div class="slider-group">
+        <label>Batch Size <span class="val" id="valBatch">1000</span></label>
+        <input type="range" id="sldBatch" min="100" max="10000" step="100" value="1000">
+        <div class="slider-hint">Rows committed per apply batch</div>
+      </div>
+      <div class="slider-group">
+        <label>Network Speed <span class="val" id="valNet">100</span> Mbps</label>
+        <input type="range" id="sldNet" min="1" max="1000" value="100">
+        <div class="slider-hint">Bandwidth between source &amp; target</div>
+      </div>
+      <div class="slider-group">
+        <label>Cache Size <span class="val" id="valCache">512</span> MB</label>
+        <input type="range" id="sldCache" min="64" max="4096" step="64" value="512">
+        <div class="slider-hint">Extract/Replicat in-memory cache</div>
+      </div>
+      <button class="toggle-btn active" id="resetTuneBtn" style="width:100%;margin-top:6px;">Reset to Defaults</button>
+    </div>
+
+    <div>
+      <div class="grid grid-2">
+        <div class="chart-card">
+          <h4>Throughput</h4>
+          <div class="bar-meter">
+            <div class="lbl-row"><span>Current</span><span id="tpsOut">2,400 tx/sec</span></div>
+            <div class="bar-track"><div class="bar-fill" id="tpsBar" style="width:24%;background:var(--tgt);"></div></div>
+          </div>
+          <canvas id="tpsChart" height="120"></canvas>
+        </div>
+        <div class="chart-card">
+          <h4>Replication Lag</h4>
+          <div class="bar-meter">
+            <div class="lbl-row"><span>Current</span><span id="lagOut">850 ms</span></div>
+            <div class="bar-track"><div class="bar-fill" id="lagBar" style="width:35%;background:var(--warn);"></div></div>
+          </div>
+          <canvas id="lagChart" height="120"></canvas>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <h4 style="margin:0 0 8px;font-size:13.5px;">Tuning Notes</h4>
+        <p id="tuneNote" style="font-size:12.5px;color:var(--muted);margin:0;">Baseline configuration — increase parallelism and batch size for higher throughput; watch network speed as the ceiling on very large workloads.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="tab" id="tab-livesim">
+  <h2>Live Transaction Simulator</h2>
+  <p class="lead">Pick a table, fire a transaction, and watch it flow through Extract → Trail → Replicat → Target in real time.</p>
+
+  <div class="metric-strip">
+    <div class="metric-card"><div class="m-label">Txns Processed</div><div class="m-value" id="mTx">0</div><div class="m-unit">total</div></div>
+    <div class="metric-card good-metric"><div class="m-label">Replication Lag</div><div class="m-value" id="mLag">180</div><div class="m-unit">ms</div></div>
+    <div class="metric-card"><div class="m-label">Checkpoint Position</div><div class="m-value" id="mCkpt" style="font-size:14px;">seq 000012 / rba 4108</div><div class="m-unit">local trail</div></div>
+    <div class="metric-card"><div class="m-label">Trail File Size</div><div class="m-value" id="mTrail">12.4</div><div class="m-unit">MB</div></div>
+    <div class="metric-card"><div class="m-label">Throughput</div><div class="m-value" id="mTps">0</div><div class="m-unit">tx/sec</div></div>
+  </div>
+
+  <div class="sim-layout">
+    <div class="sim-panel">
+      <h4>Transaction Setup</h4>
+      <div class="field-group">
+        <label>Source Schema / Table</label>
+        <select id="srcTable">
+          <option>HR.EMPLOYEES</option>
+          <option>SALES.ORDERS</option>
+          <option>FIN.TRANSACTIONS</option>
+          <option>INV.PRODUCTS</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Target Schema / Table</label>
+        <select id="tgtTable">
+          <option>HR.EMPLOYEES</option>
+          <option>SALES.ORDERS</option>
+          <option>FIN.TRANSACTIONS</option>
+          <option>INV.PRODUCTS</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Trigger a Transaction</label>
+        <div class="op-btns">
+          <button class="op-btn insert" data-op="INSERT">INSERT</button>
+          <button class="op-btn update" data-op="UPDATE">UPDATE</button>
+          <button class="op-btn delete" data-op="DELETE">DELETE</button>
+          <button class="op-btn ddl" data-op="DDL">DDL</button>
+        </div>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin-top:10px;">Each click simulates a committed transaction entering the redo stream and flowing through the full replication path.</p>
+    </div>
+
+    <div>
+      <div class="mini-flow">
+        <div class="mini-track" id="miniTrack">
+          <div class="mini-node hot"><div class="box">Source<br>Table</div></div>
+          <div class="mini-conn" id="conn1"><div class="mini-packet" id="pk1"></div></div>
+          <div class="mini-node"><div class="box">Extract</div></div>
+          <div class="mini-conn" id="conn2"><div class="mini-packet" id="pk2"></div></div>
+          <div class="mini-node"><div class="box">Trail</div></div>
+          <div class="mini-conn" id="conn3"><div class="mini-packet" id="pk3"></div></div>
+          <div class="mini-node"><div class="box">Replicat</div></div>
+          <div class="mini-conn" id="conn4"><div class="mini-packet" id="pk4"></div></div>
+          <div class="mini-node hot"><div class="box">Target<br>Table</div></div>
+        </div>
+      </div>
+      <div class="log" id="termLog">
+        <div class="line dim">-- Live transaction log --</div>
+        <div class="line dim">Waiting for transactions...</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CUSTOMER SCENARIOS ============ -->
+<section class="tab" id="tab-scenarios">
+  <h2>Scenarios</h2>
+  <p class="lead">Real-world patterns implemented with GoldenGate, mapped to the architecture you've just explored.</p>
+
+  <div class="grid grid-3">
+    <div class="card svc-card">
+      <div class="icon-circle">☁️</div>
+      <h4>Zero-Downtime Cloud Migration</h4>
+      <p>A retail bank migrates its on-prem Oracle core banking database to OCI Autonomous Database with no maintenance window.</p>
+      <div class="svc-meta"><span>Initial Load + CDC</span><span>Oracle → ADB</span><span>Sub-second cutover</span></div>
+    </div>
+    <div class="card svc-card">
+      <div class="icon-circle">🔀</div>
+      <h4>Active-Active Multi-Region</h4>
+      <p>A global SaaS platform runs bi-directional replication across US and EU regions so either side can accept writes with automatic conflict resolution.</p>
+      <div class="svc-meta"><span>Bi-Directional</span><span>ACDR</span><span>Multi-Region HA</span></div>
+    </div>
+    <div class="card svc-card">
+      <div class="icon-circle">📊</div>
+      <h4>Real-Time Analytics Feed</h4>
+      <p>An e-commerce company streams order and inventory changes continuously into a data lakehouse for near-real-time dashboards instead of nightly ETL.</p>
+      <div class="svc-meta"><span>CDC</span><span>Medallion Architecture</span><span>Kafka / Data Lake</span></div>
+    </div>
+    <div class="card svc-card">
+      <div class="icon-circle">🛡️</div>
+      <h4>Disaster Recovery Standby</h4>
+      <p>A healthcare provider keeps a continuously synchronized DR site current at all times, enabling failover in minutes instead of hours during an outage.</p>
+      <div class="svc-meta"><span>HA &amp; DR</span><span>Heartbeat Monitoring</span><span>RPO ≈ seconds</span></div>
+    </div>
+    <div class="card svc-card">
+      <div class="icon-circle">🧩</div>
+      <h4>Heterogeneous Database Consolidation</h4>
+      <p>A manufacturer consolidates SQL Server and MySQL plant systems into a single Oracle reporting schema for unified enterprise visibility.</p>
+      <div class="svc-meta"><span>Cross-Platform</span><span>Multi-Source</span><span>Schema Mapping</span></div>
+    </div>
+    <div class="card svc-card">
+      <div class="icon-circle">🔍</div>
+      <h4>Compliance &amp; Audit Trail</h4>
+      <p>A financial services firm replicates transactional data into Oracle AVDF continuously to satisfy regulatory audit and monitoring requirements.</p>
+      <div class="svc-meta"><span>AVDF Integration</span><span>Continuous Audit</span><span>Regulatory</span></div>
+    </div>
+    <div class="card svc-card">
+      <div class="icon-circle">🏗️</div>
+      <h4>Legacy Platform Modernization</h4>
+      <p>An insurer offloads reporting workloads from an aging mainframe/DB2 system by replicating live into a modern Oracle platform, avoiding a risky big-bang cutover.</p>
+      <div class="svc-meta"><span>DB2 → Oracle</span><span>Phased Migration</span><span>Report Offload</span></div>
+    </div>
+    <div class="card svc-card">
+      <div class="icon-circle">🛒</div>
+      <h4>Operational Data Store (ODS) Offload</h4>
+      <p>A logistics company replicates order and shipment tables into a dedicated ODS so operational reporting no longer competes with production OLTP traffic.</p>
+      <div class="svc-meta"><span>Read Offload</span><span>CDC</span><span>OLTP Protection</span></div>
+    </div>
+    <div class="card svc-card">
+      <div class="icon-circle">🧪</div>
+      <h4>Zero-Downtime Database Upgrade</h4>
+      <p>A telecom provider uses GoldenGate to replicate into an upgraded database version in parallel, validating it under live traffic before switching over.</p>
+      <div class="svc-meta"><span>Parallel Run</span><span>Version Upgrade</span><span>Validated Cutover</span></div>
+    </div>
+    <div class="card svc-card">
+      <div class="icon-circle">🏢</div>
+      <h4>Multi-Tenant Data Distribution</h4>
+      <p>A SaaS vendor fans out a single source of truth to multiple downstream tenant databases, each receiving only its own filtered subset of changes.</p>
+      <div class="svc-meta"><span>Fan-Out</span><span>Filters</span><span>Tenant Isolation</span></div>
+    </div>
+    <div class="card svc-card">
+      <div class="icon-circle">🧯</div>
+      <h4>Ransomware / Recovery Isolation</h4>
+      <p>A public-sector agency maintains an air-gapped, delayed replica so a clean recovery point exists independent of the production environment during an incident.</p>
+      <div class="svc-meta"><span>Delayed Apply</span><span>Isolated Target</span><span>Recovery Point</span></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>Oracle GoldenGate Real-Time Data Replication Simulator &middot; part of the Goldengate Experience Center &middot; Ravikumar Vasudevan</footer>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ===== Changelog toggle ===== */
+  var versionBadge = document.getElementById('versionBadge');
+  var changelogPanel = document.getElementById('changelogPanel');
+  versionBadge.addEventListener('click', function(){
+    changelogPanel.classList.toggle('open');
+  });
+  document.getElementById('clClose').addEventListener('click', function(){
+    changelogPanel.classList.remove('open');
+  });
+
+  /* ===== Tab navigation ===== */
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  var tabs = document.querySelectorAll('section.tab');
+  tabBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      tabBtns.forEach(function(b){ b.classList.remove('active'); });
+      tabs.forEach(function(t){ t.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  /* ===== Architecture: Extract mode toggle ===== */
+  var classicBtn = document.getElementById('extractClassicBtn');
+  var integratedBtn = document.getElementById('extractIntegratedBtn');
+  var extractLabel = document.getElementById('extractLabel');
+  classicBtn.addEventListener('click', function(){
+    classicBtn.classList.add('active');
+    integratedBtn.classList.remove('active');
+    extractLabel.textContent = 'Extract (Classic)';
+  });
+  integratedBtn.addEventListener('click', function(){
+    integratedBtn.classList.add('active');
+    classicBtn.classList.remove('active');
+    extractLabel.textContent = 'Extract (Integrated)';
+  });
+
+  /* ===== Live Transaction Simulator ===== */
+  var state = {
+    txCount: 0,
+    lag: 180,
+    seq: 12,
+    rba: 4108,
+    trailMB: 12.4,
+    tps: 0,
+    lastTxTimes: []
+  };
+  var mTx = document.getElementById('mTx');
+  var mLag = document.getElementById('mLag');
+  var mCkpt = document.getElementById('mCkpt');
+  var mTrail = document.getElementById('mTrail');
+  var mTps = document.getElementById('mTps');
+  var termLog = document.getElementById('termLog');
+
+  function logLine(text, cls){
+    var div = document.createElement('div');
+    div.className = 'line' + (cls ? ' ' + cls : '');
+    div.textContent = text;
+    termLog.appendChild(div);
+    termLog.scrollTop = termLog.scrollHeight;
+    while (termLog.children.length > 40) termLog.removeChild(termLog.firstChild);
+  }
+
+  function refreshMetrics(){
+    mTx.textContent = state.txCount.toLocaleString();
+    mLag.textContent = state.lag;
+    mCkpt.textContent = 'seq ' + String(state.seq).padStart(6,'0') + ' / rba ' + state.rba;
+    mTrail.textContent = state.trailMB.toFixed(1);
+    mTps.textContent = state.tps;
+  }
+
+  var packets = ['pk1','pk2','pk3','pk4'].map(function(id){ return document.getElementById(id); });
+  function animatePacket(idx, delay){
+    setTimeout(function(){
+      var pk = packets[idx];
+      pk.style.transition = 'none';
+      pk.style.left = '0%';
+      pk.style.opacity = '1';
+      requestAnimationFrame(function(){
+        pk.style.transition = 'left .45s linear, opacity .2s linear';
+        pk.style.left = '100%';
+      });
+      setTimeout(function(){ pk.style.opacity = '0'; }, 420);
+    }, delay);
+  }
+
+  function fireTransaction(op){
+    var srcT = document.getElementById('srcTable').value;
+    var tgtT = document.getElementById('tgtTable').value;
+    state.txCount++;
+    state.rba += Math.floor(Math.random()*400)+80;
+    if (state.rba > 999999) { state.rba = state.rba % 999999; state.seq++; }
+    state.trailMB += (Math.random()*0.05)+0.01;
+    state.lag = Math.floor(140 + Math.random()*220);
+
+    var now = Date.now();
+    state.lastTxTimes.push(now);
+    state.lastTxTimes = state.lastTxTimes.filter(function(t){ return now - t < 5000; });
+    state.tps = Math.round(state.lastTxTimes.length / 5 * 10) / 10;
+
+    refreshMetrics();
+
+    for (var i=0;i<4;i++) animatePacket(i, i*180);
+
+    var opColor = {INSERT:'g', UPDATE:'w', DELETE:'w', DDL:'t'}[op] || '';
+    logLine('[' + new Date().toLocaleTimeString() + '] ' + op + ' captured on ' + srcT + ' -> trail seq ' + state.seq + '/rba ' + state.rba, opColor);
+    setTimeout(function(){
+      logLine('[' + new Date().toLocaleTimeString() + '] Replicat applied ' + op + ' to ' + tgtT + ' (lag ' + state.lag + 'ms)', 'g');
+    }, 850);
+  }
+
+  document.querySelectorAll('.op-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){ fireTransaction(btn.dataset.op); });
+  });
+
+  // ambient baseline metric drift
+  setInterval(function(){
+    if (state.txCount === 0) return;
+    state.lag = Math.max(90, state.lag + Math.floor(Math.random()*40 - 20));
+    var now = Date.now();
+    state.lastTxTimes = state.lastTxTimes.filter(function(t){ return now - t < 5000; });
+    state.tps = Math.round(state.lastTxTimes.length / 5 * 10) / 10;
+    refreshMetrics();
+  }, 1200);
+
+  refreshMetrics();
+
+  /* ===== Initial Load vs CDC toggle ===== */
+  var ilBtn = document.getElementById('ilBtn');
+  var cdcBtn = document.getElementById('cdcBtn');
+  var ilPanel = document.getElementById('ilPanel');
+  var cdcPanel = document.getElementById('cdcPanel');
+  ilBtn.addEventListener('click', function(){
+    ilBtn.classList.add('active'); cdcBtn.classList.remove('active');
+    ilPanel.classList.add('active'); cdcPanel.classList.remove('active');
+  });
+  cdcBtn.addEventListener('click', function(){
+    cdcBtn.classList.add('active'); ilBtn.classList.remove('active');
+    cdcPanel.classList.add('active'); ilPanel.classList.remove('active');
+  });
+
+  /* ===== Performance Tuning Simulator ===== */
+  var sldParallel = document.getElementById('sldParallel');
+  var sldBatch = document.getElementById('sldBatch');
+  var sldNet = document.getElementById('sldNet');
+  var sldCache = document.getElementById('sldCache');
+  var valParallel = document.getElementById('valParallel');
+  var valBatch = document.getElementById('valBatch');
+  var valNet = document.getElementById('valNet');
+  var valCache = document.getElementById('valCache');
+  var tpsOut = document.getElementById('tpsOut');
+  var lagOut = document.getElementById('lagOut');
+  var tpsBar = document.getElementById('tpsBar');
+  var lagBar = document.getElementById('lagBar');
+  var tuneNote = document.getElementById('tuneNote');
+
+  var tpsHistory = [];
+  var lagHistory = [];
+  var tpsCanvas = document.getElementById('tpsChart');
+  var lagCanvas = document.getElementById('lagChart');
+
+  function computeMetrics(){
+    var p = parseInt(sldParallel.value,10);
+    var b = parseInt(sldBatch.value,10);
+    var n = parseInt(sldNet.value,10);
+    var c = parseInt(sldCache.value,10);
+
+    // diminishing-returns model
+    var parallelFactor = Math.log2(p+1) * 900;
+    var batchFactor = Math.sqrt(b) * 28;
+    var cacheFactor = Math.log2(c/64+1) * 220;
+    var netCeiling = n * 45; // network imposes a ceiling
+
+    var rawThroughput = parallelFactor + batchFactor + cacheFactor;
+    var throughput = Math.min(rawThroughput, netCeiling + 400);
+    throughput = Math.round(throughput);
+
+    var lag = 200 + (5000 / (p * Math.sqrt(b/100+1))) + Math.max(0, (200-n))*3 - Math.log2(c/64+1)*15;
+    lag = Math.max(15, Math.round(lag));
+
+    return {throughput: throughput, lag: lag, netBound: rawThroughput > netCeiling + 400};
+  }
+
+  function drawChart(canvas, history, color){
+    var ctx = canvas.getContext('2d');
+    var w = canvas.clientWidth || 280;
+    var h = canvas.height;
+    canvas.width = w * (window.devicePixelRatio||1);
+    canvas.height = h * (window.devicePixelRatio||1);
+    ctx.scale(window.devicePixelRatio||1, window.devicePixelRatio||1);
+    ctx.clearRect(0,0,w,h);
+    if (history.length < 2) return;
+    var max = Math.max.apply(null, history) * 1.15 || 1;
+    var min = Math.min.apply(null, history) * 0.85;
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    history.forEach(function(val, i){
+      var x = (i/(history.length-1)) * w;
+      var y = h - ((val - min)/(max-min || 1)) * (h-10) - 5;
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+    ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
+    ctx.fillStyle = color + '22';
+    ctx.fill();
+  }
+
+  function updateTuning(){
+    valParallel.textContent = sldParallel.value;
+    valBatch.textContent = parseInt(sldBatch.value,10).toLocaleString();
+    valNet.textContent = sldNet.value;
+    valCache.textContent = sldCache.value;
+
+    var m = computeMetrics();
+    tpsOut.textContent = m.throughput.toLocaleString() + ' tx/sec';
+    lagOut.textContent = m.lag.toLocaleString() + ' ms';
+
+    var tpsPct = Math.min(100, (m.throughput/12000)*100);
+    var lagPct = Math.min(100, (m.lag/6000)*100);
+    tpsBar.style.width = tpsPct + '%';
+    lagBar.style.width = lagPct + '%';
+    tpsBar.style.background = tpsPct > 60 ? 'var(--tgt)' : (tpsPct > 30 ? 'var(--warn)' : 'var(--redwood)');
+    lagBar.style.background = lagPct < 30 ? 'var(--tgt)' : (lagPct < 60 ? 'var(--warn)' : 'var(--redwood)');
+
+    tpsHistory.push(m.throughput); if (tpsHistory.length>30) tpsHistory.shift();
+    lagHistory.push(m.lag); if (lagHistory.length>30) lagHistory.shift();
+    drawChart(tpsCanvas, tpsHistory, '#2F855A');
+    drawChart(lagCanvas, lagHistory, '#B7791F');
+
+    if (m.netBound) {
+      tuneNote.textContent = 'Network speed is currently the limiting factor — throughput is capped by available bandwidth regardless of parallelism or batch size.';
+    } else if (parseInt(sldParallel.value,10) < 4) {
+      tuneNote.textContent = 'Low parallelism is limiting throughput. Increasing parallel apply threads typically yields the largest gains before other factors matter.';
+    } else if (m.lag > 1500) {
+      tuneNote.textContent = 'Replication lag is elevated. Larger batch sizes and cache reduce per-transaction overhead and help lag converge under sustained load.';
+    } else {
+      tuneNote.textContent = 'Configuration is well balanced — throughput and lag are within healthy operating ranges for this workload profile.';
+    }
+  }
+
+  [sldParallel, sldBatch, sldNet, sldCache].forEach(function(s){
+    s.addEventListener('input', updateTuning);
+  });
+
+  document.getElementById('resetTuneBtn').addEventListener('click', function(){
+    sldParallel.value = 4; sldBatch.value = 1000; sldNet.value = 100; sldCache.value = 512;
+    tpsHistory = []; lagHistory = [];
+    updateTuning();
+  });
+
+  window.addEventListener('resize', function(){
+    drawChart(tpsCanvas, tpsHistory, '#2F855A');
+    drawChart(lagCanvas, lagHistory, '#B7791F');
+  });
+
+  updateTuning();
+
+})();
+</script>
+</body>
+</html>

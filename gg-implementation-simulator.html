@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Ravikumar Vasudevan">
+<title>Oracle GoldenGate Implementation Simulator | Pre-Assessment to Go-Live</title>
+<style>
+  :root{
+    --redwood:#C74634;
+    --redwood-dark:#9C3327;
+    --ink:#1B1B1B;
+    --muted:#5F6368;
+    --line:#E3E1DD;
+    --bg:#FAF9F7;
+    --panel:#FFFFFF;
+    --ok:#2E7D32;
+    --warn:#B45309;
+    --primary-blue:#1B6FC9;
+    --standby-grey:#8A8D91;
+  }
+  *{box-sizing:border-box;}
+  html,body{max-width:100%;overflow-x:hidden;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);}
+  header{background:var(--ink);color:#fff;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  header .title{display:flex;align-items:center;gap:12px;}
+  header .badge{background:var(--redwood);color:#fff;font-size:11px;font-weight:700;letter-spacing:.06em;padding:4px 10px;border-radius:4px;text-transform:uppercase;}
+  header h1{font-size:18px;margin:0;font-weight:600;}
+  header .sub{font-size:12px;color:#C9C9C9;margin-top:2px;}
+  nav{display:flex;gap:2px;background:#fff;border-bottom:2px solid var(--line);padding:0 20px;overflow-x:auto;position:sticky;top:0;z-index:20;}
+  nav button{border:none;background:transparent;padding:14px 16px;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
+  nav button:hover{color:var(--ink);}
+  nav button.active{color:var(--redwood);border-bottom-color:var(--redwood);}
+  main{max-width:1500px;margin:0 auto;padding:26px 32px 60px;}
+  section.tab{display:none;}
+  section.tab.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+  h2{font-size:20px;margin:4px 0 6px;}
+  p.lead{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:900px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;}
+  .card h3{margin:0 0 8px;font-size:14.5px;color:var(--redwood-dark);display:flex;align-items:center;gap:8px;}
+  .card p{margin:0;font-size:13px;color:var(--muted);line-height:1.55;}
+  .pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;background:#F3E9E7;color:var(--redwood-dark);letter-spacing:.03em;margin-right:6px;margin-bottom:6px;}
+  .pill.blue{background:#E7F0FB;color:var(--primary-blue);}
+  .pill.grey{background:#EEEFEF;color:var(--muted);}
+  .pill.green{background:#E6F4EA;color:var(--ok);}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+  button.action{background:var(--redwood);color:#fff;border:none;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;}
+  button.action:hover{background:var(--redwood-dark);}
+  button.action.secondary{background:#fff;color:var(--redwood);border:1.5px solid var(--redwood);}
+  button.action.secondary:hover{background:#FBEFED;}
+  button.action:disabled{opacity:.45;cursor:not-allowed;}
+  select.action-select{padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-size:13px;background:#fff;color:var(--ink);}
+  input[type=text].action-input,input[type=number].action-input{padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-size:13px;background:#fff;color:var(--ink);}
+  .canvas-wrap{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;}
+  .log{background:#111417;color:#D7F5DE;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;border-radius:8px;padding:12px 14px;height:190px;overflow-y:auto;margin-top:12px;line-height:1.6;}
+  .log .t{color:#7DA6FF;}
+  .log .w{color:#FFD479;}
+  .log .e{color:#FF8A80;}
+  .log .g{color:#8CF0A8;}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px;}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);}
+  th{color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;background:#FAFAF9;}
+  td.mono, th.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;}
+  .note{background:#FFF7EA;border:1px solid #F1DDAF;color:#7A5A12;font-size:12.5px;padding:10px 14px;border-radius:8px;margin-top:14px;}
+  .region-box{border:2px solid var(--line);border-radius:12px;padding:14px;position:relative;}
+  .region-label{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;position:absolute;top:-11px;left:14px;background:var(--bg);padding:0 6px;}
+  .role-tag{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;display:inline-block;margin-top:6px;}
+  footer{text-align:center;font-size:11.5px;color:var(--muted);padding:20px;border-top:1px solid var(--line);}
+  a.back{color:var(--redwood);text-decoration:none;font-size:12.5px;font-weight:600;}
+  .flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+  .status-chip{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:20px;}
+  .status-chip.active{background:#E6F4EA;color:var(--ok);}
+  .status-chip.updating{background:#FFF3D6;color:var(--warn);}
+  .version-badge{background:rgba(255,255,255,.12);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer;border:1px solid rgba(255,255,255,.25);white-space:nowrap;}
+  .version-badge:hover{background:rgba(255,255,255,.2);}
+  #changelogPanel{display:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 20px;max-width:1500px;margin:0 auto 24px;}
+  #changelogPanel.open{display:block;}
+  #changelogPanel h3{margin:0 0 10px;font-size:14px;color:var(--redwood-dark);}
+  .cl-entry{border-left:3px solid var(--redwood);padding:4px 0 4px 12px;margin-bottom:10px;}
+  .cl-entry .cl-ver{font-weight:700;font-size:13px;}
+  .cl-entry .cl-date{color:var(--muted);font-size:11.5px;margin-left:8px;}
+  .cl-entry ul{margin:4px 0 0;padding-left:18px;font-size:12.5px;color:var(--muted);}
+  .cl-close{float:right;background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;}
+
+  .stagegrid{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:6px 2px 14px;}
+  .stagebox{min-width:170px;background:#F3E9E7;border:1px solid #EAD9D5;border-radius:10px;padding:12px;font-size:12px;display:flex;flex-direction:column;gap:4px;cursor:pointer;transition:box-shadow .15s,border-color .15s;}
+  .stagebox:hover{border-color:var(--redwood);box-shadow:0 2px 10px rgba(199,70,52,.15);}
+  .stagebox.sel{border-color:var(--redwood);background:#F6DEDA;}
+  .stagebox .t{font-weight:700;color:var(--redwood-dark);font-size:12.5px;}
+  .stagebox .s{color:var(--muted);font-size:11px;line-height:1.35;}
+  .stagearrow{display:flex;align-items:center;justify-content:center;min-width:32px;color:var(--redwood);font-size:20px;font-weight:700;}
+
+  pre.code{background:#111417;color:#D7F5DE;padding:14px 16px;border-radius:8px;font-size:12px;overflow-x:auto;line-height:1.55;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-word;}
+  .kcode{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:var(--redwood-dark);background:#F3E9E7;padding:1px 5px;border-radius:3px;}
+  .hero{background:#F6DEDA;border:1px solid #EAD9D5;border-radius:10px;padding:18px 22px;margin-bottom:18px;}
+  .hero h2{margin:0 0 8px;color:var(--redwood-dark);}
+  .hero p{margin:0 0 6px;font-size:13.5px;color:var(--ink);line-height:1.7;}
+  .analogy{background:#fff;border-left:3px solid var(--warn);border-radius:8px;padding:11px 14px;margin-top:10px;font-size:12.5px;color:var(--muted);}
+  .analogy b{color:var(--warn);}
+  .decision-card{border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:var(--panel);}
+  .decision-card h4{margin:0 0 6px;font-size:13.5px;color:var(--redwood-dark);}
+  .badge-op{display:inline-block;padding:1px 6px;border-radius:10px;font-size:9.5px;font-weight:700;}
+  .badge-op.INSERT{background:#E6F4EA;color:var(--ok);}
+  .badge-op.UPDATE{background:#FFF3D6;color:var(--warn);}
+  .badge-op.DELETE{background:#F3E9E7;color:var(--redwood-dark);}
+
+  /* ---- sub tabs (used inside Configuration Simulator) ---- */
+  .subnav{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 18px;border-bottom:1px solid var(--line);padding-bottom:0;}
+  .subnav button{border:none;background:#F3F1EE;color:var(--muted);padding:8px 14px;border-radius:8px 8px 0 0;font-size:12.5px;font-weight:600;cursor:pointer;}
+  .subnav button.active{background:var(--redwood);color:#fff;}
+  .subtab{display:none;}
+  .subtab.active{display:block;animation:fade .2s ease;}
+
+  /* ---- wizard steps (pre-assessment) ---- */
+  .wizwrap{display:grid;grid-template-columns:230px 1fr;gap:20px;}
+  @media(max-width:900px){.wizwrap{grid-template-columns:1fr;}}
+  .wizsteps{display:flex;flex-direction:column;gap:6px;}
+  .wizstep{padding:10px 12px;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--muted);background:var(--panel);border:1px solid var(--line);}
+  .wizstep.done{color:var(--ok);border-color:#BFE3C6;background:#F0FBF6;}
+  .wizstep.current{color:var(--redwood-dark);border-color:var(--redwood);background:#F6DEDA;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px;font-weight:600;}
+  .field select,.field input[type=text],.field input[type=number]{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:6px;font-size:13px;background:#fff;}
+  .radiorow{display:flex;gap:10px;flex-wrap:wrap;}
+  .radiochip{border:1.5px solid var(--line);border-radius:20px;padding:6px 14px;font-size:12.5px;cursor:pointer;background:#fff;color:var(--muted);}
+  .radiochip.sel{border-color:var(--redwood);color:var(--redwood-dark);background:#F6DEDA;font-weight:600;}
+
+  /* ---- prerequisite checks ---- */
+  .checkrow{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;background:var(--panel);font-size:12.5px;}
+  .checkrow .name{font-weight:600;}
+  .checkstatus{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;min-width:78px;text-align:center;}
+  .checkstatus.pending{background:#EEEFEF;color:var(--muted);}
+  .checkstatus.pass{background:#E6F4EA;color:var(--ok);}
+  .checkstatus.warn{background:#FFF3D6;color:var(--warn);}
+  .checkstatus.fail{background:#FDEDEB;color:var(--redwood-dark);}
+  .checkstatus.running{background:#E7F0FB;color:var(--primary-blue);}
+
+  /* ---- implementation checklist ---- */
+  .cklist{display:flex;flex-direction:column;gap:4px;}
+  .ckitem{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;font-size:13px;cursor:pointer;}
+  .ckitem:hover{background:#FBFBFA;}
+  .ckitem input{width:16px;height:16px;accent-color:var(--redwood);}
+  .ckitem.checked span{color:var(--muted);text-decoration:line-through;}
+  .progressbar{height:10px;border-radius:6px;background:#EEEFEF;overflow:hidden;margin:10px 0 4px;}
+  .progressbar > div{height:100%;background:var(--redwood);transition:width .3s ease;}
+
+  /* ---- installation workflow ---- */
+  .instep{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;background:var(--panel);}
+  .instep .idx{width:26px;height:26px;border-radius:50%;background:#EEEFEF;color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+  .instep.done .idx{background:var(--ok);color:#fff;}
+  .instep.running .idx{background:var(--primary-blue);color:#fff;}
+  .instep .nm{font-size:13px;font-weight:600;flex:1;}
+  .instep .st{font-size:11px;color:var(--muted);}
+
+  /* ---- pipeline nodes (topology / hub / dist-recv / replicat animation) ---- */
+  .pipegrid{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:6px 2px 14px;}
+  .pipenode{min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:11.5px;position:relative;}
+  .pipenode .t{font-weight:700;color:var(--redwood-dark);font-size:12px;margin-bottom:4px;}
+  .pipenode .s{color:var(--muted);font-size:10.5px;line-height:1.4;}
+  .pipearrow{display:flex;align-items:center;justify-content:center;min-width:30px;color:var(--redwood);font-size:18px;font-weight:700;}
+  .pulse-dot{position:absolute;top:8px;right:8px;width:8px;height:8px;border-radius:50%;background:#C9CCE0;}
+  .pulse-dot.on{background:var(--ok);box-shadow:0 0 0 0 rgba(46,125,50,.6);animation:pulse 1s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(46,125,50,.55);}70%{box-shadow:0 0 0 8px rgba(46,125,50,0);}100%{box-shadow:0 0 0 0 rgba(46,125,50,0);}}
+
+  /* ---- topology canvas ---- */
+  .topocanvas{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;min-height:340px;}
+  .topopill{display:inline-block;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--line);color:var(--muted);background:#fff;margin:0 6px 8px 0;}
+  .topopill.sel{border-color:var(--redwood);color:var(--redwood-dark);background:#F6DEDA;}
+
+  /* ---- scenario cards ---- */
+  .scenariopick{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:18px;}
+  .scenariocard{border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;background:var(--panel);}
+  .scenariocard:hover{border-color:var(--redwood);}
+  .scenariocard.sel{border-color:var(--redwood);background:#F6DEDA;}
+  .scenariocard .n{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;}
+  .scenariocard .f{font-size:13px;font-weight:700;margin-top:3px;}
+
+  /* ---- mini source/target row tables (extract/replicat live) ---- */
+  .rowtable{width:100%;border-collapse:collapse;font-size:11.5px;}
+  .rowtable th,.rowtable td{border:1px solid var(--line);padding:5px 7px;}
+  .rowtable th{background:#FAFAF9;color:var(--muted);font-size:10.5px;text-transform:uppercase;}
+  .rowtable tr.new{animation:rowin .5s ease;background:#F0FBF6;}
+  .rowtable tr.upd{animation:rowin .5s ease;background:#FFFBF0;}
+  .rowtable tr.del{opacity:.35;text-decoration:line-through;}
+  @keyframes rowin{from{opacity:0;transform:translateX(-6px);}to{opacity:1;transform:none;}}
+</style>
+<script>
+/* Basic deterrents against casual view-source / copying.
+   NOTE: This does not provide real security — any determined visitor can
+   still access the page source via browser dev tools, curl, or other means. */
+document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+document.addEventListener('keydown', function(e){
+  var k = e.key ? e.key.toUpperCase() : '';
+  if (
+    k === 'F12' ||
+    (e.ctrlKey && k === 'U') ||
+    (e.ctrlKey && e.shiftKey && (k === 'I' || k === 'J' || k === 'C')) ||
+    (e.metaKey && e.altKey && (k === 'I' || k === 'J' || k === 'C'))
+  ) {
+    e.preventDefault();
+  }
+});
+</script>
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <span class="badge">IMPLEMENTATION</span>
+    <div>
+      <h1>Oracle GoldenGate Implementation Simulator</h1>
+      <div class="sub">Pre-Assessment &middot; Prerequisites &middot; Checklist &middot; Platform Selector &middot; Install &middot; HUB &middot; Configuration &middot; Topology &middot; Multi-Source/Target &middot; Distributed Apps &middot; Scenarios</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <button class="version-badge" id="verBadge">v1.0.0 &middot; Changelog</button>
+    <a class="back" href="https://www.claudeusercontent.com/index.html">&larr; Back to GoldenGate Experience Center</a>
+  </div>
+</header>
+
+<div id="changelogPanel">
+  <button class="cl-close" id="clClose">&#10005; Close</button>
+  <h3>Version History</h3>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.0.0</span><span class="cl-date">2026-08-08</span>
+    <ul>
+      <li>Initial release: Pre-Assessment wizard, Prerequisite validation, Implementation Checklist, Database Platform Selector, Installation Workflow, GoldenGate HUB, Configuration Simulator (Connection / Extract / Trail / Distribution &amp; Receiver / Replicat), Topology Explorer, Multi-Source/Multi-Target, Distributed Applications, and 10 real-world Scenarios.</li>
+      <li>Built to match the GoldenGate Learning Simulator Suite visual language (Redwood red / ink / white).</li>
+    </ul>
+  </div>
+</div>
+
+<nav id="tabNav">
+  <button data-tab="assess" class="active">Pre-Assessment</button>
+  <button data-tab="prereq">Prerequisites</button>
+  <button data-tab="checklist">Implementation Checklist</button>
+  <button data-tab="platform">Database Platform Selector</button>
+  <button data-tab="install">Installation Workflow</button>
+  <button data-tab="hub">GoldenGate HUB</button>
+  <button data-tab="config">Configuration Simulator</button>
+  <button data-tab="topology">Topology Explorer</button>
+  <button data-tab="msmt">Multi-Source / Multi-Target</button>
+  <button data-tab="distapp">Distributed Applications</button>
+  <button data-tab="scenario">Scenarios</button>
+</nav>
+
+<main>
+
+<!-- TABS WILL BE INSERTED HERE -->
+
+<section class="tab active" id="tab-assess">
+  <div class="hero">
+    <h2>Pre-Assessment Wizard</h2>
+    <p>This Pre-Assessment Wizard steps through database platforms, sizing, network, and business requirements, then builds a recommended architecture with the reasoning behind each choice.</p>
+  </div>
+
+  <div class="wizwrap">
+    <div class="wizsteps" id="wizSteps"></div>
+    <div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;">
+        <div class="field"><label>Source Database</label>
+          <select id="paSourceDb" class="assess-f">
+            <option>Oracle Database</option><option>Microsoft SQL Server</option><option>MySQL</option><option>PostgreSQL</option><option>IBM Db2</option><option>Other supported RDBMS</option>
+          </select></div>
+        <div class="field"><label>Target Database</label>
+          <select id="paTargetDb" class="assess-f">
+            <option>Oracle Database</option><option>Microsoft SQL Server</option><option>MySQL</option><option>PostgreSQL</option><option>IBM Db2</option><option>Other supported RDBMS</option>
+          </select></div>
+        <div class="field"><label>Database Version</label>
+          <input type="text" class="assess-f" id="paDbVersion" placeholder="e.g. 19c, 2019, 8.0"></div>
+        <div class="field"><label>Operating System</label>
+          <select id="paOs" class="assess-f"><option>Linux (RHEL/OEL)</option><option>Windows Server</option><option>AIX</option><option>Solaris</option></select></div>
+        <div class="field"><label>Database Size</label>
+          <select id="paDbSize" class="assess-f"><option>Small (&lt; 500 GB)</option><option>Medium (500 GB - 5 TB)</option><option>Large (5 TB - 20 TB)</option><option>Very Large (&gt; 20 TB)</option></select></div>
+        <div class="field"><label>Transaction Volume</label>
+          <select id="paTxVol" class="assess-f"><option>Low</option><option>Moderate</option><option>High</option><option>Very High</option></select></div>
+        <div class="field"><label>Network</label>
+          <select id="paNetwork" class="assess-f"><option>Same Data Center</option><option>Cross Data Center (WAN)</option><option>On-Prem to Cloud</option><option>Cloud to Cloud (Multi-Cloud)</option></select></div>
+        <div class="field"><label>Bandwidth</label>
+          <select id="paBandwidth" class="assess-f"><option>&lt; 100 Mbps</option><option>100 Mbps - 1 Gbps</option><option>&gt; 1 Gbps</option></select></div>
+        <div class="field"><label>Latency</label>
+          <select id="paLatency" class="assess-f"><option>&lt; 5 ms</option><option>5 - 50 ms</option><option>&gt; 50 ms</option></select></div>
+        <div class="field"><label>Number of Sources</label>
+          <input type="number" class="assess-f" id="paNumSrc" value="1" min="1"></div>
+        <div class="field"><label>Number of Targets</label>
+          <input type="number" class="assess-f" id="paNumTgt" value="1" min="1"></div>
+        <div class="field"><label>Initial Load Required</label>
+          <div class="radiorow rr" id="paInitLoad"><span class="radiochip sel" data-v="Yes">Yes</span><span class="radiochip" data-v="No">No</span></div></div>
+        <div class="field"><label>CDC Required</label>
+          <div class="radiorow rr" id="paCdc"><span class="radiochip sel" data-v="Yes">Yes</span><span class="radiochip" data-v="No">No</span></div></div>
+        <div class="field"><label>Downtime Requirement</label>
+          <select id="paDowntime" class="assess-f"><option>Zero / Near-Zero Downtime</option><option>Short Maintenance Window</option><option>Extended Window Acceptable</option></select></div>
+        <div class="field"><label>Security Requirements</label>
+          <select id="paSecurity" class="assess-f"><option>Standard (TLS in transit)</option><option>Elevated (Encryption + Credential Store + Auditing)</option><option>Regulated (TDE, AVDF, Data Masking)</option></select></div>
+        <div class="field"><label>HA / DR Requirement</label>
+          <select id="paHaDr" class="assess-f"><option>None</option><option>Active-Passive DR</option><option>Active-Active HA</option><option>Multi-Region DR</option></select></div>
+      </div>
+      <div class="toolbar"><button class="action" id="paRecommend">Generate Recommended Architecture</button><button class="action secondary" id="paReset">Reset</button></div>
+      <div id="paResult"></div>
+    </div>
+  </div>
+</section>
+
+
+<section class="tab" id="tab-prereq">
+  <h2>Prerequisite Validation</h2>
+  <p class="lead">A dynamic checklist of the checks GoldenGate installation and configuration depend on. Run the automated check to see each item validate in sequence, then intentionally introduce a failure and fix it &mdash; the same troubleshooting flow used in real implementations.</p>
+
+  <div class="toolbar">
+    <button class="action" id="pqRun">RUN PREREQUISITE CHECK</button>
+    <button class="action secondary" id="pqFail">Introduce a Failure</button>
+    <button class="action secondary" id="pqFix">Fix Failure &amp; Re-run</button>
+    <span class="status-chip active" id="pqSummary" style="display:none;"></span>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 380px;align-items:start;">
+    <div>
+<div class="checkrow" id="pq-os"><span class="name">Operating System</span><span class="checkstatus pending" id="pq-os-s">Pending</span></div>
+<div class="checkrow" id="pq-cpu"><span class="name">CPU</span><span class="checkstatus pending" id="pq-cpu-s">Pending</span></div>
+<div class="checkrow" id="pq-mem"><span class="name">Memory</span><span class="checkstatus pending" id="pq-mem-s">Pending</span></div>
+<div class="checkrow" id="pq-disk"><span class="name">Disk Space</span><span class="checkstatus pending" id="pq-disk-s">Pending</span></div>
+<div class="checkrow" id="pq-fs"><span class="name">File System</span><span class="checkstatus pending" id="pq-fs-s">Pending</span></div>
+<div class="checkrow" id="pq-ggsw"><span class="name">GoldenGate Software</span><span class="checkstatus pending" id="pq-ggsw-s">Pending</span></div>
+<div class="checkrow" id="pq-java"><span class="name">Java / Runtime Requirements</span><span class="checkstatus pending" id="pq-java-s">Pending</span></div>
+<div class="checkrow" id="pq-dbconn"><span class="name">Database Connectivity</span><span class="checkstatus pending" id="pq-dbconn-s">Pending</span></div>
+<div class="checkrow" id="pq-host"><span class="name">Hostname Resolution</span><span class="checkstatus pending" id="pq-host-s">Pending</span></div>
+<div class="checkrow" id="pq-dns"><span class="name">DNS</span><span class="checkstatus pending" id="pq-dns-s">Pending</span></div>
+<div class="checkrow" id="pq-net"><span class="name">Network Connectivity</span><span class="checkstatus pending" id="pq-net-s">Pending</span></div>
+<div class="checkrow" id="pq-fw"><span class="name">Firewall</span><span class="checkstatus pending" id="pq-fw-s">Pending</span></div>
+<div class="checkrow" id="pq-xdisp"><span class="name">XDISPLAY for GUI Installation</span><span class="checkstatus pending" id="pq-xdisp-s">Pending</span></div>
+<div class="checkrow" id="pq-ports"><span class="name">Required Ports</span><span class="checkstatus pending" id="pq-ports-s">Pending</span></div>
+<div class="checkrow" id="pq-dbuser"><span class="name">Database Users</span><span class="checkstatus pending" id="pq-dbuser-s">Pending</span></div>
+<div class="checkrow" id="pq-dbpriv"><span class="name">Database Privileges</span><span class="checkstatus pending" id="pq-dbpriv-s">Pending</span></div>
+<div class="checkrow" id="pq-dblog"><span class="name">Database Logging</span><span class="checkstatus pending" id="pq-dblog-s">Pending</span></div>
+<div class="checkrow" id="pq-archlog"><span class="name">Archive / Transaction Logs</span><span class="checkstatus pending" id="pq-archlog-s">Pending</span></div>
+<div class="checkrow" id="pq-suplog"><span class="name">Supplemental Logging</span><span class="checkstatus pending" id="pq-suplog-s">Pending</span></div>
+<div class="checkrow" id="pq-trandata"><span class="name">Trandata</span><span class="checkstatus pending" id="pq-trandata-s">Pending</span></div>
+<div class="checkrow" id="pq-drivers"><span class="name">Database Drivers</span><span class="checkstatus pending" id="pq-drivers-s">Pending</span></div>
+<div class="checkrow" id="pq-tls"><span class="name">TLS / Certificates</span><span class="checkstatus pending" id="pq-tls-s">Pending</span></div>
+<div class="checkrow" id="pq-credstore"><span class="name">Credential Store</span><span class="checkstatus pending" id="pq-credstore-s">Pending</span></div>
+<div class="checkrow" id="pq-traildir"><span class="name">Trail Directory</span><span class="checkstatus pending" id="pq-traildir-s">Pending</span></div>
+
+    </div>
+    <div class="canvas-wrap">
+      <h3 style="margin:0 0 8px;font-size:13.5px;color:var(--redwood-dark);">Live Validation Console</h3>
+      <div class="log" id="pqLog"></div>
+    </div>
+  </div>
+</section>
+
+
+<section class="tab" id="tab-checklist">
+  <h2>Implementation Checklist</h2>
+  <p class="lead">Track a full implementation end to end. Check items off as they are completed; the completion percentage updates live. Useful as a shared reference during implementation workshops and status reviews.</p>
+  <div class="card" style="max-width:640px;">
+    <div class="flex-between"><h3 style="margin:0;">Overall Completion</h3><span id="ckPct" style="font-weight:700;color:var(--redwood-dark);">0%</span></div>
+    <div class="progressbar"><div id="ckBar" style="width:0%;"></div></div>
+    <div class="toolbar" style="margin-top:14px;"><button class="action secondary" id="ckAll">Check All</button><button class="action secondary" id="ckNone">Clear All</button></div>
+  </div>
+  <div class="card" style="margin-top:14px;">
+    <div class="cklist" id="ckList">
+<label class="ckitem" data-idx="0"><input type="checkbox" class="ck-box"><span>Architecture</span></label>
+<label class="ckitem" data-idx="1"><input type="checkbox" class="ck-box"><span>OS Prerequisites</span></label>
+<label class="ckitem" data-idx="2"><input type="checkbox" class="ck-box"><span>Database Prerequisites</span></label>
+<label class="ckitem" data-idx="3"><input type="checkbox" class="ck-box"><span>Network</span></label>
+<label class="ckitem" data-idx="4"><input type="checkbox" class="ck-box"><span>Firewall</span></label>
+<label class="ckitem" data-idx="5"><input type="checkbox" class="ck-box"><span>Ports</span></label>
+<label class="ckitem" data-idx="6"><input type="checkbox" class="ck-box"><span>DNS</span></label>
+<label class="ckitem" data-idx="7"><input type="checkbox" class="ck-box"><span>GoldenGate Software</span></label>
+<label class="ckitem" data-idx="8"><input type="checkbox" class="ck-box"><span>Service Manager</span></label>
+<label class="ckitem" data-idx="9"><input type="checkbox" class="ck-box"><span>Deployment</span></label>
+<label class="ckitem" data-idx="10"><input type="checkbox" class="ck-box"><span>Database Connection</span></label>
+<label class="ckitem" data-idx="11"><input type="checkbox" class="ck-box"><span>Credential Store</span></label>
+<label class="ckitem" data-idx="12"><input type="checkbox" class="ck-box"><span>Extract</span></label>
+<label class="ckitem" data-idx="13"><input type="checkbox" class="ck-box"><span>Trail</span></label>
+<label class="ckitem" data-idx="14"><input type="checkbox" class="ck-box"><span>Distribution</span></label>
+<label class="ckitem" data-idx="15"><input type="checkbox" class="ck-box"><span>Receiver</span></label>
+<label class="ckitem" data-idx="16"><input type="checkbox" class="ck-box"><span>Replicat</span></label>
+<label class="ckitem" data-idx="17"><input type="checkbox" class="ck-box"><span>Monitoring</span></label>
+<label class="ckitem" data-idx="18"><input type="checkbox" class="ck-box"><span>Security</span></label>
+<label class="ckitem" data-idx="19"><input type="checkbox" class="ck-box"><span>Validation</span></label>
+<label class="ckitem" data-idx="20"><input type="checkbox" class="ck-box"><span>Testing</span></label>
+<label class="ckitem" data-idx="21"><input type="checkbox" class="ck-box"><span>HA / DR</span></label>
+<label class="ckitem" data-idx="22"><input type="checkbox" class="ck-box"><span>Documentation</span></label>
+<label class="ckitem" data-idx="23"><input type="checkbox" class="ck-box"><span>KT / Handover</span></label>
+
+    </div>
+  </div>
+</section>
+
+
+<section class="tab" id="tab-platform">
+  <h2>Database Platform Selector</h2>
+  <p class="lead">Choose a source and target database platform. Prerequisites, logging requirements, connectivity, and GoldenGate configuration considerations update dynamically. Version-dependent requirements are called out explicitly; nothing unsupported is invented.</p>
+
+  <div class="grid" style="grid-template-columns:1fr 1fr;max-width:760px;">
+    <div class="field"><label>Source Database</label>
+      <select id="dpSource"><option value="oracle">Oracle Database</option><option value="mssql">Microsoft SQL Server</option><option value="mysql">MySQL</option><option value="postgres">PostgreSQL</option><option value="db2">IBM Db2</option><option value="other">Other Supported RDBMS</option></select></div>
+    <div class="field"><label>Target Database</label>
+      <select id="dpTarget"><option value="oracle" selected>Oracle Database</option><option value="mssql">Microsoft SQL Server</option><option value="mysql">MySQL</option><option value="postgres">PostgreSQL</option><option value="db2">IBM Db2</option><option value="other">Other Supported RDBMS</option></select></div>
+  </div>
+
+  <div id="dpArchDiagram" class="canvas-wrap" style="margin:16px 0;"></div>
+
+  <div class="grid" style="grid-template-columns:1fr 1fr;">
+    <div class="card"><h3>Prerequisites (Source)</h3><div id="dpPrereqSrc"></div></div>
+    <div class="card"><h3>Prerequisites (Target)</h3><div id="dpPrereqTgt"></div></div>
+    <div class="card"><h3>Database Configuration / Logging</h3><div id="dpLogging"></div></div>
+    <div class="card"><h3>Connectivity Requirements</h3><div id="dpConn"></div></div>
+    <div class="card" style="grid-column:1/-1;"><h3>GoldenGate Configuration Considerations</h3><div id="dpGgConfig"></div></div>
+  </div>
+  <div class="note" id="dpVersionNote"></div>
+</section>
+
+
+<section class="tab" id="tab-install">
+  <h2>Installation Workflow</h2>
+  <p class="lead">A live animation of the standard GoldenGate Microservices installation and configuration sequence, from server preparation through the first replicated transaction.</p>
+  <div class="toolbar">
+    <button class="action" id="inStart">Start Installation</button>
+    <button class="action secondary" id="inReset">Reset</button>
+    <span class="status-chip active" id="inSummary" style="display:none;">Installation Complete</span>
+  </div>
+  <div class="grid" style="grid-template-columns:1fr 380px;align-items:start;">
+    <div id="inSteps">
+<div class="instep" id="in-0"><div class="idx">1</div><div class="nm">Prepare Server</div><div class="st" id="in-0-s">Pending</div></div>
+<div class="instep" id="in-1"><div class="idx">2</div><div class="nm">Install GoldenGate Software</div><div class="st" id="in-1-s">Pending</div></div>
+<div class="instep" id="in-2"><div class="idx">3</div><div class="nm">Configure Environment</div><div class="st" id="in-2-s">Pending</div></div>
+<div class="instep" id="in-3"><div class="idx">4</div><div class="nm">Create Directories</div><div class="st" id="in-3-s">Pending</div></div>
+<div class="instep" id="in-4"><div class="idx">5</div><div class="nm">Configure Ports</div><div class="st" id="in-4-s">Pending</div></div>
+<div class="instep" id="in-5"><div class="idx">6</div><div class="nm">Create Service Manager</div><div class="st" id="in-5-s">Pending</div></div>
+<div class="instep" id="in-6"><div class="idx">7</div><div class="nm">Create Deployment</div><div class="st" id="in-6-s">Pending</div></div>
+<div class="instep" id="in-7"><div class="idx">8</div><div class="nm">Start Services</div><div class="st" id="in-7-s">Pending</div></div>
+<div class="instep" id="in-8"><div class="idx">9</div><div class="nm">Configure Database Connection</div><div class="st" id="in-8-s">Pending</div></div>
+<div class="instep" id="in-9"><div class="idx">10</div><div class="nm">Configure Extract</div><div class="st" id="in-9-s">Pending</div></div>
+<div class="instep" id="in-10"><div class="idx">11</div><div class="nm">Configure Trail</div><div class="st" id="in-10-s">Pending</div></div>
+<div class="instep" id="in-11"><div class="idx">12</div><div class="nm">Configure Replicat</div><div class="st" id="in-11-s">Pending</div></div>
+<div class="instep" id="in-12"><div class="idx">13</div><div class="nm">Validate</div><div class="st" id="in-12-s">Pending</div></div>
+<div class="instep" id="in-13"><div class="idx">14</div><div class="nm">Start Replication</div><div class="st" id="in-13-s">Pending</div></div>
+
+    </div>
+    <div class="canvas-wrap">
+      <h3 style="margin:0 0 8px;font-size:13.5px;color:var(--redwood-dark);">Installer Console</h3>
+      <div class="log" id="inLog"></div>
+    </div>
+  </div>
+</section>
+
+
+<section class="tab" id="tab-hub">
+  <h2>GoldenGate HUB</h2>
+  <p class="lead">A centralized deployment pattern where one GoldenGate HUB captures from multiple sources and delivers to multiple targets, instead of a dedicated GoldenGate instance per source/target pair.</p>
+
+  <div class="canvas-wrap" style="margin-bottom:16px;">
+    <div class="pipegrid" style="justify-content:center;">
+      <div style="display:flex;flex-direction:column;gap:8px;justify-content:center;">
+        <div class="pipenode"><div class="t">Source DB 1</div><div class="s">Oracle</div></div>
+        <div class="pipenode"><div class="t">Source DB 2</div><div class="s">SQL Server</div></div>
+        <div class="pipenode"><div class="t">Source DB 3</div><div class="s">MySQL</div></div>
+      </div>
+      <div class="pipearrow">&rarr;</div>
+      <div class="pipenode" style="min-width:190px;background:#F6DEDA;border-color:var(--redwood);align-self:center;"><div class="t">GoldenGate HUB</div><div class="s">Centralized capture, distribution &amp; delivery. Service Manager + multiple Deployments.</div><div class="pulse-dot on"></div></div>
+      <div class="pipearrow">&rarr;</div>
+      <div style="display:flex;flex-direction:column;gap:8px;justify-content:center;">
+        <div class="pipenode"><div class="t">Target DB 1</div><div class="s">Oracle</div></div>
+        <div class="pipenode"><div class="t">Target DB 2</div><div class="s">PostgreSQL</div></div>
+        <div class="pipenode"><div class="t">Analytics</div><div class="s">Data Lake / Warehouse</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 1fr;">
+    <div class="card"><h3>Purpose of HUB</h3><p>Consolidates capture and delivery for many source/target pairs into one managed deployment, rather than standing up separate GoldenGate instances per pair.</p></div>
+    <div class="card"><h3>When to Use HUB</h3><p>Multiple sources feeding one or more targets, multiple targets fed from one or more sources, or when centralized monitoring/lifecycle management across many replication pairs is a priority.</p></div>
+    <div class="card"><h3>Benefits</h3><p>Centralized monitoring, simplified patching/upgrade cadence, shared credential store and security policy, and a single operational surface instead of many scattered installs.</p></div>
+    <div class="card"><h3>Prerequisites</h3><p>Sufficient host sizing for concurrent Extract/Replicat processes, network reachability to every source and target, and a naming convention that scales as pairs are added.</p></div>
+    <div class="card"><h3>Network Requirements</h3><p>The HUB host needs outbound connectivity to every source and target database, and inbound access from any distribution/receiver paths crossing a WAN or cloud boundary.</p></div>
+    <div class="card"><h3>Sizing Considerations</h3><p>CPU, memory, and disk (for trail files) scale with the number of concurrent Extract/Replicat processes and aggregate transaction volume, not with the number of source/target pairs alone.</p></div>
+    <div class="card"><h3>Centralized Management</h3><p>One Service Manager (or a small HA pair) governs multiple Deployments, each hosting the Extract/Replicat processes for a given pair or group of pairs.</p></div>
+    <div class="card"><h3>Monitoring</h3><p>A single pane of glass for lag, throughput, and process health across every replication pair, instead of per-instance monitoring stitched together after the fact.</p></div>
+    <div class="card"><h3>HA / DR Considerations</h3><p>Because many pairs depend on one HUB, HA/DR planning for the HUB itself (standby Service Manager, replicated configuration, trail directory protection) becomes more critical than in a single-pair deployment.</p></div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3>Why HUB? &mdash; Decision Advisor</h3>
+    <p class="lead" style="margin:4px 0 12px;">Answer two quick questions to see whether a HUB topology fits.</p>
+    <div class="grid" style="grid-template-columns:1fr 1fr;max-width:640px;">
+      <div class="field"><label>How many source/target pairs?</label>
+        <select id="hubQPairs"><option value="1">1 (single source, single target)</option><option value="few">2-4</option><option value="many">5 or more</option></select></div>
+      <div class="field"><label>Is centralized monitoring/management a priority?</label>
+        <select id="hubQMonitor"><option value="yes">Yes</option><option value="no">No</option></select></div>
+    </div>
+    <button class="action" id="hubAdvise">Get Recommendation</button>
+    <div id="hubAdviceResult" style="margin-top:14px;"></div>
+  </div>
+</section>
+
+
+<section class="tab" id="tab-config">
+  <h2>Configuration Simulator</h2>
+  <p class="lead">Walk through the core configuration building blocks of a GoldenGate deployment: Database Connection, Extract, Trail, Distribution &amp; Receiver Service, and Replicat.</p>
+
+  <div class="subtabhost">
+    <div class="subnav">
+      <button data-sub="sub-conn" class="active">Database Connection</button>
+      <button data-sub="sub-extract">Extract Configuration</button>
+      <button data-sub="sub-trail">Trail Configuration</button>
+      <button data-sub="sub-dist">Distribution &amp; Receiver</button>
+      <button data-sub="sub-replicat">Replicat Configuration</button>
+    </div>
+
+    <!-- ===== SUB: DATABASE CONNECTION ===== -->
+    <div class="subtab active" id="sub-conn">
+      <div class="grid" style="grid-template-columns:1fr 1fr;">
+        <div class="field"><label>Database Type</label>
+          <select id="ccType"><option>Oracle Database</option><option>Microsoft SQL Server</option><option>MySQL</option><option>PostgreSQL</option><option>IBM Db2</option></select></div>
+        <div class="field"><label>Hostname</label><input type="text" id="ccHost" value="ggdemo-db01.example.com"></div>
+        <div class="field"><label>Port</label><input type="text" id="ccPort" value="1521"></div>
+        <div class="field"><label>Database / Service Name</label><input type="text" id="ccService" value="ORCLPDB1"></div>
+        <div class="field"><label>Username</label><input type="text" id="ccUser" value="ggadmin"></div>
+        <div class="field"><label>Credential Alias</label><input type="text" id="ccAlias" value="oggsrc_alias"></div>
+      </div>
+      <div class="note">Sample credentials only &mdash; this simulator never stores or transmits real passwords. Credentials are referenced by <span class="kcode">Credential Alias</span> from a Credential Store, never embedded in a parameter file.</div>
+      <div class="toolbar" style="margin-top:14px;">
+        <button class="action" id="ccTest">Test Connection</button>
+        <button class="action secondary" id="ccSave">Save Credential</button>
+        <button class="action secondary" id="ccValidate">Validate Connection</button>
+        <span class="status-chip" id="ccStatus" style="display:none;"></span>
+      </div>
+      <div class="log" id="ccLog" style="margin-top:12px;"></div>
+    </div>
+
+    <!-- ===== SUB: EXTRACT CONFIGURATION ===== -->
+    <div class="subtab" id="sub-extract">
+      <div class="grid" style="grid-template-columns:1fr 1fr;">
+        <div class="field"><label>Capture Mode</label>
+          <div class="radiorow rr" id="exMode"><span class="radiochip sel" data-v="Integrated Extract">Integrated Extract</span><span class="radiochip" data-v="Classic Extract">Classic Extract</span></div></div>
+        <div class="field"><label>Extract Name</label><input type="text" id="exName" value="EXTORA1"></div>
+        <div class="field"><label>Trail Name</label><input type="text" id="exTrail" value="aa"></div>
+        <div class="field"><label>Begin Position</label>
+          <select id="exBegin"><option>NOW</option><option>Specific SCN / LSN</option><option>Specific Timestamp</option></select></div>
+      </div>
+      <div class="toolbar"><button class="action" id="exStart">Start Extract Animation</button></div>
+      <div class="canvas-wrap" style="margin-top:10px;">
+        <div class="pipegrid" id="exPipeline">
+          <div class="pipenode" id="ex-db"><div class="t">Database</div><div class="s">Source transactions</div><div class="pulse-dot" id="ex-db-dot"></div></div>
+          <div class="pipearrow">&rarr;</div>
+          <div class="pipenode" id="ex-log"><div class="t" id="ex-log-t">Redo / Transaction Log</div><div class="s" id="ex-log-s">Logminer (Integrated)</div><div class="pulse-dot" id="ex-log-dot"></div></div>
+          <div class="pipearrow">&rarr;</div>
+          <div class="pipenode" id="ex-cap"><div class="t">Extract</div><div class="s" id="ex-cap-s">Capture process</div><div class="pulse-dot" id="ex-cap-dot"></div></div>
+          <div class="pipearrow">&rarr;</div>
+          <div class="pipenode" id="ex-trail"><div class="t">Trail</div><div class="s">Change records written</div><div class="pulse-dot" id="ex-trail-dot"></div></div>
+        </div>
+      </div>
+      <div class="log" id="exLog" style="margin-top:12px;"></div>
+      <pre class="code" id="exParam" style="margin-top:12px;"></pre>
+    </div>
+
+    <!-- ===== SUB: TRAIL CONFIGURATION ===== -->
+    <div class="subtab" id="sub-trail">
+      <div class="grid" style="grid-template-columns:1fr 1fr;">
+        <div class="field"><label>Trail Name</label><input type="text" id="trName" value="aa"></div>
+        <div class="field"><label>Trail Location</label><input type="text" id="trLoc" value="/u01/ogg/deployment1/var/lib/data"></div>
+        <div class="field"><label>Trail Size (per file)</label>
+          <select id="trSize"><option>100 MB</option><option selected>500 MB</option><option>1 GB</option><option>2 GB</option></select></div>
+        <div class="field"><label>Max Files (Sequence Range)</label><input type="text" id="trSeqMax" value="000000 - 999999"></div>
+      </div>
+      <div class="toolbar"><button class="action" id="trCreate">Create Trail</button><button class="action secondary" id="trFeed">Simulate Records Arriving</button></div>
+      <div class="grid" style="grid-template-columns:repeat(4,1fr);margin-top:12px;">
+        <div class="card"><h3>Status</h3><p id="trStatus">Not Created</p></div>
+        <div class="card"><h3>Sequence</h3><p id="trSeq">&mdash;</p></div>
+        <div class="card"><h3>Current File Size</h3><p id="trFileSize">&mdash;</p></div>
+        <div class="card"><h3>Records Written</h3><p id="trRecords">0</p></div>
+      </div>
+      <div class="log" id="trLog" style="margin-top:12px;"></div>
+    </div>
+
+    <!-- ===== SUB: DISTRIBUTION & RECEIVER ===== -->
+    <div class="subtab" id="sub-dist">
+      <div class="toolbar">
+        <label style="font-size:12.5px;color:var(--muted);">Network Condition:</label>
+        <select id="drNet"><option value="normal">Normal Network</option><option value="slow">Slow Network</option><option value="fail">Network Failure</option><option value="recover">Recovery</option></select>
+        <button class="action" id="drApply">Apply</button>
+      </div>
+      <div class="canvas-wrap">
+        <div class="pipegrid">
+          <div class="pipenode"><div class="t">Source Deployment</div><div class="s">Extract + Trail</div></div>
+          <div class="pipearrow">&rarr;</div>
+          <div class="pipenode" id="dr-dist"><div class="t">Distribution Service</div><div class="s">Reads trail, pushes over network</div><div class="pulse-dot on" id="dr-dist-dot"></div></div>
+          <div class="pipearrow">&rarr;</div>
+          <div class="pipenode" id="dr-net"><div class="t">Network</div><div class="s" id="dr-net-s">WAN / Cloud link</div></div>
+          <div class="pipearrow">&rarr;</div>
+          <div class="pipenode" id="dr-recv"><div class="t">Receiver Service</div><div class="s">Writes remote trail</div><div class="pulse-dot on" id="dr-recv-dot"></div></div>
+          <div class="pipearrow">&rarr;</div>
+          <div class="pipenode"><div class="t">Target Deployment</div><div class="s">Trail + Replicat</div></div>
+        </div>
+      </div>
+      <div class="grid" style="grid-template-columns:repeat(5,1fr);margin-top:12px;">
+        <div class="card"><h3>Connection</h3><p id="drConn">Connected</p></div>
+        <div class="card"><h3>Throughput</h3><p id="drThrpt">4.2 MB/s</p></div>
+        <div class="card"><h3>Latency</h3><p id="drLat">8 ms</p></div>
+        <div class="card"><h3>Trail Sequence</h3><p id="drSeq">000042</p></div>
+        <div class="card"><h3>Status</h3><p id="drStat">Healthy</p></div>
+      </div>
+      <div class="log" id="drLog" style="margin-top:12px;"></div>
+    </div>
+
+    <!-- ===== SUB: REPLICAT CONFIGURATION ===== -->
+    <div class="subtab" id="sub-replicat">
+      <div class="grid" style="grid-template-columns:1fr 1fr;">
+        <div class="field"><label>Replicat Type</label>
+          <select id="rpType"><option>Classic Replicat</option><option>Integrated Replicat</option><option>Parallel Replicat (Non-Integrated)</option><option>Parallel Replicat (Integrated)</option></select></div>
+        <div class="field"><label>Replicat Name</label><input type="text" id="rpName" value="REPORA1"></div>
+      </div>
+      <div class="canvas-wrap" style="margin-top:6px;">
+        <div class="pipegrid">
+          <div class="pipenode"><div class="t">Trail</div><div class="s">Change records</div></div>
+          <div class="pipearrow">&rarr;</div>
+          <div class="pipenode" id="rp-node"><div class="t">Replicat</div><div class="s" id="rp-node-s">Apply engine</div><div class="pulse-dot" id="rp-node-dot"></div></div>
+          <div class="pipearrow">&rarr;</div>
+          <div class="pipenode"><div class="t">Target Database</div><div class="s">Applied changes</div></div>
+        </div>
+      </div>
+      <div class="grid" style="grid-template-columns:repeat(4,1fr);margin:12px 0;">
+        <div class="card"><h3>Transactions Applied</h3><p id="rpTx">0</p></div>
+        <div class="card"><h3>Apply Rate</h3><p id="rpRate">0 tx/s</p></div>
+        <div class="card"><h3>Lag</h3><p id="rpLag">0s</p></div>
+        <div class="card"><h3>Status</h3><p id="rpStatus">Idle</p></div>
+      </div>
+
+      <div class="toolbar">
+        <button class="action" id="rpInsert">Simulate INSERT</button>
+        <button class="action" id="rpUpdate">Simulate UPDATE</button>
+        <button class="action" id="rpDelete">Simulate DELETE</button>
+        <button class="action secondary" id="rpClear">Reset Tables</button>
+      </div>
+
+      <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:10px;">
+        <div class="card">
+          <h3>Source Table &mdash; CUSTOMER_ORDERS</h3>
+          <table class="rowtable"><thead><tr><th>ORDER_ID</th><th>CUSTOMER</th><th>STATUS</th><th>AMOUNT</th></tr></thead><tbody id="rpSrcBody"></tbody></table>
+        </div>
+        <div class="card">
+          <h3>Target Table &mdash; CUSTOMER_ORDERS</h3>
+          <table class="rowtable"><thead><tr><th>ORDER_ID</th><th>CUSTOMER</th><th>STATUS</th><th>AMOUNT</th></tr></thead><tbody id="rpTgtBody"></tbody></table>
+        </div>
+      </div>
+      <div class="log" id="rpLog" style="margin-top:12px;"></div>
+    </div>
+
+  </div>
+</section>
+
+
+<section class="tab" id="tab-topology">
+  <h2>Topology Explorer</h2>
+  <p class="lead">Select a topology to see the architecture redraw and a short explanation of when it applies.</p>
+  <div style="margin-bottom:14px;"><span class="topopill" data-t="One-Way">One-Way</span><span class="topopill" data-t="Bi-Directional">Bi-Directional</span><span class="topopill" data-t="Hub-and-Spoke">Hub-and-Spoke</span><span class="topopill" data-t="Fan-Out">Fan-Out</span><span class="topopill" data-t="Consolidation">Consolidation</span><span class="topopill" data-t="Cascade">Cascade</span><span class="topopill" data-t="Multi-Source">Multi-Source</span><span class="topopill" data-t="Multi-Target">Multi-Target</span><span class="topopill" data-t="Distributed Applications">Distributed Applications</span><span class="topopill" data-t="Analytics">Analytics</span></div>
+  <div class="topocanvas" id="topoCanvas"></div>
+  <div class="card" style="margin-top:14px;"><h3 id="topoTitle">One-Way</h3><p id="topoDesc"></p></div>
+</section>
+
+
+<section class="tab" id="tab-msmt">
+  <h2>Multi-Source / Multi-Target</h2>
+  <p class="lead">Select source and target database combinations to see a live topology through a GoldenGate HUB.</p>
+  <div class="grid" style="grid-template-columns:1fr 1fr;max-width:700px;margin-bottom:16px;">
+    <div class="field"><label>Sources (select multiple)</label>
+      <select id="mmSources" multiple size="4" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;">
+        <option value="Oracle" selected>Oracle</option>
+        <option value="SQL Server" selected>SQL Server</option>
+        <option value="MySQL">MySQL</option>
+        <option value="PostgreSQL">PostgreSQL</option>
+      </select></div>
+    <div class="field"><label>Targets (select multiple)</label>
+      <select id="mmTargets" multiple size="4" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;">
+        <option value="Oracle" selected>Oracle</option>
+        <option value="Analytics" selected>Analytics</option>
+        <option value="Data Lake">Data Lake</option>
+        <option value="PostgreSQL">PostgreSQL</option>
+      </select></div>
+  </div>
+  <button class="action" id="mmDraw">Update Topology</button>
+  <div class="canvas-wrap" style="margin-top:14px;" id="mmCanvas"></div>
+</section>
+
+
+<section class="tab" id="tab-distapp">
+  <h2>Distributed Applications</h2>
+  <p class="lead">GoldenGate can keep databases behind independently deployed applications in sync, enabling distributed application architectures.</p>
+
+  <div class="card">
+    <h3>Scenario 1: Two Applications, Two Databases</h3>
+    <div class="canvas-wrap" style="margin:10px 0;">
+      <div class="pipegrid" style="justify-content:center;">
+        <div class="pipenode"><div class="t">Application A</div><div class="s">Local writes</div></div>
+        <div class="pipearrow">&rarr;</div>
+        <div class="pipenode" id="da-dba"><div class="t">Database A</div><div class="s">Local of record for App A</div></div>
+        <div class="pipearrow">&rarr;</div>
+        <div class="pipenode" id="da-hub1" style="background:#F6DEDA;border-color:var(--redwood);"><div class="t">GoldenGate HUB</div><div class="s">Keeps A &amp; B in sync</div><div class="pulse-dot" id="da-hub1-dot"></div></div>
+        <div class="pipearrow">&rarr;</div>
+        <div class="pipenode" id="da-dbb"><div class="t">Database B</div><div class="s">Local of record for App B</div></div>
+        <div class="pipearrow">&rarr;</div>
+        <div class="pipenode"><div class="t">Application B</div><div class="s">Sees A's data locally</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px;">
+    <h3>Scenario 2: One Application, Two Databases (Fan-Out for Resilience)</h3>
+    <div class="canvas-wrap" style="margin:10px 0;">
+      <div class="pipegrid" style="justify-content:center;">
+        <div class="pipenode"><div class="t">Application A</div><div class="s">Writes locally</div></div>
+        <div class="pipearrow">&rarr;</div>
+        <div class="pipenode"><div class="t">Database A</div><div class="s">Primary</div></div>
+        <div class="pipearrow">&rarr;</div>
+        <div class="pipenode" style="background:#F6DEDA;border-color:var(--redwood);"><div class="t">GoldenGate HUB</div><div class="s">Replicates onward</div></div>
+        <div class="pipearrow">&rarr;</div>
+        <div class="pipenode"><div class="t">Database C</div><div class="s">Available to other consumers</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar" style="margin-top:16px;">
+    <label style="font-size:12.5px;color:var(--muted);">Simulate:</label>
+    <button class="action secondary" id="daTx">Transaction</button>
+    <button class="action secondary" id="daRep">Replication</button>
+    <button class="action secondary" id="daDelay">Network Delay</button>
+    <button class="action secondary" id="daApply">Target Apply</button>
+    <button class="action secondary" id="daAvail">Application Availability</button>
+    <button class="action secondary" id="daFail">Failure</button>
+    <button class="action secondary" id="daRecover">Recovery</button>
+  </div>
+  <div class="log" id="daLog" style="margin-top:12px;"></div>
+</section>
+
+
+<section class="tab" id="tab-scenario">
+  <h2>Scenarios</h2>
+  <p class="lead">Select a real-world scenario to see the full picture: business requirement, source, target, architecture, prerequisites, GoldenGate components, topology, replication flow, validation, and expected outcome.</p>
+  <div class="scenariopick" id="scenarioPick">
+<div class="scenariocard" data-id="s1"><div class="n">Scenario 1</div><div class="f">Oracle → Oracle</div></div>
+<div class="scenariocard" data-id="s2"><div class="n">Scenario 2</div><div class="f">Oracle → SQL Server</div></div>
+<div class="scenariocard" data-id="s3"><div class="n">Scenario 3</div><div class="f">SQL Server → Oracle</div></div>
+<div class="scenariocard" data-id="s4"><div class="n">Scenario 4</div><div class="f">MySQL → Oracle</div></div>
+<div class="scenariocard" data-id="s5"><div class="n">Scenario 5</div><div class="f">PostgreSQL → Oracle</div></div>
+<div class="scenariocard" data-id="s6"><div class="n">Scenario 6</div><div class="f">Db2 → Oracle</div></div>
+<div class="scenariocard" data-id="s7"><div class="n">Scenario 7</div><div class="f">Multiple Sources → HUB → Multiple Targets</div></div>
+<div class="scenariocard" data-id="s8"><div class="n">Scenario 8</div><div class="f">Operational Database → GoldenGate → Analytics</div></div>
+<div class="scenariocard" data-id="s9"><div class="n">Scenario 9</div><div class="f">Distributed Application Replication</div></div>
+<div class="scenariocard" data-id="s10"><div class="n">Scenario 10</div><div class="f">Multi-Cloud Replication</div></div>
+
+  </div>
+  <div class="card" id="scenarioDetail"></div>
+</section>
+
+
+
+</main>
+
+<footer>GoldenGate Implementation Simulator &middot; part of the GoldenGate Technical Simulator Suite &middot; Ravikumar Vasudevan</footer>
+
+<script>
+/* ============ Changelog toggle ============ */
+var verBadge = document.getElementById('verBadge');
+var changelogPanel = document.getElementById('changelogPanel');
+verBadge.addEventListener('click', function(){ changelogPanel.classList.toggle('open'); });
+document.getElementById('clClose').addEventListener('click', function(){ changelogPanel.classList.remove('open'); });
+
+/* ============ Tab switching ============ */
+document.querySelectorAll('#tabNav button').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('#tabNav button').forEach(function(b){ b.classList.remove('active'); });
+    document.querySelectorAll('section.tab').forEach(function(s){ s.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ============ Sub-tab switching (used within Configuration Simulator) ============ */
+document.querySelectorAll('.subnav').forEach(function(nav){
+  nav.querySelectorAll('button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      nav.querySelectorAll('button').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      var parent = nav.closest('.subtabhost');
+      parent.querySelectorAll('.subtab').forEach(function(s){ s.classList.remove('active'); });
+      parent.querySelector('#' + btn.dataset.sub).classList.add('active');
+    });
+  });
+});
+
+
+/* ============ Pre-Assessment Wizard ============ */
+(function(){
+  var stepsEl = document.getElementById('wizSteps');
+  var stepNames = ['Database Profile','Sizing & Network','Scope & Requirements','Recommendation'];
+  function renderSteps(activeIdx){
+    stepsEl.innerHTML = stepNames.map(function(n,i){
+      var cls = i < activeIdx ? 'done' : (i === activeIdx ? 'current' : '');
+      return '<div class="wizstep ' + cls + '">' + (i+1) + '. ' + n + '</div>';
+    }).join('');
+  }
+  renderSteps(0);
+
+  document.querySelectorAll('#tab-assess .rr').forEach(function(row){
+    row.querySelectorAll('.radiochip').forEach(function(chip){
+      chip.addEventListener('click', function(){
+        row.querySelectorAll('.radiochip').forEach(function(c){ c.classList.remove('sel'); });
+        chip.classList.add('sel');
+      });
+    });
+  });
+
+  function radioVal(id){
+    var sel = document.querySelector('#' + id + ' .radiochip.sel');
+    return sel ? sel.dataset.v : 'No';
+  }
+
+  document.getElementById('paReset').addEventListener('click', function(){
+    document.querySelectorAll('#tab-assess select.assess-f').forEach(function(s){ s.selectedIndex = 0; });
+    document.getElementById('paDbVersion').value = '';
+    document.getElementById('paNumSrc').value = 1;
+    document.getElementById('paNumTgt').value = 1;
+    document.getElementById('paResult').innerHTML = '';
+    renderSteps(0);
+  });
+
+  document.getElementById('paRecommend').addEventListener('click', function(){
+    renderSteps(3);
+    var srcDb = document.getElementById('paSourceDb').value;
+    var tgtDb = document.getElementById('paTargetDb').value;
+    var numSrc = parseInt(document.getElementById('paNumSrc').value, 10) || 1;
+    var numTgt = parseInt(document.getElementById('paNumTgt').value, 10) || 1;
+    var network = document.getElementById('paNetwork').value;
+    var downtime = document.getElementById('paDowntime').value;
+    var haDr = document.getElementById('paHaDr').value;
+    var security = document.getElementById('paSecurity').value;
+    var initLoad = radioVal('paInitLoad');
+    var cdc = radioVal('paCdc');
+    var txVol = document.getElementById('paTxVol').value;
+
+    var reasons = [];
+    var arch = 'One-Way Replication';
+    var useHub = false;
+
+    if (numSrc > 1 || numTgt > 1) {
+      useHub = true;
+      arch = 'GoldenGate HUB Topology';
+      reasons.push('Multiple sources (' + numSrc + ') and/or targets (' + numTgt + ') point to a centralized <b>GoldenGate HUB</b> so capture and delivery are managed and monitored from one deployment rather than duplicated per pair.');
+    } else if (network.indexOf('Cloud') > -1) {
+      arch = 'One-Way Replication (Cloud-Aware)';
+      reasons.push('A ' + network + ' network path benefits from a Distribution Service / Receiver Service split so trail data is compressed and buffered across the WAN link.');
+    }
+
+    if (haDr !== 'None') {
+      reasons.push('The stated HA/DR requirement (' + haDr + ') means the Service Manager, Deployment, and trail directories should be planned for a standby GoldenGate instance in addition to database-level DR.');
+    }
+    if (downtime.indexOf('Zero') > -1) {
+      reasons.push('A near-zero downtime requirement confirms CDC-based replication (not just batch ETL) and argues for validating cutover/switchover steps well before go-live.');
+    }
+    if (initLoad === 'Yes') {
+      reasons.push('Initial Load is required &mdash; plan a load method (Extract-based, Data Pump/native utility, or file-based) to instantiate the target before CDC starts, with a documented Scan-to-SCN / restart point handoff to Extract.');
+    }
+    if (cdc === 'No') {
+      reasons.push('CDC was marked not required &mdash; this narrows the design to a one-time load pattern; GoldenGate is still usable for the load, but ongoing Extract/Replicat may not be needed.');
+    }
+    if (security.indexOf('Regulated') > -1) {
+      reasons.push('Regulated security requirements point to TDE on trail files, a Credential Store (no embedded passwords), TLS between Distribution and Receiver, and consideration of Audit Vault & Database Firewall (AVDF) for the audit trail.');
+    }
+    if (txVol === 'Very High' || txVol === 'High') {
+      reasons.push('Transaction volume is ' + txVol.toLowerCase() + ' &mdash; favor Integrated Extract / Integrated Replicat (or Parallel Replicat) for scalability over single-threaded Classic capture/apply.');
+    }
+    if (srcDb !== tgtDb) {
+      reasons.push('Source (' + srcDb + ') and target (' + tgtDb + ') are heterogeneous &mdash; expect data type mapping, DDL differences, and target-specific bulk-load tooling for the initial load.');
+    }
+
+    var html = '<div class="card" style="margin-top:18px;border-color:var(--redwood);">';
+    html += '<h3>Recommended Architecture: ' + arch + '</h3>';
+    html += '<p style="margin-bottom:10px;">' + srcDb + ' &rarr; ' + (useHub ? 'GoldenGate HUB &rarr; ' : 'GoldenGate &rarr; ') + tgtDb + '</p>';
+    html += '<div style="margin-top:6px;">';
+    reasons.forEach(function(r){ html += '<p style="margin-top:6px;">&bull; ' + r + '</p>'; });
+    html += '</div></div>';
+    document.getElementById('paResult').innerHTML = html;
+  });
+})();
+
+
+/* ============ Prerequisite Validation ============ */
+(function(){
+  var items = [["os", "Operating System"], ["cpu", "CPU"], ["mem", "Memory"], ["disk", "Disk Space"], ["fs", "File System"], ["ggsw", "GoldenGate Software"], ["java", "Java / Runtime Requirements"], ["dbconn", "Database Connectivity"], ["host", "Hostname Resolution"], ["dns", "DNS"], ["net", "Network Connectivity"], ["fw", "Firewall"], ["xdisp", "XDISPLAY for GUI Installation"], ["ports", "Required Ports"], ["dbuser", "Database Users"], ["dbpriv", "Database Privileges"], ["dblog", "Database Logging"], ["archlog", "Archive / Transaction Logs"], ["suplog", "Supplemental Logging"], ["trandata", "Trandata"], ["drivers", "Database Drivers"], ["tls", "TLS / Certificates"], ["credstore", "Credential Store"], ["traildir", "Trail Directory"]];
+  var logEl = document.getElementById('pqLog');
+  var summaryEl = document.getElementById('pqSummary');
+  var forcedFail = false;
+  var running = false;
+
+  function log(cls, msg){
+    var d = document.createElement('div');
+    d.className = cls;
+    d.textContent = msg;
+    logEl.appendChild(d);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function setStatus(id, cls, label){
+    var el = document.getElementById('pq-' + id + '-s');
+    el.className = 'checkstatus ' + cls;
+    el.textContent = label;
+  }
+
+  function resetAll(){
+    items.forEach(function(it){ setStatus(it[0], 'pending', 'Pending'); });
+    logEl.innerHTML = '';
+    summaryEl.style.display = 'none';
+  }
+
+  document.getElementById('pqRun').addEventListener('click', function(){
+    if (running) return;
+    running = true;
+    resetAll();
+    log('t', '[INIT] Starting prerequisite validation sequence...');
+    var i = 0;
+    var passCount = 0, warnCount = 0, failCount = 0;
+    function step(){
+      if (i >= items.length){
+        running = false;
+        summaryEl.style.display = 'inline-block';
+        if (failCount > 0){
+          summaryEl.className = 'status-chip updating';
+          summaryEl.textContent = failCount + ' FAILED, ' + warnCount + ' WARNING, ' + passCount + ' PASSED';
+          log('e', '[RESULT] Validation completed with ' + failCount + ' failure(s). Resolve before proceeding.');
+        } else if (warnCount > 0){
+          summaryEl.className = 'status-chip updating';
+          summaryEl.textContent = warnCount + ' WARNING, ' + passCount + ' PASSED';
+          log('w', '[RESULT] Validation completed with warnings. Review before proceeding.');
+        } else {
+          summaryEl.className = 'status-chip active';
+          summaryEl.textContent = 'ALL CHECKS PASSED (' + passCount + ')';
+          log('g', '[RESULT] All prerequisite checks passed. Ready to install.');
+        }
+        return;
+      }
+      var it = items[i];
+      setStatus(it[0], 'running', 'Checking...');
+      log('t', '[CHECK] ' + it[1] + '...');
+      setTimeout(function(){
+        var outcome = 'pass';
+        if (forcedFail && it[0] === 'suplog'){
+          outcome = 'fail';
+        } else if (it[0] === 'xdisp'){
+          outcome = 'warn';
+        }
+        if (outcome === 'pass'){
+          setStatus(it[0], 'pass', 'PASSED');
+          log('g', '  \u2713 PASSED \u2014 ' + it[1] + ' meets requirements.');
+          passCount++;
+        } else if (outcome === 'warn'){
+          setStatus(it[0], 'warn', 'WARNING');
+          log('w', '  \u26A0 WARNING \u2014 ' + it[1] + ' optional; only needed for GUI-based installer.');
+          warnCount++;
+        } else {
+          setStatus(it[0], 'fail', 'FAILED');
+          log('e', '  \u2715 FAILED \u2014 ' + it[1] + ' not enabled on source schema. Run: ALTER TABLE ... ADD SUPPLEMENTAL LOG DATA.');
+          failCount++;
+        }
+        i++;
+        step();
+      }, 110);
+    }
+    step();
+  });
+
+  document.getElementById('pqFail').addEventListener('click', function(){
+    forcedFail = true;
+    log('w', '[SIM] Intentional failure armed on "Supplemental Logging" \u2014 re-run the check to see it.');
+  });
+  document.getElementById('pqFix').addEventListener('click', function(){
+    forcedFail = false;
+    log('g', '[SIM] Failure condition cleared \u2014 supplemental logging enabled. Re-run the check to confirm.');
+    document.getElementById('pqRun').click();
+  });
+})();
+
+
+/* ============ Implementation Checklist ============ */
+(function(){
+  var boxes = document.querySelectorAll('#ckList .ck-box');
+  var pctEl = document.getElementById('ckPct');
+  var barEl = document.getElementById('ckBar');
+  function update(){
+    var total = boxes.length, checked = 0;
+    boxes.forEach(function(b){
+      var item = b.closest('.ckitem');
+      if (b.checked){ checked++; item.classList.add('checked'); } else { item.classList.remove('checked'); }
+    });
+    var pct = Math.round((checked/total)*100);
+    pctEl.textContent = pct + '%';
+    barEl.style.width = pct + '%';
+  }
+  boxes.forEach(function(b){ b.addEventListener('change', update); });
+  document.getElementById('ckAll').addEventListener('click', function(){ boxes.forEach(function(b){ b.checked = true; }); update(); });
+  document.getElementById('ckNone').addEventListener('click', function(){ boxes.forEach(function(b){ b.checked = false; }); update(); });
+  update();
+})();
+
+
+/* ============ Database Platform Selector ============ */
+(function(){
+  var db = {
+    oracle: {
+      label: 'Oracle Database',
+      prereq: ['ARCHIVELOG mode enabled','Force Logging enabled (or table-level FORCE LOGGING)','Oracle GoldenGate schema/user with GGADMIN or granular privileges','Sufficient UNDO retention for Integrated Extract'],
+      logging: 'Supplemental logging: minimal database-level, plus TRANDATA (ADD TRANDATA / ADD SCHEMATRANDATA) at the object level; Integrated Extract reads via the Oracle log mining server.',
+      conn: 'Native OCI/SQL*Net connectivity; TNS entry or Easy Connect string; listener reachable from the GoldenGate deployment host.',
+      ggconfig: 'Supports Classic or Integrated Extract; Integrated or Parallel Replicat; DDL replication via database triggers or DDL support where licensed.',
+      versionNote: 'Integrated Capture and Integrated Replicat availability, and specific privilege grants (e.g. DBMS_GOLDENGATE_AUTH), vary by Oracle Database release \u2014 confirm against the certification matrix for the exact version in use.'
+    },
+    mssql: {
+      label: 'Microsoft SQL Server',
+      prereq: ['SQL Server Agent running','Database in FULL recovery model where CDC/transaction log reliance applies','GoldenGate-specific login with sysadmin or db_owner-equivalent rights on replicated databases'],
+      logging: 'Extract reads the SQL Server transaction log; supplemental logging concepts differ from Oracle \u2014 GoldenGate relies on the transaction log and its own bookmarking rather than TRANDATA.',
+      conn: 'ODBC / native SQL Server client connectivity; SQL Server authentication or Windows authentication depending on deployment.',
+      ggconfig: 'Classic Extract and Replicat patterns are typical; verify DDL replication support and data type mapping (e.g. datetime2, XML, CLR types) before initial load.',
+      versionNote: 'Supported SQL Server editions/versions and CDC-adjacent requirements vary by release \u2014 confirm against the certification matrix.'
+    },
+    mysql: {
+      label: 'MySQL',
+      prereq: ['Binary logging (log-bin) enabled','binlog_format = ROW','GTID recommended for consistent restart positioning','GoldenGate user with REPLICATION CLIENT / REPLICATION SLAVE-equivalent privileges'],
+      logging: 'Extract reads the MySQL binary log directly; ROW-based binlog format is required so full row images are available for capture.',
+      conn: 'Native MySQL client connectivity (port 3306 default); TLS optional depending on security requirements.',
+      ggconfig: 'Classic Extract pattern against the binlog; Replicat applies via native MySQL connectivity; confirm storage engine is InnoDB for transactional consistency.',
+      versionNote: 'Binlog retention settings and GTID behavior vary by MySQL version/distribution (MySQL Community, MySQL Enterprise, or compatible forks) \u2014 confirm against the certification matrix.'
+    },
+    postgres: {
+      label: 'PostgreSQL',
+      prereq: ['wal_level = logical','Adequate max_replication_slots / max_wal_senders','Logical replication slot created for GoldenGate Extract','GoldenGate user with REPLICATION role privilege'],
+      logging: 'Extract reads change data through PostgreSQL logical decoding (a replication slot), not a classic redo/trail-style read \u2014 WAL retention must accommodate Extract lag.',
+      conn: 'Native PostgreSQL client (libpq) connectivity; replication connection privilege required in pg_hba.conf.',
+      ggconfig: 'Extract attaches to a logical replication slot; monitor slot lag closely since retained WAL grows if Extract falls behind.',
+      versionNote: 'Logical decoding plugin behavior and supported PostgreSQL versions vary by release \u2014 confirm against the certification matrix.'
+    },
+    db2: {
+      label: 'IBM Db2',
+      prereq: ['Database logging configured for archival (LOGARCHMETH1)','Db2 user with SYSADM or appropriately scoped authority','GoldenGate for Db2 z/OS or LUW component installed as applicable'],
+      logging: 'Extract reads Db2 recovery/transaction logs; supplemental logging concepts are platform-specific (Db2 LUW vs Db2 z/OS differ significantly).',
+      conn: 'Native Db2 client (CLI/CLP) connectivity; catalog entry or connection string configured on the GoldenGate host.',
+      ggconfig: 'Db2 LUW and Db2 z/OS use different GoldenGate components and capture mechanisms \u2014 confirm which platform before designing Extract.',
+      versionNote: 'Db2 LUW vs Db2 z/OS support differs materially by GoldenGate version \u2014 confirm the exact component and version against the certification matrix.'
+    },
+    other: {
+      label: 'Other Supported RDBMS',
+      prereq: ['Confirm the platform appears on the current Oracle GoldenGate certification matrix','Identify the platform-specific capture mechanism (log-based, trigger-based, or JDBC-based where applicable)'],
+      logging: 'Logging/capture mechanism is platform-specific \u2014 consult the certification matrix and platform-specific GoldenGate documentation rather than assuming Oracle-style supplemental logging.',
+      conn: 'Connectivity method (native client vs JDBC) is platform-specific.',
+      ggconfig: 'Do not assume feature parity with Oracle-to-Oracle replication \u2014 verify DDL support, data type mapping, and initial load tooling for the specific platform.',
+      versionNote: 'Always confirm exact platform and version support against the current Oracle GoldenGate certification matrix before designing the architecture.'
+    }
+  };
+
+  function renderList(el, arr){
+    el.innerHTML = '<ul style="margin:0;padding-left:18px;font-size:12.5px;color:var(--muted);line-height:1.7;">' + arr.map(function(x){ return '<li>'+x+'</li>'; }).join('') + '</ul>';
+  }
+
+  function drawArch(srcKey, tgtKey){
+    var s = db[srcKey].label, t = db[tgtKey].label;
+    var el = document.getElementById('dpArchDiagram');
+    el.innerHTML =
+      '<div class="pipegrid">' +
+      '<div class="pipenode"><div class="t">' + s + '</div><div class="s">Source</div></div>' +
+      '<div class="pipearrow">&rarr;</div>' +
+      '<div class="pipenode"><div class="t">Extract</div><div class="s">Capture</div></div>' +
+      '<div class="pipearrow">&rarr;</div>' +
+      '<div class="pipenode"><div class="t">Trail</div><div class="s">Staged change records</div></div>' +
+      '<div class="pipearrow">&rarr;</div>' +
+      '<div class="pipenode"><div class="t">Replicat</div><div class="s">Apply</div></div>' +
+      '<div class="pipearrow">&rarr;</div>' +
+      '<div class="pipenode"><div class="t">' + t + '</div><div class="s">Target</div></div>' +
+      '</div>';
+  }
+
+  function update(){
+    var srcKey = document.getElementById('dpSource').value;
+    var tgtKey = document.getElementById('dpTarget').value;
+    var s = db[srcKey], t = db[tgtKey];
+    drawArch(srcKey, tgtKey);
+    renderList(document.getElementById('dpPrereqSrc'), s.prereq);
+    renderList(document.getElementById('dpPrereqTgt'), t.prereq);
+    document.getElementById('dpLogging').innerHTML = '<p style="font-size:12.5px;color:var(--muted);line-height:1.6;"><b style="color:var(--ink);">Source (' + s.label + '):</b> ' + s.logging + '</p><p style="font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:8px;"><b style="color:var(--ink);">Target (' + t.label + '):</b> ' + t.logging + '</p>';
+    document.getElementById('dpConn').innerHTML = '<p style="font-size:12.5px;color:var(--muted);line-height:1.6;"><b style="color:var(--ink);">Source:</b> ' + s.conn + '</p><p style="font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:8px;"><b style="color:var(--ink);">Target:</b> ' + t.conn + '</p>';
+    document.getElementById('dpGgConfig').innerHTML = '<p style="font-size:12.5px;color:var(--muted);line-height:1.6;"><b style="color:var(--ink);">Extract side (' + s.label + '):</b> ' + s.ggconfig + '</p><p style="font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:8px;"><b style="color:var(--ink);">Replicat side (' + t.label + '):</b> ' + t.ggconfig + '</p>';
+    document.getElementById('dpVersionNote').innerHTML = '<b>Version-dependent:</b> ' + s.versionNote + (srcKey !== tgtKey ? ' <br><b>Version-dependent (target):</b> ' + t.versionNote : '');
+  }
+
+  document.getElementById('dpSource').addEventListener('change', update);
+  document.getElementById('dpTarget').addEventListener('change', update);
+  update();
+})();
+
+
+/* ============ Installation Workflow ============ */
+(function(){
+  var steps = ["Prepare Server", "Install GoldenGate Software", "Configure Environment", "Create Directories", "Configure Ports", "Create Service Manager", "Create Deployment", "Start Services", "Configure Database Connection", "Configure Extract", "Configure Trail", "Configure Replicat", "Validate", "Start Replication"];
+  var logEl = document.getElementById('inLog');
+  var summaryEl = document.getElementById('inSummary');
+  var running = false;
+
+  function log(cls, msg){
+    var d = document.createElement('div'); d.className = cls; d.textContent = msg;
+    logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight;
+  }
+  function setState(i, cls, label){
+    var row = document.getElementById('in-' + i);
+    row.classList.remove('done','running');
+    if (cls) row.classList.add(cls);
+    document.getElementById('in-' + i + '-s').textContent = label;
+  }
+  document.getElementById('inReset').addEventListener('click', function(){
+    steps.forEach(function(s,i){ setState(i, '', 'Pending'); });
+    logEl.innerHTML = ''; summaryEl.style.display = 'none';
+  });
+  document.getElementById('inStart').addEventListener('click', function(){
+    if (running) return;
+    running = true;
+    document.getElementById('inReset').click();
+    log('t', '[INSTALL] Beginning Oracle GoldenGate Microservices installation...');
+    var i = 0;
+    function step(){
+      if (i >= steps.length){
+        running = false;
+        summaryEl.style.display = 'inline-block';
+        log('g', '[DONE] Replication is live. Initial synchronization and CDC are running.');
+        return;
+      }
+      setState(i, 'running', 'Running...');
+      log('t', '[STEP ' + (i+1) + '/' + steps.length + '] ' + steps[i] + '...');
+      setTimeout(function(){
+        setState(i, 'done', 'Completed');
+        log('g', '  \u2713 ' + steps[i] + ' completed.');
+        i++;
+        step();
+      }, 140);
+    }
+    step();
+  });
+})();
+
+
+/* ============ GoldenGate HUB advisor ============ */
+(function(){
+  document.getElementById('hubAdvise').addEventListener('click', function(){
+    var pairs = document.getElementById('hubQPairs').value;
+    var monitor = document.getElementById('hubQMonitor').value;
+    var el = document.getElementById('hubAdviceResult');
+    var recommendHub = (pairs !== '1') || (monitor === 'yes');
+    if (recommendHub){
+      el.innerHTML = '<div class="decision-card" style="border-color:var(--redwood);"><h4>Recommended: GoldenGate HUB</h4><p style="font-size:12.5px;color:var(--muted);line-height:1.6;">With ' + (pairs === '1' ? '1 pair but a stated need for centralized monitoring' : (pairs === 'few' ? '2-4 pairs' : '5 or more pairs')) + ', a HUB consolidates operations, reduces the number of standalone deployments to patch and monitor, and gives one place to see lag and health across every pair.</p></div>';
+    } else {
+      el.innerHTML = '<div class="decision-card"><h4>Recommended: Standalone Deployment</h4><p style="font-size:12.5px;color:var(--muted);line-height:1.6;">A single source/target pair with no stated centralized-management need does not yet justify the added sizing and HA/DR planning a HUB requires. Revisit as more pairs are added.</p></div>';
+    }
+  });
+})();
+
+
+/* ============ Configuration Simulator: Database Connection ============ */
+(function(){
+  var logEl = document.getElementById('ccLog');
+  var statusEl = document.getElementById('ccStatus');
+  function log(cls, msg){ var d=document.createElement('div'); d.className=cls; d.textContent=msg; logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight; }
+  document.getElementById('ccType').addEventListener('change', function(){
+    var defaults = { 'Oracle Database':'1521', 'Microsoft SQL Server':'1433', 'MySQL':'3306', 'PostgreSQL':'5432', 'IBM Db2':'50000' };
+    document.getElementById('ccPort').value = defaults[this.value] || '';
+  });
+  document.getElementById('ccTest').addEventListener('click', function(){
+    var host = document.getElementById('ccHost').value;
+    var port = document.getElementById('ccPort').value;
+    log('t', '[TEST] Attempting connection to ' + host + ':' + port + '...');
+    setTimeout(function(){
+      log('g', '  \u2713 CONNECTED \u2014 handshake successful, session established.');
+      statusEl.style.display = 'inline-block'; statusEl.className = 'status-chip active'; statusEl.textContent = 'CONNECTED';
+    }, 400);
+  });
+  document.getElementById('ccSave').addEventListener('click', function(){
+    var alias = document.getElementById('ccAlias').value;
+    log('g', '[SAVE] Credential stored under alias "' + alias + '" in the Credential Store. No plaintext password persisted.');
+  });
+  document.getElementById('ccValidate').addEventListener('click', function(){
+    var user = document.getElementById('ccUser').value;
+    log('t', '[VALIDATE] Checking privileges for user "' + user + '"...');
+    setTimeout(function(){
+      log('w', '  \u26A0 WARNING \u2014 connectivity OK, but supplemental logging not yet confirmed on all replicated objects.');
+      statusEl.style.display = 'inline-block'; statusEl.className = 'status-chip updating'; statusEl.textContent = 'WARNING';
+    }, 400);
+  });
+})();
+
+
+/* ============ Configuration Simulator: Extract Configuration ============ */
+(function(){
+  document.querySelectorAll('#exMode .radiochip').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      document.querySelectorAll('#exMode .radiochip').forEach(function(c){ c.classList.remove('sel'); });
+      chip.classList.add('sel');
+      updateParam();
+    });
+  });
+  function mode(){ var s = document.querySelector('#exMode .radiochip.sel'); return s ? s.dataset.v : 'Integrated Extract'; }
+  function updateParam(){
+    var m = mode();
+    var isInt = m === 'Integrated Extract';
+    document.getElementById('ex-log-t').textContent = isInt ? 'Redo Log (via Logminer)' : 'Redo Log (direct read)';
+    document.getElementById('ex-log-s').textContent = isInt ? 'Oracle log mining server' : 'Classic direct redo read';
+    document.getElementById('ex-cap-s').textContent = isInt ? 'Integrated Extract' : 'Classic Extract';
+    var name = document.getElementById('exName').value;
+    var trail = document.getElementById('exTrail').value;
+    var begin = document.getElementById('exBegin').value;
+    var beginParam = begin === 'NOW' ? 'BEGIN NOW' : (begin === 'Specific SCN / LSN' ? 'BEGIN (specific SCN/LSN)' : 'BEGIN (specific timestamp)');
+    var lines = [
+      'EXTRACT ' + name,
+      isInt ? 'TRANLOGOPTIONS INTEGRATEDPARAMS (MAX_SGA_SIZE 256)' : '-- Classic Extract: direct redo log read (no Logminer)',
+      'USERIDALIAS oggsrc_alias',
+      beginParam,
+      'EXTTRAIL ./dirdat/' + trail,
+      'TABLE SCHEMA.*;'
+    ];
+    document.getElementById('exParam').textContent = lines.join('\n');
+  }
+  ['exName','exTrail','exBegin'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', updateParam);
+    document.getElementById(id).addEventListener('change', updateParam);
+  });
+  updateParam();
+
+  var logEl = document.getElementById('exLog');
+  function log(cls, msg){ var d=document.createElement('div'); d.className=cls; d.textContent=msg; logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight; }
+  document.getElementById('exStart').addEventListener('click', function(){
+    ['ex-db-dot','ex-log-dot','ex-cap-dot','ex-trail-dot'].forEach(function(id){ document.getElementById(id).classList.remove('on'); });
+    logEl.innerHTML = '';
+    log('t', '[EXTRACT] ' + document.getElementById('exName').value + ' starting in ' + mode() + ' mode...');
+    var seq = ['ex-db-dot','ex-log-dot','ex-cap-dot','ex-trail-dot'];
+    var labels = ['Transaction committed in database','Change record visible in transaction log','Extract captures change','Change record written to trail'];
+    var i = 0;
+    function step(){
+      if (i >= seq.length){ log('g', '  \u2713 Extract is running and streaming changes to the trail.'); return; }
+      document.getElementById(seq[i]).classList.add('on');
+      log(i === seq.length-1 ? 'g' : 't', '  ' + labels[i]);
+      i++;
+      setTimeout(step, 450);
+    }
+    step();
+  });
+})();
+
+
+/* ============ Configuration Simulator: Trail Configuration ============ */
+(function(){
+  var logEl = document.getElementById('trLog');
+  function log(cls, msg){ var d=document.createElement('div'); d.className=cls; d.textContent=msg; logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight; }
+  var records = 0;
+  var created = false;
+  document.getElementById('trCreate').addEventListener('click', function(){
+    var name = document.getElementById('trName').value;
+    var loc = document.getElementById('trLoc').value;
+    created = true; records = 0;
+    document.getElementById('trStatus').textContent = 'Trail Active';
+    document.getElementById('trSeq').textContent = '000000';
+    document.getElementById('trFileSize').textContent = '0 MB / ' + document.getElementById('trSize').value;
+    document.getElementById('trRecords').textContent = '0';
+    log('g', '[TRAIL] Created trail "' + name + '" at ' + loc + '. Trail Created \u2192 Trail Active.');
+  });
+  document.getElementById('trFeed').addEventListener('click', function(){
+    if (!created){ log('e', '[ERROR] Create the trail first.'); return; }
+    var n = Math.floor(Math.random()*40)+10;
+    records += n;
+    var seqNum = Math.floor(records/500);
+    document.getElementById('trSeq').textContent = String(seqNum).padStart(6,'0');
+    document.getElementById('trFileSize').textContent = Math.min(100, Math.round((records%500)/5)) + '% of ' + document.getElementById('trSize').value;
+    document.getElementById('trRecords').textContent = records;
+    log('t', '[FEED] ' + n + ' change record(s) written to trail. Sequence ' + String(seqNum).padStart(6,'0') + '.');
+  });
+})();
+
+
+/* ============ Configuration Simulator: Distribution & Receiver ============ */
+(function(){
+  var logEl = document.getElementById('drLog');
+  function log(cls, msg){ var d=document.createElement('div'); d.className=cls; d.textContent=msg; logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight; }
+  document.getElementById('drApply').addEventListener('click', function(){
+    var cond = document.getElementById('drNet').value;
+    var distDot = document.getElementById('dr-dist-dot');
+    var recvDot = document.getElementById('dr-recv-dot');
+    if (cond === 'normal'){
+      document.getElementById('drConn').textContent = 'Connected';
+      document.getElementById('drThrpt').textContent = '4.2 MB/s';
+      document.getElementById('drLat').textContent = '8 ms';
+      document.getElementById('drStat').textContent = 'Healthy';
+      document.getElementById('dr-net-s').textContent = 'WAN / Cloud link \u2014 stable';
+      distDot.classList.add('on'); recvDot.classList.add('on');
+      log('g', '[NETWORK] Normal conditions \u2014 steady throughput, low latency.');
+    } else if (cond === 'slow'){
+      document.getElementById('drConn').textContent = 'Connected (degraded)';
+      document.getElementById('drThrpt').textContent = '0.4 MB/s';
+      document.getElementById('drLat').textContent = '210 ms';
+      document.getElementById('drStat').textContent = 'Degraded';
+      document.getElementById('dr-net-s').textContent = 'WAN / Cloud link \u2014 congested';
+      distDot.classList.add('on'); recvDot.classList.add('on');
+      log('w', '[NETWORK] Slow network detected \u2014 Distribution Service throughput reduced, trail read-ahead buffer growing.');
+    } else if (cond === 'fail'){
+      document.getElementById('drConn').textContent = 'Disconnected';
+      document.getElementById('drThrpt').textContent = '0 MB/s';
+      document.getElementById('drLat').textContent = 'N/A';
+      document.getElementById('drStat').textContent = 'Failed';
+      document.getElementById('dr-net-s').textContent = 'WAN / Cloud link \u2014 DOWN';
+      distDot.classList.remove('on'); recvDot.classList.remove('on');
+      log('e', '[NETWORK] Network failure \u2014 Distribution Service cannot reach Receiver Service. Trail continues accumulating locally.');
+    } else {
+      document.getElementById('drConn').textContent = 'Reconnecting...';
+      document.getElementById('drStat').textContent = 'Recovering';
+      log('t', '[NETWORK] Recovery in progress \u2014 Receiver Service resuming from last acknowledged trail position (no data loss).');
+      setTimeout(function(){
+        document.getElementById('drConn').textContent = 'Connected';
+        document.getElementById('drThrpt').textContent = '6.1 MB/s (catch-up)';
+        document.getElementById('drLat').textContent = '9 ms';
+        document.getElementById('drStat').textContent = 'Healthy (catching up)';
+        document.getElementById('dr-net-s').textContent = 'WAN / Cloud link \u2014 restored';
+        distDot.classList.add('on'); recvDot.classList.add('on');
+        log('g', '[NETWORK] Connection restored. Distribution Service is sending buffered trail data at higher throughput to catch up.');
+      }, 700);
+    }
+  });
+})();
+
+
+/* ============ Configuration Simulator: Replicat Configuration ============ */
+(function(){
+  var logEl = document.getElementById('rpLog');
+  function log(cls, msg){ var d=document.createElement('div'); d.className=cls; d.textContent=msg; logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight; }
+  var srcBody = document.getElementById('rpSrcBody');
+  var tgtBody = document.getElementById('rpTgtBody');
+  var txCount = 0;
+  var nextId = 5001;
+  var rowState = {}; // id -> {customer,status,amount,deleted}
+
+  function renderTables(){
+    var ids = Object.keys(rowState);
+    srcBody.innerHTML = ids.map(function(id){
+      var r = rowState[id];
+      if (r.deleted) return '';
+      return '<tr><td>'+id+'</td><td>'+r.customer+'</td><td>'+r.status+'</td><td>'+r.amount+'</td></tr>';
+    }).join('');
+    tgtBody.innerHTML = ids.map(function(id){
+      var r = rowState[id];
+      var cls = r.appliedClass || '';
+      if (r.deleted && r.applied) return '<tr class="del"><td>'+id+'</td><td>'+r.customer+'</td><td>'+r.status+'</td><td>'+r.amount+'</td></tr>';
+      if (r.deleted && !r.applied) return '<tr><td>'+id+'</td><td>'+r.customer+'</td><td>'+r.status+'</td><td>'+r.amount+'</td></tr>';
+      if (!r.applied) return '';
+      return '<tr class="'+cls+'"><td>'+id+'</td><td>'+r.customer+'</td><td>'+r.status+'</td><td>'+r.amount+'</td></tr>';
+    }).join('');
+  }
+
+  function pulseApply(afterFn){
+    document.getElementById('rp-node-dot').classList.add('on');
+    document.getElementById('rp-node-s').textContent = 'Applying...';
+    document.getElementById('rpStatus').textContent = 'Applying';
+    setTimeout(function(){
+      document.getElementById('rp-node-dot').classList.remove('on');
+      document.getElementById('rp-node-s').textContent = 'Apply engine';
+      document.getElementById('rpStatus').textContent = 'Idle';
+      txCount++;
+      document.getElementById('rpTx').textContent = txCount;
+      document.getElementById('rpRate').textContent = (Math.random()*3+1).toFixed(1) + ' tx/s';
+      document.getElementById('rpLag').textContent = (Math.random()*0.8+0.1).toFixed(1) + 's';
+      afterFn();
+      renderTables();
+    }, 500);
+  }
+
+  document.getElementById('rpInsert').addEventListener('click', function(){
+    var id = nextId++;
+    var customers = ['Acme Corp','Nimbus Retail','Blue Harbor','Orion Freight','Cedar Analytics'];
+    var c = customers[Math.floor(Math.random()*customers.length)];
+    var amt = (Math.random()*900+100).toFixed(2);
+    rowState[id] = { customer: c, status: 'OPEN', amount: amt, applied: false, deleted: false };
+    renderTables();
+    log('t', '[SOURCE] INSERT INTO CUSTOMER_ORDERS (ORDER_ID=' + id + ') committed on source.');
+    pulseApply(function(){
+      rowState[id].applied = true;
+      rowState[id].appliedClass = 'new';
+      log('g', '[TARGET] Replicat applied INSERT for ORDER_ID=' + id + '.');
+    });
+  });
+
+  document.getElementById('rpUpdate').addEventListener('click', function(){
+    var ids = Object.keys(rowState).filter(function(id){ return !rowState[id].deleted; });
+    if (!ids.length){ log('e', '[ERROR] No rows to update \u2014 insert one first.'); return; }
+    var id = ids[Math.floor(Math.random()*ids.length)];
+    rowState[id].status = 'SHIPPED';
+    renderTables();
+    log('t', '[SOURCE] UPDATE CUSTOMER_ORDERS SET STATUS=\'SHIPPED\' WHERE ORDER_ID=' + id + ' committed on source.');
+    pulseApply(function(){
+      rowState[id].appliedClass = 'upd';
+      log('g', '[TARGET] Replicat applied UPDATE for ORDER_ID=' + id + '.');
+    });
+  });
+
+  document.getElementById('rpDelete').addEventListener('click', function(){
+    var ids = Object.keys(rowState).filter(function(id){ return !rowState[id].deleted; });
+    if (!ids.length){ log('e', '[ERROR] No rows to delete \u2014 insert one first.'); return; }
+    var id = ids[Math.floor(Math.random()*ids.length)];
+    rowState[id].deleted = true;
+    renderTables();
+    log('t', '[SOURCE] DELETE FROM CUSTOMER_ORDERS WHERE ORDER_ID=' + id + ' committed on source.');
+    pulseApply(function(){
+      log('g', '[TARGET] Replicat applied DELETE for ORDER_ID=' + id + '.');
+    });
+  });
+
+  document.getElementById('rpClear').addEventListener('click', function(){
+    rowState = {}; txCount = 0; nextId = 5001;
+    document.getElementById('rpTx').textContent = '0';
+    document.getElementById('rpRate').textContent = '0 tx/s';
+    document.getElementById('rpLag').textContent = '0s';
+    document.getElementById('rpStatus').textContent = 'Idle';
+    logEl.innerHTML = '';
+    renderTables();
+  });
+})();
+
+
+/* ============ Topology Explorer ============ */
+(function(){
+  function node(t,s,extra){ extra = extra || ''; return '<div class="pipenode" '+extra+'><div class="t">'+t+'</div><div class="s">'+s+'</div></div>'; }
+  function arrow(sym){ return '<div class="pipearrow">'+(sym||'&rarr;')+'</div>'; }
+  var topo = {
+    'One-Way': {
+      desc: 'A single source replicates changes to a single target. The simplest and most common pattern &mdash; used for reporting offload, migration, or basic DR.',
+      draw: function(){ return '<div class="pipegrid" style="justify-content:center;">' + node('Source DB','Oracle') + arrow() + node('Extract','Capture') + arrow() + node('Trail','') + arrow() + node('Replicat','Apply') + arrow() + node('Target DB','Oracle') + '</div>'; }
+    },
+    'Bi-Directional': {
+      desc: 'Two databases replicate to each other, each acting as both source and target. Requires conflict detection/resolution (ACDR) and loopback prevention.',
+      draw: function(){ return '<div style="display:flex;flex-direction:column;gap:10px;align-items:center;">' +
+        '<div class="pipegrid" style="justify-content:center;">'+node('Database A','Active')+arrow()+node('Extract A','')+arrow()+node('Trail A','')+arrow()+node('Replicat B','')+arrow()+node('Database B','Active')+'</div>' +
+        '<div class="pipegrid" style="justify-content:center;">'+node('Database B','Active')+arrow()+node('Extract B','')+arrow()+node('Trail B','')+arrow()+node('Replicat A','')+arrow()+node('Database A','Active')+'</div>' +
+        '</div>'; }
+    },
+    'Hub-and-Spoke': {
+      desc: 'A central HUB distributes changes from one or more sources out to many spoke targets, or collects from many spokes into a central hub.',
+      draw: function(){ return '<div class="pipegrid" style="justify-content:center;">' + node('Source','') + arrow() + node('GoldenGate HUB','',' style="background:#F6DEDA;border-color:var(--redwood);"') +
+        '<div style="display:flex;flex-direction:column;gap:6px;justify-content:center;margin-left:6px;">'+node('Spoke Target 1','')+node('Spoke Target 2','')+node('Spoke Target 3','')+'</div></div>'; }
+    },
+    'Fan-Out': {
+      desc: 'One source feeds multiple independent targets simultaneously &mdash; e.g. production, reporting, and an analytics platform all fed from the same capture.',
+      draw: function(){ return '<div class="pipegrid" style="justify-content:center;">' + node('Source DB','') + arrow() +
+        '<div style="display:flex;flex-direction:column;gap:6px;justify-content:center;">'+node('Target 1','Reporting')+node('Target 2','Analytics')+node('Target 3','DR')+'</div></div>'; }
+    },
+    'Consolidation': {
+      desc: 'Multiple sources feed a single consolidated target &mdash; common for building an operational data store or centralized reporting schema.',
+      draw: function(){ return '<div class="pipegrid" style="justify-content:center;">' +
+        '<div style="display:flex;flex-direction:column;gap:6px;justify-content:center;">'+node('Source 1','')+node('Source 2','')+node('Source 3','')+'</div>' + arrow() + node('Consolidated Target','') + '</div>'; }
+    },
+    'Cascade': {
+      desc: 'Target of one replication pair becomes the source of the next, chaining changes onward &mdash; useful for staged or multi-tier distribution.',
+      draw: function(){ return '<div class="pipegrid" style="justify-content:center;">' + node('Source','') + arrow() + node('Intermediate','Target + Source') + arrow() + node('Final Target','') + '</div>'; }
+    },
+    'Multi-Source': {
+      desc: 'Multiple independent sources capture into a shared HUB or a single target, each with its own Extract/trail.',
+      draw: function(){ return '<div class="pipegrid" style="justify-content:center;">' +
+        '<div style="display:flex;flex-direction:column;gap:6px;justify-content:center;">'+node('Oracle Source','')+node('SQL Server Source','')+node('MySQL Source','')+'</div>' + arrow() + node('GoldenGate HUB','',' style="background:#F6DEDA;border-color:var(--redwood);"') + arrow() + node('Target','') + '</div>'; }
+    },
+    'Multi-Target': {
+      desc: 'A single source delivers to multiple heterogeneous targets, each with its own Replicat and independent apply cadence.',
+      draw: function(){ return '<div class="pipegrid" style="justify-content:center;">' + node('Source','') + arrow() + node('GoldenGate HUB','',' style="background:#F6DEDA;border-color:var(--redwood);"') + arrow() +
+        '<div style="display:flex;flex-direction:column;gap:6px;justify-content:center;">'+node('Oracle Target','')+node('Analytics Target','')+node('Data Lake Target','')+'</div></div>'; }
+    },
+    'Distributed Applications': {
+      desc: 'Application logic is distributed across databases kept in sync by GoldenGate, so writes to either database are eventually reflected in the other for a shared application.',
+      draw: function(){ return '<div class="pipegrid" style="justify-content:center;">' + node('App A','') + arrow() + node('Database A','') + arrow() + node('GoldenGate HUB','',' style="background:#F6DEDA;border-color:var(--redwood);"') + arrow() + node('Database B','') + arrow() + node('App B','') + '</div>'; }
+    },
+    'Analytics': {
+      desc: 'An operational source replicates into an analytics platform or data lake, typically via a Medallion-style Bronze layer, decoupling analytical workloads from OLTP.',
+      draw: function(){ return '<div class="pipegrid" style="justify-content:center;">' + node('Operational DB','OLTP') + arrow() + node('Extract + Trail','') + arrow() + node('Replicat','') + arrow() + node('Analytics / Data Lake','Bronze Layer') + '</div>'; }
+    }
+  };
+  var canvas = document.getElementById('topoCanvas');
+  var titleEl = document.getElementById('topoTitle');
+  var descEl = document.getElementById('topoDesc');
+  function select(t){
+    document.querySelectorAll('.topopill').forEach(function(p){ p.classList.toggle('sel', p.dataset.t === t); });
+    titleEl.textContent = t;
+    descEl.textContent = topo[t].desc;
+    canvas.innerHTML = topo[t].draw();
+  }
+  document.querySelectorAll('.topopill').forEach(function(p){
+    p.addEventListener('click', function(){ select(p.dataset.t); });
+  });
+  select('One-Way');
+})();
+
+
+/* ============ Multi-Source / Multi-Target ============ */
+(function(){
+  function node(t,s,extra){ extra = extra || ''; return '<div class="pipenode" '+extra+'><div class="t">'+t+'</div><div class="s">'+s+'</div></div>'; }
+  function draw(){
+    var srcSel = document.getElementById('mmSources');
+    var tgtSel = document.getElementById('mmTargets');
+    var sources = Array.prototype.filter.call(srcSel.options, function(o){ return o.selected; }).map(function(o){ return o.value; });
+    var targets = Array.prototype.filter.call(tgtSel.options, function(o){ return o.selected; }).map(function(o){ return o.value; });
+    if (!sources.length) sources = ['Oracle'];
+    if (!targets.length) targets = ['Oracle'];
+    var html = '<div class="pipegrid" style="justify-content:center;">';
+    html += '<div style="display:flex;flex-direction:column;gap:6px;justify-content:center;">' + sources.map(function(s){ return node(s, 'Source'); }).join('') + '</div>';
+    html += '<div class="pipearrow">&rarr;</div>';
+    html += node('GoldenGate HUB','Centralized capture &amp; delivery',' style="background:#F6DEDA;border-color:var(--redwood);min-width:190px;align-self:center;"');
+    html += '<div class="pipearrow">&rarr;</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:6px;justify-content:center;">' + targets.map(function(t){ return node(t, 'Target'); }).join('') + '</div>';
+    html += '</div>';
+    document.getElementById('mmCanvas').innerHTML = html;
+  }
+  document.getElementById('mmDraw').addEventListener('click', draw);
+  draw();
+})();
+
+
+/* ============ Distributed Applications ============ */
+(function(){
+  var logEl = document.getElementById('daLog');
+  function log(cls, msg){ var d=document.createElement('div'); d.className=cls; d.textContent=msg; logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight; }
+  var actions = {
+    daTx: ['t','[APP A] Transaction committed against Database A. Change captured by Extract on Database A.'],
+    daRep: ['g','[HUB] GoldenGate HUB propagates the change from Database A toward Database B via trail and Replicat.'],
+    daDelay: ['w','[NETWORK] Simulated delay introduced between source and target deployments \u2014 Replicat lag increases temporarily.'],
+    daApply: ['g','[TARGET] Replicat applies the change to Database B. Application B can now read the update.'],
+    daAvail: ['t','[APP B] Application B continues serving reads/writes against Database B independent of Application A\'s availability.'],
+    daFail: ['e','[FAILURE] Simulated GoldenGate HUB outage \u2014 both applications remain available against their own local databases, but cross-database sync pauses.'],
+    daRecover: ['g','[RECOVERY] HUB restarted \u2014 Extract and Replicat resume from the last checkpointed trail position; no data loss, sync catches up automatically.']
+  };
+  Object.keys(actions).forEach(function(id){
+    document.getElementById(id).addEventListener('click', function(){
+      log(actions[id][0], actions[id][1]);
+    });
+  });
+})();
+
+
+/* ============ Scenarios ============ */
+(function(){
+  var scenarios = [{"id": "s1", "name": "Scenario 1", "flow": "Oracle \u2192 Oracle", "biz": "Offload reporting workload from a production Oracle system to a dedicated Oracle reporting instance without impacting OLTP performance.", "src": "Oracle Database (source, OLTP)", "tgt": "Oracle Database (target, reporting)", "arch": "One-Way Replication \u2014 Oracle to Oracle", "prereq": "ARCHIVELOG mode, Force Logging, supplemental logging/TRANDATA on replicated tables, GoldenGate user with appropriate grants on both sides.", "components": "Integrated Extract, Trail, Integrated Replicat (or Parallel Replicat for higher volume).", "topology": "One-Way", "flow2": "Source Extract captures via Logminer \u2192 local trail \u2192 (optional data pump) \u2192 remote trail \u2192 Replicat applies to target.", "validation": "Compare row counts and checksums between source and target after initial load; monitor lag during CDC.", "outcome": "Reporting queries run against the target Oracle instance with near-real-time data, isolated from production OLTP load."}, {"id": "s2", "name": "Scenario 2", "flow": "Oracle \u2192 SQL Server", "biz": "Migrate or feed a downstream application built on SQL Server from an Oracle system of record.", "src": "Oracle Database", "tgt": "Microsoft SQL Server", "arch": "One-Way Replication \u2014 heterogeneous, Oracle to SQL Server", "prereq": "Oracle-side: ARCHIVELOG, Force Logging, TRANDATA. SQL Server-side: target schema pre-created, appropriate login rights, SQL Server Agent running.", "components": "Integrated Extract on Oracle, Trail, Replicat applying via native SQL Server connectivity with data type mapping.", "topology": "One-Way", "flow2": "Oracle Extract captures \u2192 trail \u2192 Replicat maps Oracle data types to SQL Server equivalents \u2192 applies to target.", "validation": "Validate data type conversions (NUMBER, DATE, CLOB mappings) and DDL differences before go-live; reconcile row counts.", "outcome": "SQL Server target stays synchronized with the Oracle source, supporting a heterogeneous downstream application or migration cutover."}, {"id": "s3", "name": "Scenario 3", "flow": "SQL Server \u2192 Oracle", "biz": "Consolidate data from a SQL Server-based application into a central Oracle data platform.", "src": "Microsoft SQL Server", "tgt": "Oracle Database", "arch": "One-Way Replication \u2014 heterogeneous, SQL Server to Oracle", "prereq": "SQL Server-side: FULL recovery model, SQL Server Agent, GoldenGate login rights. Oracle-side: target schema, TDE/encryption as required.", "components": "Extract reading the SQL Server transaction log, Trail, Replicat applying to Oracle.", "topology": "One-Way", "flow2": "SQL Server Extract reads the transaction log \u2192 trail \u2192 Replicat applies to Oracle with data type mapping.", "validation": "Confirm DDL replication approach (SQL Server DDL differs from Oracle) and validate consolidated table structure.", "outcome": "A central Oracle platform reflects near-real-time changes from the SQL Server application."}, {"id": "s4", "name": "Scenario 4", "flow": "MySQL \u2192 Oracle", "biz": "Bring transactional data from a MySQL-based web application into an Oracle analytics or reporting platform.", "src": "MySQL", "tgt": "Oracle Database", "arch": "One-Way Replication \u2014 heterogeneous, MySQL to Oracle", "prereq": "MySQL-side: binary logging enabled, binlog_format=ROW, GTID recommended. Oracle-side: target schema, appropriate grants.", "components": "Extract reading the MySQL binlog, Trail, Replicat applying to Oracle.", "topology": "One-Way", "flow2": "MySQL Extract reads binlog (ROW format) \u2192 trail \u2192 Replicat applies to Oracle.", "validation": "Confirm InnoDB storage engine is used for transactional consistency; validate character set/collation mapping.", "outcome": "Oracle platform reflects the MySQL application's transactional data for reporting or downstream consumption."}, {"id": "s5", "name": "Scenario 5", "flow": "PostgreSQL \u2192 Oracle", "biz": "Feed an Oracle-based enterprise data platform from a PostgreSQL operational system.", "src": "PostgreSQL", "tgt": "Oracle Database", "arch": "One-Way Replication \u2014 heterogeneous, PostgreSQL to Oracle", "prereq": "PostgreSQL-side: wal_level=logical, replication slot, REPLICATION role privilege. Oracle-side: target schema and grants.", "components": "Extract attached to a PostgreSQL logical replication slot, Trail, Replicat applying to Oracle.", "topology": "One-Way", "flow2": "Extract reads changes via logical decoding from the replication slot \u2192 trail \u2192 Replicat applies to Oracle.", "validation": "Monitor replication slot WAL retention/lag closely; validate data type mapping (JSON, arrays, etc.).", "outcome": "Oracle platform stays current with PostgreSQL operational changes without impacting the source's OLTP performance."}, {"id": "s6", "name": "Scenario 6", "flow": "Db2 \u2192 Oracle", "biz": "Modernize or consolidate a Db2-based system of record into an Oracle platform.", "src": "IBM Db2", "tgt": "Oracle Database", "arch": "One-Way Replication \u2014 heterogeneous, Db2 to Oracle", "prereq": "Db2-side: archival logging configured, appropriate authority level, correct GoldenGate for Db2 component (LUW vs z/OS). Oracle-side: target schema and grants.", "components": "Extract reading Db2 recovery logs, Trail, Replicat applying to Oracle.", "topology": "One-Way", "flow2": "Db2 Extract reads recovery/transaction log \u2192 trail \u2192 Replicat applies to Oracle.", "validation": "Confirm Db2 LUW vs z/OS capture mechanism matches the deployed GoldenGate component; validate data type mapping.", "outcome": "Oracle platform reflects Db2 system-of-record changes, supporting modernization or consolidation initiatives."}, {"id": "s7", "name": "Scenario 7", "flow": "Multiple Sources \u2192 HUB \u2192 Multiple Targets", "biz": "Consolidate several operational systems into a shared platform while also feeding an analytics target, all through one centrally managed deployment.", "src": "Oracle, SQL Server, MySQL (multiple sources)", "tgt": "Oracle, Analytics platform (multiple targets)", "arch": "GoldenGate HUB Topology", "prereq": "Sufficient HUB host sizing for concurrent processes; network reachability to every source and target; per-pair credential store entries.", "components": "Multiple Extracts (one per source), Distribution/Receiver Services as needed, a shared Trail management strategy, multiple Replicats (one per target).", "topology": "Hub-and-Spoke", "flow2": "Each source Extract captures independently \u2192 trails staged in the HUB \u2192 Replicats apply independently to each target, all monitored centrally.", "validation": "Validate each source/target pair independently, then validate the HUB's aggregate monitoring and alerting.", "outcome": "A single centrally managed GoldenGate HUB replicates from many operational sources into consolidated and analytics targets."}, {"id": "s8", "name": "Scenario 8", "flow": "Operational Database \u2192 GoldenGate \u2192 Analytics", "biz": "Feed a data lake or analytics platform from an operational database without impacting OLTP performance, typically landing in a Bronze layer.", "src": "Operational Database (OLTP)", "tgt": "Analytics Platform / Data Lake (Bronze Layer)", "arch": "One-Way Replication into an Analytics/Medallion architecture", "prereq": "Standard source-side logging prerequisites; target-side landing zone/object storage configured; GoldenGate for Big Data or equivalent delivery component.", "components": "Extract, Trail, Replicat delivering to the analytics platform's Bronze layer (raw, replicated data before transformation).", "topology": "Analytics", "flow2": "Extract captures OLTP changes \u2192 trail \u2192 Replicat delivers to Bronze layer \u2192 downstream transformation (Silver/Gold) happens outside GoldenGate.", "validation": "Confirm Replicat only writes to Bronze (not directly to curated Silver/Gold layers); validate schema evolution handling.", "outcome": "Analytics platform receives a continuously updated raw copy of operational data for downstream transformation and reporting."}, {"id": "s9", "name": "Scenario 9", "flow": "Distributed Application Replication", "biz": "Keep databases behind independently deployed application instances synchronized so each application can operate against a local database.", "src": "Database A (behind Application A)", "tgt": "Database B (behind Application B)", "arch": "Distributed Applications topology via GoldenGate HUB", "prereq": "Conflict detection/resolution strategy if both databases accept writes; network connectivity between application regions/environments.", "components": "Extract and Replicat on both sides (bi-directional) or one-way depending on which database is authoritative; GoldenGate HUB for centralized management.", "topology": "Distributed Applications", "flow2": "Application A writes to Database A \u2192 Extract captures \u2192 HUB routes \u2192 Replicat applies to Database B \u2192 Application B reads locally.", "validation": "Test failover/recovery of the HUB itself; validate application behavior when sync is temporarily paused.", "outcome": "Each application operates against a local, low-latency database while staying eventually consistent with the other."}, {"id": "s10", "name": "Scenario 10", "flow": "Multi-Cloud Replication", "biz": "Replicate between databases hosted in different cloud environments (or on-prem to cloud), such as an on-prem Oracle system and a Database@Azure or OCI target.", "src": "On-Prem or Cloud A Database", "tgt": "Cloud B Database (e.g. Database@Azure, OCI)", "arch": "One-Way or HUB Replication across a WAN/cloud network boundary", "prereq": "Network connectivity (VPN/FastConnect/ExpressRoute as applicable), firewall rules for GoldenGate ports, TLS between Distribution and Receiver Services.", "components": "Extract, Distribution Service, Receiver Service, Trail (local and remote), Replicat.", "topology": "One-Way", "flow2": "Source Extract captures \u2192 local trail \u2192 Distribution Service pushes across the cloud network boundary \u2192 Receiver Service writes remote trail \u2192 Replicat applies.", "validation": "Test network failure/recovery behavior explicitly; validate throughput and latency meet the stated bandwidth/latency requirements.", "outcome": "Cross-cloud or on-prem-to-cloud replication stays resilient to transient network issues and meets the agreed RPO."}];
+  var map = {};
+  scenarios.forEach(function(s){ map[s.id] = s; });
+  function render(id){
+    var s = map[id];
+    document.querySelectorAll('#scenarioPick .scenariocard').forEach(function(c){ c.classList.toggle('sel', c.dataset.id === id); });
+    var html = '<h3>' + s.name + ': ' + s.flow + '</h3>';
+    html += '<table>';
+    html += '<tr><th style="width:220px;">Business Requirement</th><td>' + s.biz + '</td></tr>';
+    html += '<tr><th>Source</th><td>' + s.src + '</td></tr>';
+    html += '<tr><th>Target</th><td>' + s.tgt + '</td></tr>';
+    html += '<tr><th>Architecture</th><td>' + s.arch + '</td></tr>';
+    html += '<tr><th>Prerequisites</th><td>' + s.prereq + '</td></tr>';
+    html += '<tr><th>GoldenGate Components</th><td>' + s.components + '</td></tr>';
+    html += '<tr><th>Topology</th><td>' + s.topology + '</td></tr>';
+    html += '<tr><th>Replication Flow</th><td>' + s.flow2 + '</td></tr>';
+    html += '<tr><th>Validation</th><td>' + s.validation + '</td></tr>';
+    html += '<tr><th>Expected Outcome</th><td>' + s.outcome + '</td></tr>';
+    html += '</table>';
+    document.getElementById('scenarioDetail').innerHTML = html;
+  }
+  document.querySelectorAll('#scenarioPick .scenariocard').forEach(function(c){
+    c.addEventListener('click', function(){ render(c.dataset.id); });
+  });
+  render('s1');
+})();
+
+
+</script>
+</body>
+</html>

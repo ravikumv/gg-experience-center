@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Ravikumar Vasudevan">
+<title>GoldenGate Commands Simulator | Admin Client, Live Simulator &amp; Command Reference</title>
+<style>
+  :root{
+    --redwood:#C74634;
+    --redwood-dark:#9C3327;
+    --ink:#1B1B1B;
+    --muted:#5F6368;
+    --line:#E3E1DD;
+    --bg:#FAF9F7;
+    --panel:#FFFFFF;
+    --ok:#2E7D32;
+    --warn:#B45309;
+    --err:#C62828;
+    --primary-blue:#1B6FC9;
+    --standby-grey:#8A8D91;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);}
+  header{background:var(--ink);color:#fff;padding:18px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  header .title{display:flex;align-items:center;gap:12px;}
+  header .badge{background:var(--redwood);color:#fff;font-size:11px;font-weight:700;letter-spacing:.06em;padding:4px 10px;border-radius:4px;text-transform:uppercase;}
+  header h1{font-size:18px;margin:0;font-weight:600;}
+  header .sub{font-size:12px;color:#C9C9C9;margin-top:2px;}
+  nav{display:flex;gap:2px;background:#fff;border-bottom:2px solid var(--line);padding:0 20px;overflow-x:auto;position:sticky;top:0;z-index:20;}
+  nav button{border:none;background:transparent;padding:14px 16px;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
+  nav button:hover{color:var(--ink);}
+  nav button.active{color:var(--redwood);border-bottom-color:var(--redwood);}
+  main{max-width:1280px;margin:0 auto;padding:22px 20px 60px;}
+  section.tab{display:none;}
+  section.tab.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+  h2{font-size:20px;margin:4px 0 6px;}
+  h3.sec{font-size:15px;margin:22px 0 8px;color:var(--redwood-dark);}
+  p.lead{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:900px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;}
+  .card h3{margin:0 0 8px;font-size:14.5px;color:var(--redwood-dark);display:flex;align-items:center;gap:8px;}
+  .card p{margin:0;font-size:13px;color:var(--muted);line-height:1.55;}
+  .pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;background:#F3E9E7;color:var(--redwood-dark);letter-spacing:.03em;margin-right:6px;margin-bottom:6px;}
+  .pill.blue{background:#E7F0FB;color:var(--primary-blue);}
+  .pill.grey{background:#EEEFEF;color:var(--muted);}
+  .pill.green{background:#E6F4EA;color:var(--ok);}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+  button.action{background:var(--redwood);color:#fff;border:none;padding:9px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;}
+  button.action:hover{background:var(--redwood-dark);}
+  button.action.secondary{background:#fff;color:var(--redwood);border:1.5px solid var(--redwood);}
+  button.action.secondary:hover{background:#FBEFED;}
+  button.action.ghost{background:#fff;color:var(--muted);border:1.5px solid var(--line);}
+  button.action.ghost:hover{border-color:var(--muted);color:var(--ink);}
+  button.action:disabled{opacity:.45;cursor:not-allowed;}
+  button.action.sm{padding:6px 11px;font-size:12px;}
+  .canvas-wrap{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;}
+  canvas{width:100%;display:block;border-radius:6px;background:#fff;}
+  .log{background:#111417;color:#D7F5DE;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;border-radius:8px;padding:12px 14px;height:150px;overflow-y:auto;margin-top:12px;line-height:1.6;}
+  .log .t{color:#7DA6FF;}
+  .log .w{color:#FFD479;}
+  .log .e{color:#FF8A80;}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px;}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);}
+  th{color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;}
+  .note{background:#FFF7EA;border:1px solid #F1DDAF;color:#7A5A12;font-size:12.5px;padding:10px 14px;border-radius:8px;margin-top:14px;}
+  footer{text-align:center;font-size:11.5px;color:var(--muted);padding:20px;border-top:1px solid var(--line);}
+  a.back{color:var(--redwood);text-decoration:none;font-size:12.5px;font-weight:600;}
+  .flex-between{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+  .status-chip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+  .status-chip.active,.status-chip.running{background:#E6F4EA;color:var(--ok);}
+  .status-chip.updating,.status-chip.starting{background:#FFF3D6;color:var(--warn);}
+  .status-chip.down,.status-chip.abended{background:#FBE7E5;color:var(--err);}
+  .status-chip.stopped{background:#EEEFEF;color:var(--muted);}
+  .version-badge{background:rgba(255,255,255,.12);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer;border:1px solid rgba(255,255,255,.25);white-space:nowrap;}
+  .version-badge:hover{background:rgba(255,255,255,.2);}
+  #changelogPanel{display:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 20px;max-width:1280px;margin:0 auto 24px;}
+  #changelogPanel.open{display:block;}
+  #changelogPanel h3{margin:0 0 10px;font-size:14px;color:var(--redwood-dark);}
+  .cl-entry{border-left:3px solid var(--redwood);padding:4px 0 4px 12px;margin-bottom:10px;}
+  .cl-entry .cl-ver{font-weight:700;font-size:13px;}
+  .cl-entry .cl-date{color:var(--muted);font-size:11.5px;margin-left:8px;}
+  .cl-entry ul{margin:4px 0 0;padding-left:18px;font-size:12.5px;color:var(--muted);}
+  .cl-close{float:right;background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;}
+
+  /* ---- terminal / admin client ---- */
+  .termwrap{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start;}
+  @media (max-width:860px){.termwrap{grid-template-columns:1fr;}}
+  .env-panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;}
+  .env-panel h4{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);}
+  .proc-item{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px;}
+  .proc-item:last-child{border-bottom:none;}
+  .proc-name{font-weight:600;}
+  .proc-sub{color:var(--muted);font-size:11px;}
+  .terminal{background:#0B0E11;border-radius:10px;border:1px solid #1E2227;overflow:hidden;}
+  .terminal .tbar{background:#15181C;padding:8px 12px;display:flex;align-items:center;gap:8px;}
+  .tbar .dot{width:10px;height:10px;border-radius:50%;}
+  .tbar .dot.r{background:#FF5F57;} .tbar .dot.y{background:#FEBC2E;} .tbar .dot.g{background:#28C840;}
+  .tbar span.lbl{color:#8A8D91;font-size:11.5px;margin-left:8px;font-family:ui-monospace,Menlo,Consolas,monospace;}
+  .tscroll{height:360px;overflow-y:auto;padding:12px 14px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;color:#D7F5DE;line-height:1.65;}
+  .tscroll .prompt{color:#7DA6FF;}
+  .tscroll .out{color:#D7F5DE;white-space:pre-wrap;}
+  .tscroll .err{color:#FF8A80;white-space:pre-wrap;}
+  .tscroll .warnl{color:#FFD479;white-space:pre-wrap;}
+  .tinputrow{display:flex;align-items:center;gap:8px;background:#111417;padding:10px 14px;border-top:1px solid #1E2227;}
+  .tinputrow span.pr{color:#7DA6FF;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;}
+  .tinputrow input{flex:1;background:transparent;border:none;outline:none;color:#F2F2F2;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;}
+  .quickcmds{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+  .qc{background:#fff;border:1px solid var(--line);color:var(--ink);font-size:11.5px;padding:5px 10px;border-radius:20px;cursor:pointer;font-family:ui-monospace,Menlo,Consolas,monospace;}
+  .qc:hover{border-color:var(--redwood);color:var(--redwood-dark);}
+
+  /* ---- command matrix / reference ---- */
+  .catbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+  .catbtn{background:#fff;border:1.5px solid var(--line);color:var(--muted);font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:20px;cursor:pointer;}
+  .catbtn.active{border-color:var(--redwood);color:var(--redwood-dark);background:#FBEFED;}
+  .cmd-row{background:var(--panel);border:1px solid var(--line);border-radius:8px;margin-bottom:8px;overflow:hidden;}
+  .cmd-row-head{display:flex;justify-content:space-between;align-items:center;padding:11px 16px;cursor:pointer;}
+  .cmd-row-head:hover{background:#FAF7F5;}
+  .cmd-name{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700;font-size:13px;color:var(--ink);}
+  .cmd-applies{font-size:11px;color:var(--muted);margin-left:10px;}
+  .cmd-row-body{display:none;padding:0 16px 16px;border-top:1px solid var(--line);}
+  .cmd-row.open .cmd-row-body{display:block;}
+  .cmd-row.open .chev{transform:rotate(90deg);}
+  .chev{transition:transform .15s ease;color:var(--muted);}
+  .cf-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px;}
+  @media (max-width:760px){.cf-grid{grid-template-columns:1fr;}}
+  .cf{font-size:12.5px;}
+  .cf b{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--redwood-dark);margin-bottom:4px;}
+  .cf code, code.inline{background:#F3F1EE;border-radius:4px;padding:1px 5px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;}
+  .cf pre{background:#111417;color:#D7F5DE;border-radius:6px;padding:10px 12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;margin:0;white-space:pre-wrap;line-height:1.6;}
+  .cf ul{margin:0;padding-left:16px;color:var(--muted);}
+  .search-box{position:relative;margin-bottom:16px;}
+  .search-box input{width:100%;padding:11px 14px 11px 38px;border-radius:8px;border:1.5px solid var(--line);font-size:13.5px;background:#fff;}
+  .search-box input:focus{outline:none;border-color:var(--redwood);}
+  .search-box .si{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);}
+  .resultcount{font-size:12px;color:var(--muted);margin-bottom:10px;}
+
+  /* ---- live simulator diagram ---- */
+  .diagram-wrap{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;}
+  .stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:14px;}
+  .stat-box{background:#FAF7F5;border:1px solid var(--line);border-radius:8px;padding:10px 12px;text-align:center;}
+  .stat-box .v{font-size:19px;font-weight:700;color:var(--redwood-dark);}
+  .stat-box .l{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:2px;}
+  .builder-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;}
+  .builder-row select, .builder-row input[type=text]{padding:8px 10px;border:1.5px solid var(--line);border-radius:6px;font-size:12.5px;font-family:ui-monospace,Menlo,Consolas,monospace;}
+  .builder-out{background:#111417;color:#D7F5DE;border-radius:8px;padding:12px 14px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;margin-top:6px;}
+  .scenario-card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:8px;}
+  .scenario-card h4{margin:0 0 4px;font-size:13px;}
+  .scenario-card p{margin:0 0 8px;font-size:12px;color:var(--muted);}
+
+  /* ---- source/target data tables ---- */
+  .data-table-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;}
+  .data-table-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+  .dt-schema{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700;font-size:12.5px;}
+  .dt-db{color:var(--muted);font-size:11px;}
+  table.data-table{width:100%;font-size:12px;border-collapse:collapse;}
+  table.data-table th{font-size:10px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;}
+  table.data-table td{padding:5px 6px;border-bottom:1px solid var(--line);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;}
+  table.data-table tbody tr:last-child td{border-bottom:none;}
+  table.data-table tr.row-insert{animation:flashInsert 1.4s ease;}
+  table.data-table tr.row-update{animation:flashUpdate 1.4s ease;}
+  table.data-table tr.row-delete{animation:flashDelete .6s ease forwards;}
+  @keyframes flashInsert{from{background:#E6F4EA;}to{background:transparent;}}
+  @keyframes flashUpdate{from{background:#E7F0FB;}to{background:transparent;}}
+  @keyframes flashDelete{from{background:#FBE7E5;}to{background:#FBE7E5;opacity:0;}}
+
+  /* ---- comparison ---- */
+  .compare-table td, .compare-table th{vertical-align:top;font-size:12.5px;}
+  .compare-table td ul{margin:0;padding-left:16px;}
+  .colhead{font-weight:700;color:var(--redwood-dark);}
+
+  /* ---- command reference matrix ---- */
+  .ref-matrix-wrap{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:visible;}
+  table.ref-matrix{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0;font-size:12px;}
+  table.ref-matrix thead th{background:#F7F3F1;color:var(--redwood-dark);border-bottom:2px solid var(--line);padding:10px 10px;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;}
+  table.ref-matrix td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;background:#fff;word-wrap:break-word;overflow-wrap:break-word;}
+  table.ref-matrix tbody tr:hover td{background:#FAF7F5;}
+  table.ref-matrix th.colcmd, table.ref-matrix td.colcmd{background:#fff;border-right:1px solid var(--line);width:11%;}
+  table.ref-matrix thead th.colcmd{background:#F7F3F1;}
+  table.ref-matrix tbody tr:hover td.colcmd{background:#FAF7F5;}
+  table.ref-matrix td.colcat{color:var(--muted);font-size:11px;width:8%;}
+  .refcell-name{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700;color:var(--ink);font-size:12.5px;}
+  .refcell-applies{display:block;color:var(--muted);font-size:10px;margin-top:2px;font-weight:400;}
+  .refcell{font-size:11.5px;color:var(--muted);line-height:1.5;}
+  .refcell pre{margin:0;white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;font-weight:700;background:#F7F5F2;border-radius:4px;padding:5px 7px;color:var(--ink);}
+  .refcell ul{margin:0;padding-left:14px;}
+</style>
+<script>
+document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+document.addEventListener('keydown', function(e){
+  var k = e.key ? e.key.toUpperCase() : '';
+  if (
+    k === 'F12' ||
+    (e.ctrlKey && k === 'U') ||
+    (e.ctrlKey && e.shiftKey && (k === 'I' || k === 'J' || k === 'C')) ||
+    (e.metaKey && e.altKey && (k === 'I' || k === 'J' || k === 'C'))
+  ) {
+    e.preventDefault();
+  }
+});
+</script>
+<script>
+/* Basic deterrents against casual view-source / copying.
+   NOTE: This does not provide real security — any determined visitor can
+   still access the page source via browser dev tools, curl, or other means. */
+document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+document.addEventListener('keydown', function(e){
+  var k = e.key ? e.key.toUpperCase() : '';
+  if (
+    k === 'F12' ||
+    (e.ctrlKey && k === 'U') ||
+    (e.ctrlKey && e.shiftKey && (k === 'I' || k === 'J' || k === 'C')) ||
+    (e.metaKey && e.altKey && (k === 'I' || k === 'J' || k === 'C'))
+  ) {
+    e.preventDefault();
+  }
+});
+</script>
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <span class="badge">Admin Client</span>
+    <div>
+      <h1>GoldenGate Commands Simulator</h1>
+      <div class="sub">Admin Client Terminal &middot; Command Matrix &middot; Live Replication Simulator &middot; Command Reference &middot; GGSCI vs AdminClient vs Web UI vs REST API</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <button class="version-badge" id="verBadge">v1.7.0 &middot; Changelog</button>
+    <a class="back" href="index.html">&larr; Back to GoldenGate Experience Center</a>
+  </div>
+</header>
+
+<div id="changelogPanel">
+  <button class="cl-close" id="clClose">&#10005; Close</button>
+  <h3>Version History</h3>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.7.0</span><span class="cl-date">2026-08-10</span>
+    <ul>
+      <li>Admin Client Terminal quick-commands extended with STATS EXTRACT EXT1, START REPLICAT REP1, STOP REPLICAT REP1, VIEW PARAMS EXT1, and VIEW PARAMS REP1.</li>
+      <li>Default simulated topology now standardized on Integrated Extract (EXT1) and Parallel Replicat, Non-Integrated (REP1) &mdash; reflected in the environment panel, INFO EXTRACT/REPLICAT output, and VIEW PARAMS output out of the box.</li>
+    </ul>
+  </div>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.6.0</span><span class="cl-date">2026-08-10</span>
+    <ul>
+      <li>Command Builder (Live Simulator): added the missing INFO ALL option, plus DISCONNECT, HISTORY, VERSION, and HELP &mdash; all parameterless commands that build and run with a single click, no Object/Type/Name/Extra fields needed.</li>
+      <li>Builder field visibility now adapts per verb: full fields for ADD/ALTER/DELETE/START/STOP/INFO, Name-only for CONNECT/DBLOGIN/VIEW PARAM, and no fields at all for INFO ALL/DISCONNECT/HISTORY/VERSION/HELP.</li>
+    </ul>
+  </div>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.5.0</span><span class="cl-date">2026-08-10</span>
+    <ul>
+      <li>Command Builder (Live Simulator) extended with three new verbs: CONNECT, DBLOGIN, and VIEW PARAM, each with their own field layout and simulated output.</li>
+      <li>New Type quick-select appears for ADD/ALTER + EXTRACT or REPLICAT: Classic Extract, Integrated Extract, Classic Replicat, Coordinated Replicat, Integrated Replicat, Parallel Integrated Replicat, and Parallel Non-Integrated Replicat &mdash; each auto-fills the correct type clause.</li>
+      <li>ADD EXTRACT in the terminal/builder now detects Classic vs Integrated capture mode from the command text; the environment panel shows each Extract's capture mode and each Replicat's apply type inline.</li>
+      <li>VIEW PARAMS &lt;name&gt; is now a working command across the Admin Client Terminal, Live Simulator console, and Command Builder, returning a simulated parameter file for the matching Extract or Replicat.</li>
+    </ul>
+  </div>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.4.0</span><span class="cl-date">2026-08-10</span>
+    <ul>
+      <li>Live Simulator reordered: Transaction Simulator &rarr; Command Search &rarr; Command Builder &rarr; Mini Console (Execute Simulated Commands) &rarr; Process &amp; Failure Controls &rarr; Troubleshooting Scenarios &rarr; Checkpoints, Statistics &amp; Reports.</li>
+      <li>Transaction Simulator now shows live Source (SALES.ORDERS on ORCLPDB1) and Target (SALES.ORDERS on the target DB) data tables with sample rows.</li>
+      <li>INSERT/UPDATE/DELETE mutate the Source table immediately; the Target table updates after the same delay used for the Replication Lag stat, with insert/update/delete row highlight animations on both sides.</li>
+      <li>Reset Environment now also reseeds both data tables back to their starting rows.</li>
+    </ul>
+  </div>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.3.0</span><span class="cl-date">2026-08-10</span>
+    <ul>
+      <li>Replicat Management updated to reflect all five apply types: Classic, Coordinated, Integrated, Parallel Replicat (Non-Integrated), and Parallel Replicat (Integrated).</li>
+      <li>New Replicat Apply Types comparison table shown at the top of the Replicat Management category in the Admin Client Commands matrix.</li>
+      <li>ADD REPLICAT syntax/example/errors/validation rewritten to cover all five type keywords; ALTER REPLICAT now notes that apply type cannot be changed without DELETE + re-ADD.</li>
+      <li>Admin Client Terminal, Live Simulator, and Command Reference now track and display each Replicat's apply type (default REP1 = Parallel Integrated); ADD REPLICAT in the terminal/command builder detects the type from the command text.</li>
+    </ul>
+  </div>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.2.0</span><span class="cl-date">2026-08-10</span>
+    <ul>
+      <li>Command Reference matrix now shows every cell fully expanded by default &mdash; no per-cell truncation, no expand/collapse controls needed.</li>
+      <li>Removed the nested scroll container (sticky header/pinned column): the matrix now flows naturally in the page for easier top-to-bottom study.</li>
+      <li>Syntax, Example, and Output columns rendered in bold monospace for faster scanning.</li>
+    </ul>
+  </div>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.1.0</span><span class="cl-date">2026-08-10</span>
+    <ul>
+      <li>Command Reference converted from expandable cards to a true row/column matrix: 42 commands x 9 attributes (Command, Category, Purpose, Syntax, Example, Output, Common Errors, Troubleshooting, Validation).</li>
+      <li>Sticky header row and pinned Command column for horizontal scroll on smaller screens; category filter chips added to the reference tab; per-cell and Expand/Collapse-all controls for long content.</li>
+    </ul>
+  </div>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.0.0</span><span class="cl-date">2026-08-09</span>
+    <ul>
+      <li>Initial release: interactive Admin Client Terminal, 9-category Command Matrix, Live Simulator with animated packet flow, Command Reference, and GGSCI vs AdminClient vs Web UI vs REST API comparison.</li>
+      <li>Shared 42-command catalog powers the terminal engine, command matrix, command builder/search, and searchable reference.</li>
+      <li>Failure simulation: process ABEND, network outage, database connectivity loss, and lag injection, with guided troubleshooting scenarios.</li>
+    </ul>
+  </div>
+</div>
+
+<nav id="tabNav">
+  <button data-tab="terminal" class="active">Admin Client Terminal</button>
+  <button data-tab="commands">Admin Client Commands</button>
+  <button data-tab="live">Live Simulator</button>
+  <button data-tab="reference">Command Reference</button>
+  <button data-tab="compare">GGSCI vs AdminClient vs Web UI vs REST API</button>
+</nav>
+
+<main>
+
+<!-- ===================== TAB 1: ADMIN CLIENT TERMINAL ===================== -->
+<section class="tab active" id="tab-terminal">
+  <h2>Admin Client Terminal</h2>
+  <p class="lead"><b>Objective:</b> connect to a simulated OCI GoldenGate deployment, enter Admin Client commands, execute them, and see realistic output &mdash; while watching the simulated deployment's process status update live on the left.</p>
+
+  <div class="termwrap">
+    <div class="env-panel">
+      <h4>Simulated Deployment</h4>
+      <div id="depName" style="font-weight:700;font-size:13.5px;margin-bottom:2px;">FINANCE_REPL01</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;" id="depConnState">Not connected</div>
+
+      <h4>Services</h4>
+      <div id="svcList"></div>
+
+      <h4 style="margin-top:14px;">Extract</h4>
+      <div id="extList"></div>
+
+      <h4 style="margin-top:14px;">Replicat</h4>
+      <div id="repList"></div>
+
+      <h4 style="margin-top:14px;">Distribution Path</h4>
+      <div id="pathList"></div>
+    </div>
+
+    <div>
+      <div class="terminal">
+        <div class="tbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="lbl">AdminClient &mdash; GoldenGate Commands Simulator</span></div>
+        <div class="tscroll" id="term1"></div>
+        <div class="tinputrow">
+          <span class="pr" id="promptLbl">AdminClient&gt;</span>
+          <input type="text" id="term1Input" autocomplete="off" spellcheck="false" placeholder="Type a command, e.g. CONNECT https://ggdeploy01.oggcloud.example.com:443 AS oggadmin PASSWORD ********">
+        </div>
+      </div>
+      <div class="quickcmds" id="quick1"></div>
+      <div class="note">Not connected yet? Try the first quick-command below, or type <code class="inline">HELP</code>. Most commands require an active CONNECT session first &mdash; exactly like the real AdminClient.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TAB 2: ADMIN CLIENT COMMANDS ===================== -->
+<section class="tab" id="tab-commands">
+  <h2>Admin Client Commands</h2>
+  <p class="lead">Commands grouped into 9 functional categories, covering Extract, Replicat, Trails, Distribution Paths, Receiver Service, Service Manager, Administration Service, Performance Metrics Service, and database connectivity. Click any command to expand Purpose, Syntax, Example, Expected Output, Common Errors, Validation, and Monitoring.</p>
+
+  <div class="catbar" id="catBar"></div>
+  <div id="cmdMatrix"></div>
+
+  <h3 class="sec">Interactive Views</h3>
+  <p class="lead" style="margin-bottom:12px;">Live-style panels for the data every command above ultimately surfaces: parameters, reports &amp; messages, statistics, transactions, records, checkpoints, trail sequence/RBA, replication lag, and throughput.</p>
+  <div class="catbar" id="viewBar"></div>
+  <div id="viewPanel" class="card"></div>
+</section>
+
+<!-- ===================== TAB 3: LIVE SIMULATOR ===================== -->
+<section class="tab" id="tab-live">
+  <h2>Live Simulator</h2>
+  <p class="lead">A working model of one Extract &rarr; Trail &rarr; Distribution &rarr; Receiver &rarr; Trail &rarr; Replicat pipeline. Generate transactions, control processes, inject failures, and use the built-in command search, builder, and mini console to troubleshoot &mdash; all against the same command engine as the Admin Client Terminal tab.</p>
+
+  <div class="diagram-wrap">
+    <canvas id="liveCanvas" height="230"></canvas>
+    <div class="stat-row">
+      <div class="stat-box"><div class="v" id="statCaptured">0</div><div class="l">Records Captured</div></div>
+      <div class="stat-box"><div class="v" id="statApplied">0</div><div class="l">Records Applied</div></div>
+      <div class="stat-box"><div class="v" id="statSeq">000001</div><div class="l">Trail Sequence</div></div>
+      <div class="stat-box"><div class="v" id="statRba">0</div><div class="l">Trail RBA</div></div>
+      <div class="stat-box"><div class="v" id="statLag">00:00:00</div><div class="l">Replication Lag</div></div>
+      <div class="stat-box"><div class="v" id="statTput">0 rec/s</div><div class="l">Throughput</div></div>
+    </div>
+  </div>
+
+  <h3 class="sec">Transaction Simulator</h3>
+  <div class="toolbar">
+    <button class="action" id="btnInsert">Generate INSERT</button>
+    <button class="action" id="btnUpdate">Generate UPDATE</button>
+    <button class="action" id="btnDelete">Generate DELETE</button>
+    <button class="action secondary" id="btnBurst">Burst (10 txns)</button>
+  </div>
+
+  <div class="grid2">
+    <div class="data-table-card">
+      <div class="data-table-head">
+        <span class="pill blue">SOURCE</span>
+        <span class="dt-schema">SALES.ORDERS</span>
+        <span class="dt-db">ORCLPDB1</span>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>ORDER_ID</th><th>CUSTOMER</th><th>AMOUNT</th><th>STATUS</th></tr></thead>
+        <tbody id="sourceTableBody"></tbody>
+      </table>
+    </div>
+    <div class="data-table-card">
+      <div class="data-table-head">
+        <span class="pill green">TARGET</span>
+        <span class="dt-schema">SALES.ORDERS</span>
+        <span class="dt-db">Target DB</span>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>ORDER_ID</th><th>CUSTOMER</th><th>AMOUNT</th><th>STATUS</th></tr></thead>
+        <tbody id="targetTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="note">Source updates the instant a transaction is generated; Target updates after the record travels through Extract &rarr; Trail &rarr; Distribution &rarr; Receiver &rarr; Replicat &mdash; the same delay reflected in the Replication Lag stat above.</div>
+
+  <h3 class="sec">Command Search</h3>
+  <div class="search-box">
+    <span class="si">&#128269;</span>
+    <input type="text" id="liveSearch" placeholder="Search commands by name, category, or keyword&hellip;">
+  </div>
+  <div id="liveSearchResults"></div>
+
+  <h3 class="sec">Command Builder</h3>
+  <div class="card">
+    <div class="builder-row">
+      <select id="bVerb">
+        <option>ADD</option><option>ALTER</option><option>DELETE</option>
+        <option>START</option><option>STOP</option><option>INFO</option>
+        <option>INFO ALL</option>
+        <option>CONNECT</option><option>DBLOGIN</option><option>VIEW PARAM</option>
+        <option>DISCONNECT</option><option>HISTORY</option><option>VERSION</option><option>HELP</option>
+      </select>
+      <select id="bObj">
+        <option>EXTRACT</option><option>REPLICAT</option><option>EXTTRAIL</option>
+        <option>RMTTRAIL</option><option>PATH</option><option>TRANDATA</option>
+      </select>
+      <select id="bType"></select>
+      <input type="text" id="bName" placeholder="name / schema.table, e.g. EXT1">
+      <input type="text" id="bExtra" placeholder="extra clause (optional), e.g. INTEGRATED TRANLOG, BEGIN NOW">
+      <button class="action sm" id="bBuild">Build</button>
+      <button class="action secondary sm" id="bRun">Build &amp; Run</button>
+    </div>
+    <div class="note" style="margin-top:0;">Pick <b>ADD</b> + <b>EXTRACT</b> or <b>REPLICAT</b>, then use the third dropdown to auto-fill the correct type clause &mdash; Classic/Integrated Extract, or Classic/Coordinated/Integrated/Parallel Integrated/Parallel Non-Integrated Replicat. <b>CONNECT</b>, <b>DBLOGIN</b>, and <b>VIEW PARAM</b> use just the Name field. <b>INFO ALL</b>, <b>DISCONNECT</b>, <b>HISTORY</b>, <b>VERSION</b>, and <b>HELP</b> need no fields at all &mdash; just click Build &amp; Run.</div>
+    <div class="builder-out" id="bOut">&mdash;</div>
+  </div>
+
+  <h3 class="sec">Mini Console &mdash; Execute Simulated Commands</h3>
+  <div class="terminal">
+    <div class="tbar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="lbl">AdminClient &mdash; Live Simulator Console</span></div>
+    <div class="tscroll" id="term2" style="height:220px;"></div>
+    <div class="tinputrow">
+      <span class="pr">AdminClient&gt;</span>
+      <input type="text" id="term2Input" autocomplete="off" spellcheck="false" placeholder="Try: INFO ALL, or a command you just built above">
+    </div>
+  </div>
+
+  <h3 class="sec">Process &amp; Failure Controls</h3>
+  <div class="toolbar">
+    <button class="action ghost sm" id="liveStartExt">Start Extract</button>
+    <button class="action ghost sm" id="liveStopExt">Stop Extract</button>
+    <button class="action ghost sm" id="liveStartRep">Start Replicat</button>
+    <button class="action ghost sm" id="liveStopRep">Stop Replicat</button>
+    <button class="action secondary sm" id="liveRestartAll">Restart All</button>
+    <button class="action ghost sm" id="failProcess">Simulate Process Failure</button>
+    <button class="action ghost sm" id="failNetwork">Simulate Network Failure</button>
+    <button class="action ghost sm" id="failDb">Simulate DB Connectivity Failure</button>
+    <button class="action ghost sm" id="injectLag">Simulate Replication Lag</button>
+    <button class="action secondary sm" id="liveResetAll">&#8635; Reset Environment</button>
+  </div>
+
+  <h3 class="sec">Troubleshooting Scenarios</h3>
+  <div id="scenarioList"></div>
+
+  <h3 class="sec">Checkpoints, Statistics &amp; Reports</h3>
+  <div class="card">
+    <div id="chkptView" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;white-space:pre-wrap;color:var(--muted);"></div>
+  </div>
+</section>
+
+<!-- ===================== TAB 4: COMMAND REFERENCE ===================== -->
+<section class="tab" id="tab-reference">
+  <h2>Command Reference</h2>
+  <p class="lead">All 42 Admin Client commands as a single matrix &mdash; Command, Category, Purpose, Syntax, Example, Output, Common Errors, Troubleshooting, and Validation, fully expanded for easy study.</p>
+  <div class="search-box">
+    <span class="si">&#128269;</span>
+    <input type="text" id="refSearch" placeholder="Search all commands&hellip; e.g. lag, trandata, path, DBLOGIN">
+  </div>
+  <div class="catbar" id="refCatBar"></div>
+  <div class="resultcount" id="refCount"></div>
+  <div class="ref-matrix-wrap">
+    <table class="ref-matrix" id="refMatrix">
+      <thead>
+        <tr>
+          <th class="colcmd">Command</th>
+          <th class="colcat">Category</th>
+          <th>Purpose</th>
+          <th>Syntax</th>
+          <th>Example</th>
+          <th>Output</th>
+          <th>Common Errors</th>
+          <th>Troubleshooting</th>
+          <th>Validation</th>
+        </tr>
+      </thead>
+      <tbody id="refMatrixBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===================== TAB 5: COMPARISON ===================== -->
+<section class="tab" id="tab-compare">
+  <h2>Classic GGSCI vs Admin Client vs Web UI vs REST API</h2>
+  <p class="lead">Four ways to administer Oracle GoldenGate, spanning two architecture generations. GGSCI belongs to the classic architecture; Admin Client, the deployment console Web UI, and the REST API all belong to the Microservices architecture (which is what OCI GoldenGate deployments use).</p>
+
+  <table class="compare-table">
+    <tr>
+      <th>Dimension</th>
+      <th class="colhead">Classic GGSCI</th>
+      <th class="colhead">Admin Client (CLI)</th>
+      <th class="colhead">Deployment Console (Web UI)</th>
+      <th class="colhead">REST API</th>
+    </tr>
+    <tr><td><b>Architecture</b></td><td>Classic Architecture</td><td>Microservices Architecture</td><td>Microservices Architecture</td><td>Microservices Architecture</td></tr>
+    <tr><td><b>Interface type</b></td><td>Local command-line shell on the GoldenGate host</td><td>Command-line client connecting over HTTPS to the Administration Service</td><td>Browser-based UI served by the deployment</td><td>HTTPS JSON endpoints exposed by each microservice</td></tr>
+    <tr><td><b>Where it runs</b></td><td>On the GoldenGate install directory of the source/target host</td><td>On a consultant's workstation or a bastion/jump host, connecting remotely</td><td>Any browser with network access to the deployment</td><td>Any HTTP client &mdash; scripts, orchestration tools, monitoring platforms</td></tr>
+    <tr><td><b>Authentication</b></td><td>OS-level access to the host; optional GGSCI-level password</td><td>Deployment admin username/password or credential store alias over TLS</td><td>Deployment admin username/password over TLS</td><td>Basic Auth / token over TLS, same identity as the console</td></tr>
+    <tr><td><b>Typical use in OCI GoldenGate</b></td><td>Not used &mdash; OCI GoldenGate deployments are Microservices only</td><td>Scriptable administration, batch changes, CI/CD-style automation, this simulator's command engine</td><td>Day-to-day monitoring, quick start/stop actions, visual topology, exploring a deployment interactively</td><td>Building custom dashboards, integrating with ticketing/monitoring systems, programmatic bulk operations</td></tr>
+    <tr><td><b>Command style</b></td><td><code class="inline">GGSCI&gt; info all</code></td><td><code class="inline">AdminClient&gt; INFO ALL</code> (same command grammar, different transport)</td><td>Point-and-click; underlying calls are REST</td><td><code class="inline">GET /services/v2/extracts</code> style JSON calls</td></tr>
+    <tr><td><b>Scripting / automation</b></td><td>OS shell scripts wrapping ggsci &lt;&lt; EOF blocks</td><td>Native &mdash; commands can be scripted/piped, ideal for repeatable change scripts</td><td>Limited &mdash; not designed for scripting</td><td>Best fit for automation &mdash; language-agnostic, used by the Web UI itself under the hood</td></tr>
+    <tr><td><b>Pros</b></td>
+      <td><ul><li>Familiar to long-time GoldenGate admins</li><li>Works fully offline/local</li></ul></td>
+      <td><ul><li>Full command surface, same grammar as GGSCI</li><li>Good for remote, repeatable administration</li><li>No browser required</li></ul></td>
+      <td><ul><li>Visual topology and health at a glance</li><li>Low learning curve for new team members</li></ul></td>
+      <td><ul><li>Fully programmatic</li><li>Powers custom dashboards and integrations</li><li>Language/tool agnostic</li></ul></td>
+    </tr>
+    <tr><td><b>Cons</b></td>
+      <td><ul><li>Not available on OCI GoldenGate deployments</li><li>Requires host-level access</li></ul></td>
+      <td><ul><li>Command-line only, no visual topology</li></ul></td>
+      <td><ul><li>Not scriptable</li><li>Slower for bulk/repetitive changes</li></ul></td>
+      <td><ul><li>Requires JSON/HTTP tooling knowledge</li><li>No interactive command help built in</li></ul></td>
+    </tr>
+  </table>
+
+  <div class="note">Rule of thumb Ravi applies with customers: GGSCI is the on-prem, classic-architecture tool and is <b>not</b> how OCI GoldenGate deployments are administered. For OCI GoldenGate, use the deployment console Web UI for day-to-day visual monitoring, Admin Client for scripted/remote changes, and the REST API for integration and automation &mdash; all three ultimately talk to the same underlying microservices.</div>
+</section>
+
+</main>
+
+<footer>GoldenGate Commands Simulator &middot; part of the GoldenGate Experience Center &middot; Ravikumar Vasudevan</footer>
+
+<script>
+const CATALOG = [{"id": "connect", "category": "Connection Commands", "appliesTo": "Administration Service", "name": "CONNECT", "purpose": "Opens an AdminClient session to a deployment's Administration Service over HTTPS. Required before any other command (except HELP/VERSION/HISTORY) will run.", "syntax": "CONNECT https://&lt;host&gt;:&lt;port&gt; AS &lt;username&gt; PASSWORD &lt;password&gt; [DEPLOYMENT &lt;name&gt;]", "example": "CONNECT https://ggdeploy01.oggcloud.example.com:443 AS oggadmin PASSWORD ********", "output": ["Connecting to https://ggdeploy01.oggcloud.example.com:443 ...", "Deployment: FINANCE_REPL01 (OCI GoldenGate 23ai Microservices)", "Administration Service .... ACTIVE", "Distribution Service ...... ACTIVE", "Receiver Service .......... ACTIVE", "Successfully connected."], "errors": ["OGG-15051: Unable to establish a connection to the given host/port (network/firewall/NSG).", "OGG-00453: Invalid username or password.", "OGG-15150: AdminClient version older than the deployment - upgrade AdminClient."], "validation": "Confirm the deployment console URL from the OCI Console or Service Manager landing page; verify the AdminClient build is the same or newer than the deployment; confirm the client's IP is permitted by the deployment's allow-list / NSG.", "monitoring": "Run INFO ALL immediately after connecting to baseline every process's status before making changes.", "troubleshooting": "If CONNECT hangs, check network path/NSG rules first, then confirm the Administration Service is not itself down (check from OCI Console health status)."}, {"id": "addcred", "category": "Connection Commands", "appliesTo": "Administration Service", "name": "ADD CREDENTIALS", "purpose": "Stores a reusable, encrypted alias for a username/password in the deployment's credential store so scripts and parameter files never carry clear-text passwords.", "syntax": "ALTER CREDENTIALSTORE ADD USER &lt;db_user&gt; ALIAS &lt;alias&gt; DOMAIN OracleGoldenGate PASSWORD &lt;password&gt;", "example": "ALTER CREDENTIALSTORE ADD USER ggadmin ALIAS salesdb_alias DOMAIN OracleGoldenGate PASSWORD ********", "output": ["Credential store altered.", "Alias 'salesdb_alias' added under domain OracleGoldenGate."], "errors": ["OGG-06439: Credential store does not exist - run ADD CREDENTIALSTORE first.", "OGG-01223: Alias already exists - use ALTER instead of ADD semantics or DELETE first."], "validation": "Confirm the alias name is unique per domain; test with DBLOGIN USERIDALIAS &lt;alias&gt; before referencing it in parameter files.", "monitoring": "INFO CREDENTIALSTORE lists all stored aliases without exposing passwords.", "troubleshooting": "If DBLOGIN using the alias fails, re-add the credential - a stale password after a DB account reset is the most common cause."}, {"id": "disconnect", "category": "Connection Commands", "appliesTo": "Administration Service", "name": "DISCONNECT", "purpose": "Cleanly closes the current AdminClient session without exiting the client shell.", "syntax": "DISCONNECT", "example": "DISCONNECT", "output": ["Disconnected from FINANCE_REPL01."], "errors": ["OGG-00404: No active connection to disconnect."], "validation": "Not required - always safe to issue.", "monitoring": "n/a", "troubleshooting": "If a later CONNECT fails claiming a session already exists, issue DISCONNECT first."}, {"id": "help", "category": "Connection Commands", "appliesTo": "Administration Service", "name": "HELP", "purpose": "Lists available AdminClient command groups, or gives syntax help for one command when a keyword is supplied.", "syntax": "HELP [&lt;command&gt;]", "example": "HELP ADD EXTRACT", "output": ["ADD EXTRACT &lt;name&gt;, {TRANLOG|INTEGRATED TRANLOG}, BEGIN {NOW|&lt;timestamp&gt;}", "  Creates a new Extract group. See also: ALTER EXTRACT, DELETE EXTRACT."], "errors": ["OGG-00401: Unrecognized HELP topic."], "validation": "n/a", "monitoring": "n/a", "troubleshooting": "Works without a connection - useful as a first sanity check that AdminClient itself launched correctly."}, {"id": "history", "category": "Connection Commands", "appliesTo": "Administration Service", "name": "HISTORY", "purpose": "Displays the command history for the current AdminClient session, in order, with sequence numbers for quick re-entry.", "syntax": "HISTORY", "example": "HISTORY", "output": ["1  CONNECT https://ggdeploy01...", "2  INFO ALL", "3  START EXTRACT EXT1", "4  HISTORY"], "errors": [], "validation": "n/a", "monitoring": "Useful for building a session audit trail before pasting commands into a change ticket.", "troubleshooting": "History is session-scoped only - it is not written to a report file automatically."}, {"id": "version", "category": "Connection Commands", "appliesTo": "Administration Service", "name": "VERSION", "purpose": "Reports the AdminClient build version and, once connected, the connected deployment's Oracle GoldenGate release.", "syntax": "VERSION", "example": "VERSION", "output": ["AdminClient Version 23.6.0.0.0", "Connected Deployment Version: Oracle GoldenGate 23ai Microservices 23.6.0.0.0"], "errors": [], "validation": "Confirm AdminClient version &ge; deployment version before connecting to avoid protocol mismatches.", "monitoring": "n/a", "troubleshooting": "Version skew between AdminClient and the deployment is the top cause of CONNECT failures after an upgrade."}, {"id": "infoall", "category": "Environment Commands", "appliesTo": "Administration Service", "name": "INFO ALL", "purpose": "Single-screen summary of every Extract, Replicat, and Distribution Path in the deployment with status and lag - the standard first command after connecting.", "syntax": "INFO ALL", "example": "INFO ALL", "output": ["Program     Group     Status      Lag at Chkpt   Time Since Chkpt", "EXTRACT     EXT1      RUNNING     00:00:03        00:00:01", "EXTRACT     EXTPMP1   RUNNING     00:00:01        00:00:00", "REPLICAT    REP1      RUNNING     00:00:05        00:00:02"], "errors": ["OGG-00402: Not connected to a deployment - issue CONNECT first."], "validation": "Cross-check every group's Status column against the change window's expected state before/after maintenance.", "monitoring": "Re-run periodically or script via REST API polling for dashboards; this is the fastest health check available.", "troubleshooting": "A group missing from INFO ALL was likely never ADDed, or was DELETEd - check INFO &lt;TYPE&gt; &lt;name&gt; for the exact error."}, {"id": "infosvcmgr", "category": "Environment Commands", "appliesTo": "Service Manager", "name": "INFO SERVICEMANAGER", "purpose": "Shows Service Manager health and the deployments it currently hosts on this node - the top of the OCI GoldenGate microservices stack.", "syntax": "INFO SERVICEMANAGER", "example": "INFO SERVICEMANAGER", "output": ["Service Manager  Port: 443  Status: RUNNING", "Deployments hosted: FINANCE_REPL01 (ACTIVE), HR_REPL02 (ACTIVE)"], "errors": ["OGG-15051: Cannot reach Service Manager endpoint."], "validation": "Confirm the deployment you intend to manage is listed and ACTIVE before running any deployment-scoped command.", "monitoring": "Service Manager outages take down AdminClient/Web UI access to every deployment on that node - check this first during an access outage.", "troubleshooting": "In OCI GoldenGate, Service Manager health is also visible from the OCI Console deployment Details page."}, {"id": "statusdep", "category": "Environment Commands", "appliesTo": "Administration Service", "name": "STATUS DEPLOYMENT", "purpose": "Reports overall deployment health - CPU/memory of the deployment container, disk usage for trail storage, and aggregate service state.", "syntax": "STATUS DEPLOYMENT", "example": "STATUS DEPLOYMENT", "output": ["Deployment: FINANCE_REPL01   OCPU: 2 (Auto Scale: ON)", "Trail storage used: 38% of allocated Block Volume", "All services: ACTIVE"], "errors": ["OGG-00402: Not connected to a deployment."], "validation": "Watch trail storage percentage - trails that fill the volume abend every Extract/Replicat writing to them.", "monitoring": "Alert if storage exceeds ~80%; pair with trail purge/retention policy review.", "troubleshooting": "Sustained high OCPU with Auto Scale off usually means it is time to resize rather than tune parameters further."}, {"id": "infoextract", "category": "Process Monitoring", "appliesTo": "Extract", "name": "INFO EXTRACT", "purpose": "Detailed status for one Extract group: run state, capture mode, checkpoint position, and current lag against the source.", "syntax": "INFO EXTRACT &lt;name&gt; [DETAIL]", "example": "INFO EXTRACT EXT1 DETAIL", "output": ["EXTRACT    EXT1   Last Started 2026-08-09 06:02   Status RUNNING", "Checkpoint Lag    00:00:03 (updated 00:00:01 ago)", "Log Read Checkpoint  Oracle Integrated Redo Logs", "                     SCN 48213345120 (2026-08-09 10:14:02)"], "errors": ["OGG-02047: Group EXT1 does not exist.", "OGG-01192: Extract is ABENDED - see the process report."], "validation": "Confirm Status is RUNNING and lag is within SLA before treating a source change as fully captured.", "monitoring": "Poll on an interval and alert on ABENDED, STOPPED (unexpected), or lag over threshold.", "troubleshooting": "If Status flips between STARTING and ABENDED repeatedly, check the report for a parameter or connectivity error rather than restarting blindly."}, {"id": "statusextract", "category": "Process Monitoring", "appliesTo": "Extract", "name": "STATUS EXTRACT / REPLICAT", "purpose": "Quick one-line run-state check (RUNNING / STOPPED / ABENDED / STARTING) without the full INFO detail.", "syntax": "STATUS {EXTRACT|REPLICAT} &lt;name&gt;", "example": "STATUS REPLICAT REP1", "output": ["REPLICAT   REP1   RUNNING"], "errors": ["OGG-02047: Group REP1 does not exist."], "validation": "Use before START/STOP to avoid issuing a redundant command against a group already in that state.", "monitoring": "Cheapest possible health probe - good for tight polling loops.", "troubleshooting": "STARTING that never reaches RUNNING within ~30s usually means the parameter file or trail is unavailable."}, {"id": "lag", "category": "Process Monitoring", "appliesTo": "Extract", "name": "LAG / SEND ... GETLAG", "purpose": "Forces a fresh lag calculation instead of waiting for the next checkpoint interval - the fastest way to get a current, non-cached lag value.", "syntax": "SEND {EXTRACT|REPLICAT} &lt;name&gt;, GETLAG", "example": "SEND EXTRACT EXT1, GETLAG", "output": ["Sending GETLAG request to EXTRACT EXT1 ...", "Last record lag: 00:00:02 seconds", "At checkpoint lag: 00:00:03 seconds"], "errors": ["OGG-01162: Process is not running - cannot compute lag.", "OGG-02095: Request timed out - process may be hung."], "validation": "A GETLAG timeout on a RUNNING process is itself a symptom worth escalating (hung capture/apply).", "monitoring": "Feed into the Performance Metrics Service for trending rather than relying on ad-hoc checks alone.", "troubleshooting": "Chronic rising lag with a RUNNING status usually points to apply-side (Replicat) bottlenecks, not the network."}, {"id": "infosvcs", "category": "Process Monitoring", "appliesTo": "Administration Service", "name": "INFO REPLICAT", "purpose": "Detailed status for one Replicat group: apply mode, checkpoint position in the trail, applied transaction counters, and current lag.", "syntax": "INFO REPLICAT &lt;name&gt; [DETAIL]", "example": "INFO REPLICAT REP1 DETAIL", "output": ["REPLICAT   REP1   Last Started 2026-08-09 06:03   Status RUNNING", "Apply Type  PARALLEL INTEGRATED", "Checkpoint Lag  00:00:05", "Log Read Checkpoint  File ./dirdat/ab000000128", "                     RBA 48213345, 2026-08-09 10:14:00"], "errors": ["OGG-02047: Group REP1 does not exist.", "OGG-01296: Replicat is ABENDED on a DML apply error."], "validation": "Confirm checkpoint RBA is advancing between two consecutive calls - a static RBA with RUNNING status signals a stall.", "monitoring": "Track applied-record throughput trend alongside lag to distinguish slow apply from a genuinely idle source.", "troubleshooting": "ABENDED with a DML conflict usually needs HANDLECOLLISIONS review or a target-side data fix, not a blind restart."}, {"id": "stats", "category": "Process Monitoring", "appliesTo": "Extract", "name": "STATS EXTRACT / REPLICAT", "purpose": "Cumulative operation counts (inserts/updates/deletes, DDL) processed since the group last started - the core throughput/volume view.", "syntax": "STATS {EXTRACT|REPLICAT} &lt;name&gt; [TOTALSONLY | DAILY]", "example": "STATS REPLICAT REP1", "output": ["Total inserts             184,220", "Total updates              42,015", "Total deletes                  980", "Total operations           227,215", "Total in Replicat since start  00:41:12"], "errors": ["OGG-02047: Group does not exist."], "validation": "Compare Extract capture counts to Replicat apply counts over the same window to spot silent drops.", "monitoring": "Reset counters at maintenance boundaries (process restart resets them) so windows are comparable.", "troubleshooting": "A big gap between Extract and Replicat totals with no errors logged usually means a filter/mapping is discarding rows intentionally - verify against the parameter file."}, {"id": "addextract", "category": "Extract Management", "appliesTo": "Extract", "name": "ADD EXTRACT", "purpose": "Creates a new Extract group that will capture changes from the source, either via classic TRANLOG reading or Integrated Capture inside the database.", "syntax": "ADD EXTRACT &lt;name&gt;, {TRANLOG|INTEGRATED TRANLOG}, BEGIN {NOW|&lt;timestamp&gt;}", "example": "ADD EXTRACT EXT1, INTEGRATED TRANLOG, BEGIN NOW", "output": ["EXTRACT added.", "Group EXT1 created in INTEGRATED TRANLOG capture mode, begin time 2026-08-09 06:00:00."], "errors": ["OGG-02021: Group name already exists.", "OGG-02243: Source database not registered for Integrated Capture - run REGISTER EXTRACT first."], "validation": "Verify REGISTER EXTRACT completed before ADD EXTRACT when using Integrated Capture; confirm BEGIN time is not earlier than available redo/archive logs.", "monitoring": "Follow immediately with ADD EXTTRAIL to give the group somewhere to write.", "troubleshooting": "ADD failing with 'not registered' is expected on first setup - REGISTER EXTRACT then re-run ADD."}, {"id": "alterextract", "category": "Extract Management", "appliesTo": "Extract", "name": "ALTER EXTRACT", "purpose": "Changes an existing Extract group's configuration, most commonly repositioning its read checkpoint (e.g. after a long outage) or changing its trail assignment.", "syntax": "ALTER EXTRACT &lt;name&gt;, {BEGIN &lt;timestamp&gt; | ETROLLOVER | EXTTRAIL &lt;trail&gt;}", "example": "ALTER EXTRACT EXT1, BEGIN 2026-08-09 08:00:00", "output": ["EXTRACT altered.", "Checkpoint repositioned. Restart EXT1 for the change to take effect."], "errors": ["OGG-00446: Group is running - stop it before altering checkpoint position.", "OGG-02245: Requested BEGIN time precedes the earliest available source log."], "validation": "Always STOP the group before ALTER of checkpoint-affecting parameters, then START afterward.", "monitoring": "Confirm via INFO EXTRACT DETAIL that the new checkpoint took effect after restart.", "troubleshooting": "Repositioning BEGIN forward in time (skipping data) requires explicit acknowledgement in production - treat as a data-loss risk change."}, {"id": "deleteextract", "category": "Extract Management", "appliesTo": "Extract", "name": "DELETE EXTRACT", "purpose": "Permanently removes an Extract group's definition and checkpoint from the deployment. Does not delete trail files already written.", "syntax": "DELETE EXTRACT &lt;name&gt;", "example": "DELETE EXTRACT EXT_OLD", "output": ["Extract EXT_OLD deleted."], "errors": ["OGG-00446: Cannot delete a running group - STOP it first.", "OGG-02047: Group does not exist."], "validation": "Confirm no Replicat/Distribution Path still depends on trails this Extract feeds before deleting - orphaned dependents will stall.", "monitoring": "n/a - one-time administrative action; document in the change record.", "troubleshooting": "If deleted in error, the group must be re-ADDed and re-registered; checkpoint history is not recoverable."}, {"id": "startextract", "category": "Extract Management", "appliesTo": "Extract", "name": "START / STOP / RESTART EXTRACT", "purpose": "Controls the run state of an Extract group. RESTART is a convenience for STOP followed by START, useful after a parameter file edit.", "syntax": "START EXTRACT &lt;name&gt;  |  STOP EXTRACT &lt;name&gt;  |  (RESTART = STOP then START)", "example": "STOP EXTRACT EXT1\nSTART EXTRACT EXT1", "output": ["Sending STOP request to EXTRACT EXT1 ...", "EXTRACT EXT1 stopped.", "Sending START request to EXTRACT EXT1 ...", "EXTRACT EXT1 starting.", "EXTRACT EXT1 RUNNING."], "errors": ["OGG-01640: Extract already running - START is a no-op, check STATUS first.", "OGG-01192: Extract failed to start - ABENDED, see report for root cause."], "validation": "Check STATUS EXTRACT before START/STOP to avoid redundant commands and confusing report noise.", "monitoring": "Confirm INFO EXTRACT shows RUNNING and lag decreasing within a few checkpoint cycles after START.", "troubleshooting": "A group that STOPs immediately after STARTing typically has a bad parameter, missing trail path, or lost database session - check the latest report first."}, {"id": "addreplicat", "category": "Replicat Management", "appliesTo": "Replicat", "name": "ADD REPLICAT", "purpose": "Creates a new Replicat group that reads a trail and applies changes to the target. Oracle GoldenGate supports five apply types - Classic (single-threaded, legacy), Coordinated (manually-threaded, legacy), Integrated (apply offloaded to the Oracle target's inbound server), Parallel/Non-Integrated (process-managed automatic parallel apply, the modern default for any supported target), and Parallel Integrated (Parallel Replicat's dependency computation combined with the Oracle inbound server, for maximum Oracle-to-Oracle throughput). The type is set at ADD time and cannot be changed later with ALTER.", "syntax": "ADD REPLICAT &lt;name&gt;, EXTTRAIL &lt;trail&gt;                              (Classic)\nADD REPLICAT &lt;name&gt;, COORDINATED [MAXTHREADS &lt;n&gt;], EXTTRAIL &lt;trail&gt;  (Coordinated)\nADD REPLICAT &lt;name&gt;, INTEGRATED, EXTTRAIL &lt;trail&gt;                    (Integrated)\nADD REPLICAT &lt;name&gt;, PARALLEL, EXTTRAIL &lt;trail&gt;                      (Parallel, Non-Integrated)\nADD REPLICAT &lt;name&gt;, PARALLEL, INTEGRATED, EXTTRAIL &lt;trail&gt;          (Parallel Integrated)", "example": "ADD REPLICAT REP1, PARALLEL, INTEGRATED, EXTTRAIL ./dirdat/ab, BEGIN NOW", "output": ["REPLICAT added.", "Group REP1 created reading trail ./dirdat/ab in PARALLEL INTEGRATED apply mode."], "errors": ["OGG-02021: Group name already exists.", "OGG-02246: Referenced trail does not exist - ADD EXTTRAIL/RMTTRAIL first.", "OGG-25004: INTEGRATED and PARALLEL INTEGRATED require the target database's inbound server to exist and the GoldenGate DB user to hold DBMS_GOLDENGATE_AUTH privileges.", "Classic and Coordinated are legacy types - Oracle recommends Parallel Replicat (Non-Integrated or Integrated) for new high-volume implementations."], "validation": "Confirm the trail already exists and is being written to by the correct upstream Extract/Distribution Path before ADD. Confirm target platform support before choosing a type: INTEGRATED and PARALLEL INTEGRATED require an Oracle target with the inbound server enabled; PARALLEL (Non-Integrated) works against any supported heterogeneous target and is now the recommended default; COORDINATED and Classic are retained only for compatibility with older configurations. To change a Replicat's type later, DELETE and re-ADD the group - ALTER cannot change the apply type.", "monitoring": "Follow with DBLOGIN and a parameter file mapping before first START. For Coordinated/Parallel types, watch per-thread statistics, not just the group total, to confirm work is balanced across threads.", "troubleshooting": "A Replicat that starts but applies zero rows usually points at a trail path or MAP statement mismatch, not the ADD step or the chosen type."}, {"id": "alterreplicat", "category": "Replicat Management", "appliesTo": "Replicat", "name": "ALTER REPLICAT", "purpose": "Changes an existing Replicat's configuration - most commonly repositioning the trail read checkpoint or switching HANDLECOLLISIONS behavior for a controlled reconciliation.", "syntax": "ALTER REPLICAT &lt;name&gt;, {EXTSEQNO &lt;n&gt;, EXTRBA &lt;n&gt; | BEGIN &lt;timestamp&gt;}", "example": "ALTER REPLICAT REP1, EXTSEQNO 128, EXTRBA 0", "output": ["REPLICAT altered.", "Checkpoint repositioned to sequence 128, RBA 0. Restart REP1 for the change to take effect."], "errors": ["OGG-00446: Group is running - stop it before altering checkpoint position.", "OGG-02246: Requested sequence/RBA is not present in the available trail files."], "validation": "Always STOP before checkpoint-affecting ALTER; verify the target sequence/RBA still exists on disk (not yet purged). ALTER cannot change a Replicat between apply types (Classic, Coordinated, Integrated, Parallel Non-Integrated, Parallel Integrated) - changing type requires DELETE and re-ADD.", "monitoring": "INFO REPLICAT DETAIL after restart to confirm the new checkpoint took hold.", "troubleshooting": "Repositioning backward re-applies already-applied data - only safe if the target table is idempotent or was restored to match."}, {"id": "deletereplicat", "category": "Replicat Management", "appliesTo": "Replicat", "name": "DELETE REPLICAT", "purpose": "Permanently removes a Replicat group's definition and checkpoint. Does not affect the trail it was reading.", "syntax": "DELETE REPLICAT &lt;name&gt;", "example": "DELETE REPLICAT REP_OLD", "output": ["Replicat REP_OLD deleted."], "errors": ["OGG-00446: Cannot delete a running group - STOP it first.", "OGG-02047: Group does not exist."], "validation": "Confirm nothing downstream (reporting, reconciliation jobs) still expects this group's checkpoint history.", "monitoring": "n/a - document in the change record.", "troubleshooting": "If removed in error, re-ADD and reposition the checkpoint carefully rather than guessing BEGIN NOW."}, {"id": "startreplicat", "category": "Replicat Management", "appliesTo": "Replicat", "name": "START / STOP / RESTART REPLICAT", "purpose": "Controls the run state of a Replicat group, regardless of its apply type (Classic, Coordinated, Integrated, Parallel Non-Integrated, or Parallel Integrated). RESTART (STOP then START) is the standard recovery step after fixing a parameter or target-side blocker.", "syntax": "START REPLICAT &lt;name&gt;  |  STOP REPLICAT &lt;name&gt;  |  (RESTART = STOP then START)", "example": "STOP REPLICAT REP1\nSTART REPLICAT REP1", "output": ["Sending STOP request to REPLICAT REP1 ...", "REPLICAT REP1 stopped.", "Sending START request to REPLICAT REP1 ...", "REPLICAT REP1 starting.", "REPLICAT REP1 RUNNING."], "errors": ["OGG-01640: Replicat already running.", "OGG-01296: Replicat ABENDED on a DML apply error - resolve before restart or it will abend again immediately."], "validation": "Check STATUS REPLICAT first; if ABENDED on a data error, fix or skip the offending transaction before restarting, not just restart.", "monitoring": "Watch STATS REPLICAT applied counts increase and lag fall after a successful restart.", "troubleshooting": "Repeated immediate ABEND after START on the same operation usually needs HANDLECOLLISIONS, a target data fix, or a checkpoint skip - not more restarts."}, {"id": "addexttrail", "category": "Trail Management", "appliesTo": "Trail", "name": "ADD EXTTRAIL", "purpose": "Creates a local trail on the source-side deployment that an Extract writes to and a Distribution Path reads from.", "syntax": "ADD EXTTRAIL &lt;trail&gt;, EXTRACT &lt;name&gt;[, MEGABYTES &lt;n&gt;]", "example": "ADD EXTTRAIL ./dirdat/aa, EXTRACT EXT1, MEGABYTES 200", "output": ["EXTTRAIL added.", "Trail ./dirdat/aa associated with EXTRACT EXT1, max file size 200MB."], "errors": ["OGG-02021: Trail already exists.", "OGG-02047: Referenced EXTRACT group does not exist - ADD EXTRACT first."], "validation": "Confirm sufficient Block Volume capacity for expected trail growth given retention policy.", "monitoring": "INFO EXTTRAIL shows current sequence number and file count - watch growth rate against free space.", "troubleshooting": "If files are not rolling at the configured MEGABYTES, verify the Extract actually restarted after the trail was added."}, {"id": "addrmttrail", "category": "Trail Management", "appliesTo": "Trail", "name": "ADD RMTTRAIL", "purpose": "Creates the corresponding remote (target-side) trail that the Receiver Service writes to and a Replicat reads from.", "syntax": "ADD RMTTRAIL &lt;trail&gt;, EXTRACT &lt;name&gt;[, MEGABYTES &lt;n&gt;]", "example": "ADD RMTTRAIL ./dirdat/ab, EXTRACT EXT1, MEGABYTES 200", "output": ["RMTTRAIL added.", "Remote trail ./dirdat/ab registered for incoming data associated with EXT1's Distribution Path."], "errors": ["OGG-02021: Trail already exists.", "OGG-15092: Target deployment not reachable to register the remote trail."], "validation": "Confirm the Distribution Path connecting the two deployments is already ADDed and RUNNING, or the remote trail will never receive data.", "monitoring": "INFO RMTTRAIL / INFO EXTTRAIL on the target side to confirm sequence numbers are advancing.", "troubleshooting": "A remote trail stuck at sequence 0 almost always means the Distribution Path or network path between deployments is down, not the trail definition."}, {"id": "alterexttrail", "category": "Trail Management", "appliesTo": "Trail", "name": "ALTER EXTTRAIL", "purpose": "Changes trail file sizing or purge/retention behavior for an existing trail.", "syntax": "ALTER EXTTRAIL &lt;trail&gt;, MEGABYTES &lt;n&gt;", "example": "ALTER EXTTRAIL ./dirdat/aa, MEGABYTES 500", "output": ["EXTTRAIL altered.", "New files will roll at 500MB; existing files are unaffected."], "errors": ["OGG-02047: Trail does not exist."], "validation": "Confirm downstream storage headroom supports the new file size before applying to a busy trail.", "monitoring": "Track average file lifetime after the change to confirm the new sizing behaves as expected.", "troubleshooting": "Sizing changes only apply to newly created files - do not expect existing files to resize."}, {"id": "deleteexttrail", "category": "Trail Management", "appliesTo": "Trail", "name": "DELETE EXTTRAIL", "purpose": "Removes a trail definition. Underlying trail files on disk must be cleaned up separately if no longer needed.", "syntax": "DELETE EXTTRAIL &lt;trail&gt;", "example": "DELETE EXTTRAIL ./dirdat/ao", "output": ["EXTTRAIL ./dirdat/ao deleted."], "errors": ["OGG-00446: Trail is in use by a running Extract or Replicat - stop dependents first."], "validation": "Confirm no group still references this trail (INFO EXTRACT/REPLICAT DETAIL) before deleting.", "monitoring": "n/a", "troubleshooting": "Deleting a trail still in use is the most common cause of a subsequent 'trail file not found' ABEND on a dependent group."}, {"id": "infoexttrail", "category": "Trail Management", "appliesTo": "Trail", "name": "INFO EXTTRAIL", "purpose": "Shows current sequence number, RBA, and associated Extract/Replicat for a trail - the primary tool for confirming end-to-end data flow position.", "syntax": "INFO EXTTRAIL &lt;trail&gt;", "example": "INFO EXTTRAIL ./dirdat/aa", "output": ["Trail ./dirdat/aa   Current Sequence: 000128   Current RBA: 48213345", "Written by: EXTRACT EXT1   Read by: DISTPATH PATH1"], "errors": ["OGG-02047: Trail does not exist."], "validation": "Compare source-side trail sequence/RBA to target-side remote trail sequence/RBA to quantify how far replication has propagated.", "monitoring": "A growing gap between source and target trail sequence numbers is the earliest reliable sign of a distribution problem.", "troubleshooting": "If sequence stalls on the source side, the problem is capture (Extract); if it stalls only on the target side, the problem is distribution or the network."}, {"id": "addpath", "category": "Distribution Path", "appliesTo": "Distribution Service", "name": "ADD PATH", "purpose": "Creates a Distribution Path that pumps trail data from this deployment's Distribution Service to a target deployment's Receiver Service across the network.", "syntax": "ADD PATH &lt;name&gt;, SOURCE &lt;trail&gt;, TARGET &lt;host&gt;:&lt;port&gt;/&lt;deployment&gt;", "example": "ADD PATH PATH1, SOURCE ./dirdat/aa, TARGET ggdeploy02.oggcloud.example.com:443/HR_REPL02", "output": ["PATH added.", "PATH1 will stream ./dirdat/aa to ggdeploy02.oggcloud.example.com:443/HR_REPL02."], "errors": ["OGG-02021: Path already exists.", "OGG-15092: Target deployment unreachable - verify NSG/firewall and port 443."], "validation": "Confirm the target deployment's Receiver Service is RUNNING and the remote trail has been ADDed before enabling the path.", "monitoring": "INFO PATH shows connection state and bytes sent - watch for repeated reconnect attempts.", "troubleshooting": "A path that connects then immediately drops usually indicates a TLS/certificate mismatch or an NSG rule blocking the return path."}, {"id": "alterpath", "category": "Distribution Path", "appliesTo": "Distribution Service", "name": "ALTER PATH", "purpose": "Changes an existing Distribution Path's target endpoint or transfer options (e.g. compression, encryption).", "syntax": "ALTER PATH &lt;name&gt;, TARGET &lt;host&gt;:&lt;port&gt;/&lt;deployment&gt;", "example": "ALTER PATH PATH1, TARGET ggdeploy02b.oggcloud.example.com:443/HR_REPL02", "output": ["PATH altered.", "New target endpoint will take effect on next path restart."], "errors": ["OGG-00446: Path is running - stop before altering the endpoint."], "validation": "Stop the path, confirm the new endpoint is reachable, then start.", "monitoring": "INFO PATH after restart to confirm connection is established to the new endpoint.", "troubleshooting": "If the alter is for a DR cutover, pair it with a peer-deployment role check rather than treating it as a standalone step."}, {"id": "deletepath", "category": "Distribution Path", "appliesTo": "Distribution Service", "name": "DELETE PATH", "purpose": "Removes a Distribution Path definition. Does not delete the source or target trail.", "syntax": "DELETE PATH &lt;name&gt;", "example": "DELETE PATH PATH_OLD", "output": ["PATH PATH_OLD deleted."], "errors": ["OGG-00446: Path is running - stop it first.", "OGG-02047: Path does not exist."], "validation": "Confirm no target-side Replicat is still expecting new data from this path.", "monitoring": "n/a", "troubleshooting": "After deletion, target trail sequence will simply stop advancing - that is expected, not an error."}, {"id": "infopath", "category": "Distribution Path", "appliesTo": "Distribution Service", "name": "INFO PATH", "purpose": "Shows a path's connection state, throughput, and any queued/retrying data - the primary tool for diagnosing cross-deployment lag.", "syntax": "INFO PATH &lt;name&gt;", "example": "INFO PATH PATH1", "output": ["PATH PATH1   Status: RUNNING   Connected to ggdeploy02...:443", "Bytes sent: 812MB   Reconnects (last hour): 0   Current send lag: 00:00:02"], "errors": ["OGG-02047: Path does not exist."], "validation": "Zero reconnects and low send lag indicate a healthy network path; rising reconnects points at an intermittent network issue.", "monitoring": "Feed reconnect count and send lag into alerting - both are leading indicators of cross-region network degradation.", "troubleshooting": "High send lag with RUNNING status and no reconnects usually means the target Receiver Service is the bottleneck, not the network."}, {"id": "startpath", "category": "Distribution Path", "appliesTo": "Distribution Service", "name": "START / STOP PATH", "purpose": "Controls whether a Distribution Path is actively streaming trail data to its target.", "syntax": "START PATH &lt;name&gt;  |  STOP PATH &lt;name&gt;", "example": "STOP PATH PATH1\nSTART PATH PATH1", "output": ["Sending STOP request to PATH PATH1 ...", "PATH PATH1 stopped.", "Sending START request to PATH PATH1 ...", "PATH PATH1 RUNNING, connected."], "errors": ["OGG-01640: Path already running.", "OGG-15092: Failed to connect to target - check network/NSG and target Receiver Service status."], "validation": "Check target Receiver Service is RUNNING (INFO RECEIVERSERVICE) before starting a path, or the start will fail immediately.", "monitoring": "Confirm INFO PATH shows RUNNING and bytes-sent increasing after START.", "troubleshooting": "A path stopped intentionally for maintenance will cause the local trail to grow - monitor storage if the stop is expected to last more than a few hours."}, {"id": "infoadmsvc", "category": "Services", "appliesTo": "Administration Service", "name": "INFO ADMINISTRATIONSERVICE", "purpose": "Reports health of the Administration Service - the microservice that manages Extract/Replicat group lifecycle for this deployment.", "syntax": "INFO ADMINISTRATIONSERVICE", "example": "INFO ADMINISTRATIONSERVICE", "output": ["Administration Service   Status: RUNNING   Uptime: 14d 3h", "Managed groups: 2 Extracts, 2 Replicats"], "errors": ["OGG-15051: Administration Service unreachable."], "validation": "If this service is down, no ADD/ALTER/START/STOP commands will succeed even though data may still be flowing.", "monitoring": "Include in the same health check as INFO SERVICEMANAGER.", "troubleshooting": "Data flow can continue briefly on an Administration Service outage since Extract/Replicat run independently - but you lose the ability to manage them until it recovers."}, {"id": "infodistsvc", "category": "Services", "appliesTo": "Distribution Service", "name": "INFO DISTRIBUTIONSERVICE", "purpose": "Reports health of the Distribution Service and lists the paths it currently manages.", "syntax": "INFO DISTRIBUTIONSERVICE", "example": "INFO DISTRIBUTIONSERVICE", "output": ["Distribution Service   Status: RUNNING   Uptime: 14d 3h", "Active paths: PATH1 (RUNNING)"], "errors": ["OGG-15051: Distribution Service unreachable."], "validation": "Confirm this service is RUNNING before troubleshooting an individual path as a network problem.", "monitoring": "Pair with INFO PATH for each managed path to build a full picture.", "troubleshooting": "If the service itself is down, every path it manages will show as disconnected regardless of network health."}, {"id": "inforecvsvc", "category": "Services", "appliesTo": "Receiver Service", "name": "INFO RECEIVERSERVICE", "purpose": "Reports health of the Receiver Service - the microservice that accepts incoming trail data from remote Distribution Services.", "syntax": "INFO RECEIVERSERVICE", "example": "INFO RECEIVERSERVICE", "output": ["Receiver Service   Status: RUNNING   Uptime: 14d 3h", "Inbound connections: 1 (from ggdeploy01...)"], "errors": ["OGG-15051: Receiver Service unreachable."], "validation": "Confirm inbound connection count matches the number of source deployments expected to be sending data.", "monitoring": "A drop in inbound connections without a corresponding planned change is worth investigating immediately.", "troubleshooting": "If Receiver Service is RUNNING but shows 0 inbound connections, the problem is upstream (source path or network), not this service."}, {"id": "infopmsrv", "category": "Services", "appliesTo": "Performance Metrics Service", "name": "INFO PMSRV", "purpose": "Reports health of the Performance Metrics Service, which collects and exposes throughput, lag, and resource metrics used by the deployment console dashboards and REST metrics endpoints.", "syntax": "INFO PMSRV", "example": "INFO PMSRV", "output": ["Performance Metrics Service   Status: RUNNING   Uptime: 14d 3h", "Metrics retained: last 7 days"], "errors": ["OGG-15051: Performance Metrics Service unreachable."], "validation": "If dashboards show stale/flat charts, verify this service before assuming replication itself has stalled.", "monitoring": "This service does not affect replication if it is down - only observability does; do not treat its outage as a replication incident by itself.", "troubleshooting": "Restarting this service does not affect Extract/Replicat processes; it is safe to bounce independently."}, {"id": "infosvcmgr2", "category": "Services", "appliesTo": "Service Manager", "name": "INFO SERVICEMANAGER (Services view)", "purpose": "Top-level view listing every microservice Service Manager currently supervises for the deployment, with each one's status.", "syntax": "INFO SERVICEMANAGER, VERBOSE", "example": "INFO SERVICEMANAGER, VERBOSE", "output": ["Service Manager   Status: RUNNING", "  Administration Service ..... RUNNING", "  Distribution Service ........ RUNNING", "  Receiver Service ............ RUNNING", "  Performance Metrics Service .. RUNNING"], "errors": ["OGG-15051: Cannot reach Service Manager endpoint."], "validation": "Use this as the single command that answers 'is anything down' at the microservice level before diving into individual INFO commands.", "monitoring": "Good candidate for a scripted top-of-hour health check via REST API polling.", "troubleshooting": "If Service Manager itself is unreachable, none of the individual service checks will work either - escalate as an infrastructure/network issue first."}, {"id": "dblogin", "category": "Database Commands", "appliesTo": "Database", "name": "DBLOGIN", "purpose": "Authenticates the current Extract or Replicat's database session, either directly or via a stored credential alias - required before most database-facing ADD/REGISTER commands will succeed.", "syntax": "DBLOGIN USERIDALIAS &lt;alias&gt; [DOMAIN OracleGoldenGate]", "example": "DBLOGIN USERIDALIAS salesdb_alias DOMAIN OracleGoldenGate", "output": ["Successfully logged into database ORCLPDB1 using alias 'salesdb_alias'."], "errors": ["OGG-01223: Alias not found in credential store - run ADD CREDENTIALS first.", "ORA-01017: invalid username/password - credential is stale, re-add it.", "ORA-12541: TNS:no listener - verify connect descriptor/host/port."], "validation": "Confirm the alias exists (INFO CREDENTIALSTORE) and the database account has the privileges required for capture/apply before relying on DBLOGIN success alone.", "monitoring": "n/a - this is a session-establishment step, not a monitored process.", "troubleshooting": "ORA-01017 after a DB password rotation is the most common DBLOGIN failure - re-run ADD CREDENTIALS with the new password."}, {"id": "registerextract", "category": "Database Commands", "appliesTo": "Database", "name": "REGISTER EXTRACT", "purpose": "Registers an Extract with the source database for Integrated Capture, creating the logical capture process and setting minimum retention on redo/archive logs the Extract still needs.", "syntax": "REGISTER EXTRACT &lt;name&gt; DATABASE", "example": "REGISTER EXTRACT EXT1 DATABASE", "output": ["Extract EXT1 successfully registered with database ORCLPDB1.", "First SCN: 48213000000   Log retention set to protect this SCN."], "errors": ["ORA-01031: insufficient privileges - GoldenGate database role/grants missing.", "OGG-02095: Extract group must be ADDed before it can be registered."], "validation": "Confirm the database account has the DBMS_GOLDENGATE_AUTH privileges required, and that ADD EXTRACT has already run.", "monitoring": "INFO EXTRACT after registration should show the mining/capture SCN populated.", "troubleshooting": "If REGISTER succeeds but ADD EXTRACT later fails referencing 'not registered', the two operations were likely run against different database services/PDBs - confirm connect descriptor."}, {"id": "unregisterextract", "category": "Database Commands", "appliesTo": "Database", "name": "UNREGISTER EXTRACT", "purpose": "Removes an Extract's Integrated Capture registration from the source database, releasing the log retention it was holding.", "syntax": "UNREGISTER EXTRACT &lt;name&gt; DATABASE", "example": "UNREGISTER EXTRACT EXT_OLD DATABASE", "output": ["Extract EXT_OLD successfully unregistered from database ORCLPDB1.", "Log retention released."], "errors": ["OGG-02243: Extract is still running - stop it before unregistering.", "ORA-01031: insufficient privileges."], "validation": "Confirm the Extract group has been fully decommissioned (DELETEd or repurposed) before unregistering, or capture will fail if restarted.", "monitoring": "n/a - administrative cleanup step.", "troubleshooting": "Skipping UNREGISTER before decommissioning a source database leaves orphaned log retention that can cause archive log volume growth over time."}, {"id": "addtrandata", "category": "Database Commands", "appliesTo": "Database", "name": "ADD TRANDATA", "purpose": "Enables supplemental logging at the table level so committed changes carry enough before-image/key data for Extract to capture and Replicat to apply correctly, especially for UPDATE/DELETE.", "syntax": "ADD TRANDATA &lt;schema&gt;.&lt;table&gt; [, COLS (&lt;col_list&gt;)]", "example": "ADD TRANDATA SALES.ORDERS", "output": ["Logging of supplemental redo data enabled for table SALES.ORDERS.", "TRANDATA for scheduling columns has been added on table 'SALES.ORDERS'."], "errors": ["ORA-01031: insufficient privileges to alter supplemental logging.", "OGG-06439: Table not found - verify schema/table name and case."], "validation": "Run INFO TRANDATA immediately after to confirm logging is actually active - ADD can silently no-op on some managed/Autonomous DB configurations.", "monitoring": "Re-verify TRANDATA after any DDL that adds/drops the table's primary key or unique index, since supplemental logging can be tied to the key definition.", "troubleshooting": "Missing TRANDATA is the single most common root cause of 'no unique key' apply errors and of UPDATE/DELETE not replicating correctly."}, {"id": "infotrandata", "category": "Database Commands", "appliesTo": "Database", "name": "INFO TRANDATA", "purpose": "Reports whether supplemental logging is currently enabled for a table, and at what level (key columns vs all columns).", "syntax": "INFO TRANDATA &lt;schema&gt;.&lt;table&gt;", "example": "INFO TRANDATA SALES.ORDERS", "output": ["Logging of supplemental redo log data is enabled for table SALES.ORDERS.", "Columns supplementally logged: primary key columns."], "errors": ["OGG-06439: Table not found."], "validation": "Confirm logging level matches replication needs - key-only logging is insufficient if downstream logic needs full before-images.", "monitoring": "Include in pre-flight checks before enabling replication on a new table, and after any structural DDL on existing replicated tables.", "troubleshooting": "If INFO TRANDATA shows 'not enabled' after ADD TRANDATA reported success, check for a transaction that has not yet committed, or a DBA-level supplemental logging override at the database level."}];
+</script>
+<script>
+// ==========================================================
+// VERSION / CHANGELOG
+// ==========================================================
+const SIMULATOR_VERSION = "1.0.0";
+document.title = document.title + " (v" + SIMULATOR_VERSION + ")";
+document.getElementById('verBadge').addEventListener('click', ()=> document.getElementById('changelogPanel').classList.toggle('open'));
+document.getElementById('clClose').addEventListener('click', ()=> document.getElementById('changelogPanel').classList.remove('open'));
+
+// ==========================================================
+// TAB NAVIGATION
+// ==========================================================
+document.querySelectorAll('#tabNav button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('#tabNav button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('section.tab').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    if(btn.dataset.tab==='live'){ drawLive(null); }
+  });
+});
+
+// ==========================================================
+// SHARED ENVIRONMENT STATE
+// ==========================================================
+function freshEnv(){
+  return {
+    connected:false,
+    deployment:'FINANCE_REPL01',
+    host:'ggdeploy01.oggcloud.example.com',
+    port:443,
+    services:{
+      ServiceManager:'RUNNING', AdministrationService:'RUNNING',
+      DistributionService:'RUNNING', ReceiverService:'RUNNING', PerformanceMetricsService:'RUNNING'
+    },
+    extracts:{ EXT1:{status:'RUNNING', mode:'INTEGRATED TRANLOG', trail:'./dirdat/aa', lag:3, source:'ORCLPDB1.SALES.ORDERS'} },
+    replicats:{ REP1:{status:'RUNNING', trail:'./dirdat/ab', lag:5, applied:0, type:'PARALLEL (NON-INTEGRATED)'} },
+    paths:{ PATH1:{status:'RUNNING', from:'./dirdat/aa', to:'ggdeploy02.oggcloud.example.com:443/HR_REPL02', reconnects:0} },
+    trandata:{ 'SALES.ORDERS':true },
+    seq:1, rba:0, captured:0, applied:0,
+    history:[]
+  };
+}
+let ENV = freshEnv();
+
+function statusClass(s){
+  s=(s||'').toUpperCase();
+  if(s==='RUNNING'||s==='ACTIVE') return 'running';
+  if(s==='STOPPED') return 'stopped';
+  if(s==='ABENDED'||s==='DOWN') return 'abended';
+  if(s==='STARTING'||s==='UPDATING') return 'starting';
+  return 'stopped';
+}
+
+function fmtLag(sec){
+  sec = Math.max(0, Math.round(sec));
+  const h = String(Math.floor(sec/3600)).padStart(2,'0');
+  const m = String(Math.floor((sec%3600)/60)).padStart(2,'0');
+  const s = String(sec%60).padStart(2,'0');
+  return h+':'+m+':'+s;
+}
+
+// ==========================================================
+// ENVIRONMENT PANEL RENDER (Terminal tab)
+// ==========================================================
+function renderEnvPanel(){
+  document.getElementById('depConnState').textContent = ENV.connected ? ('Connected \u2014 '+ENV.host+':'+ENV.port) : 'Not connected';
+  document.getElementById('depConnState').style.color = ENV.connected ? '#2E7D32' : '#5F6368';
+
+  const svcEl = document.getElementById('svcList'); svcEl.innerHTML='';
+  Object.keys(ENV.services).forEach(k=>{
+    svcEl.innerHTML += `<div class="proc-item"><span class="proc-name">${k.replace(/([A-Z])/g,' $1').trim()}</span><span class="status-chip ${statusClass(ENV.services[k])}">${ENV.services[k]}</span></div>`;
+  });
+
+  const extEl = document.getElementById('extList'); extEl.innerHTML='';
+  Object.keys(ENV.extracts).forEach(k=>{
+    const e = ENV.extracts[k];
+    extEl.innerHTML += `<div class="proc-item"><span><span class="proc-name">${k}</span><br><span class="proc-sub">${e.mode||'INTEGRATED TRANLOG'} &middot; lag ${fmtLag(e.lag)}</span></span><span class="status-chip ${statusClass(e.status)}">${e.status}</span></div>`;
+  });
+
+  const repEl = document.getElementById('repList'); repEl.innerHTML='';
+  Object.keys(ENV.replicats).forEach(k=>{
+    const r = ENV.replicats[k];
+    repEl.innerHTML += `<div class="proc-item"><span><span class="proc-name">${k}</span><br><span class="proc-sub">${r.type||'CLASSIC'} &middot; lag ${fmtLag(r.lag)}</span></span><span class="status-chip ${statusClass(r.status)}">${r.status}</span></div>`;
+  });
+
+  const pathEl = document.getElementById('pathList'); pathEl.innerHTML='';
+  Object.keys(ENV.paths).forEach(k=>{
+    const p = ENV.paths[k];
+    pathEl.innerHTML += `<div class="proc-item"><span><span class="proc-name">${k}</span><br><span class="proc-sub">reconnects ${p.reconnects}</span></span><span class="status-chip ${statusClass(p.status)}">${p.status}</span></div>`;
+  });
+}
+renderEnvPanel();
+
+// ==========================================================
+// COMMAND ENGINE  (shared by Terminal tab + Live Simulator mini console + command builder)
+// ==========================================================
+function requireConnected(){
+  if(!ENV.connected) return ["OGG-00402: Not connected to a deployment. Use CONNECT to establish a session.", 'err'];
+  return null;
+}
+
+function execCommand(raw){
+  const cmd = raw.trim();
+  if(!cmd) return [];
+  ENV.history.push(cmd);
+  const lines = [];
+  const push = (t, cls) => lines.push([t, cls||'out']);
+  const U = cmd.toUpperCase();
+
+  // Always-available commands
+  if(/^HELP\b/i.test(cmd)){
+    const rest = cmd.replace(/^HELP\s*/i,'').trim();
+    if(rest){
+      const hit = CATALOG.find(c=>c.name.toUpperCase().indexOf(rest.toUpperCase())>=0);
+      if(hit){ push(hit.syntax.replace(/&lt;/g,'<').replace(/&gt;/g,'>')); push('  '+hit.purpose); }
+      else push('OGG-00401: Unrecognized HELP topic.', 'err');
+    } else {
+      push('Command groups: Connection, Environment, Process Monitoring, Extract, Replicat, Trail, Path, Services, Database.');
+      push('Type HELP <command> for syntax, e.g. HELP ADD EXTRACT');
+    }
+    return lines;
+  }
+  if(/^VERSION$/i.test(cmd)){
+    push('AdminClient Version 23.6.0.0.0');
+    if(ENV.connected) push('Connected Deployment Version: Oracle GoldenGate 23ai Microservices 23.6.0.0.0');
+    return lines;
+  }
+  if(/^HISTORY$/i.test(cmd)){
+    ENV.history.forEach((h,i)=> push((i+1)+'  '+h));
+    return lines;
+  }
+  if(/^CONNECT\s+(\S+)/i.test(cmd)){
+    const m = cmd.match(/^CONNECT\s+(\S+)/i);
+    ENV.connected = true;
+    push('Connecting to '+m[1]+' ...');
+    push('Deployment: '+ENV.deployment+' (OCI GoldenGate 23ai Microservices)');
+    push('Administration Service .... '+ENV.services.AdministrationService);
+    push('Distribution Service ...... '+ENV.services.DistributionService);
+    push('Receiver Service .......... '+ENV.services.ReceiverService);
+    push('Successfully connected.');
+    renderEnvPanel();
+    return lines;
+  }
+  if(/^DISCONNECT$/i.test(cmd)){
+    if(!ENV.connected){ push('OGG-00404: No active connection to disconnect.', 'err'); return lines; }
+    ENV.connected = false;
+    push('Disconnected from '+ENV.deployment+'.');
+    renderEnvPanel();
+    return lines;
+  }
+
+  // everything else requires a connection
+  const gate = requireConnected();
+  if(gate){ push(gate[0], gate[1]); return lines; }
+
+  if(/^ALTER\s+CREDENTIALSTORE\s+ADD\s+USER/i.test(cmd) || /^ADD\s+CREDENTIALS?/i.test(cmd)){
+    push('Credential store altered.');
+    push('Alias added under domain OracleGoldenGate.');
+    return lines;
+  }
+  if(/^DBLOGIN/i.test(cmd)){
+    push('Successfully logged into database ORCLPDB1.');
+    return lines;
+  }
+  if(/^INFO\s+ALL$/i.test(cmd)){
+    push('Program     Group     Status      Lag at Chkpt');
+    Object.keys(ENV.extracts).forEach(k=>{ const e=ENV.extracts[k]; push('EXTRACT     '+k.padEnd(9)+e.status.padEnd(12)+fmtLag(e.lag), e.status==='ABENDED'?'err':'out'); });
+    Object.keys(ENV.replicats).forEach(k=>{ const r=ENV.replicats[k]; push('REPLICAT    '+k.padEnd(9)+r.status.padEnd(12)+fmtLag(r.lag), r.status==='ABENDED'?'err':'out'); });
+    Object.keys(ENV.paths).forEach(k=>{ const p=ENV.paths[k]; push('PATH        '+k.padEnd(9)+p.status.padEnd(12)+'-', p.status==='DOWN'?'err':'out'); });
+    return lines;
+  }
+  if(/^INFO\s+SERVICEMANAGER/i.test(cmd)){
+    push('Service Manager   Status: '+ENV.services.ServiceManager);
+    Object.keys(ENV.services).forEach(k=>{ if(k!=='ServiceManager') push('  '+k.replace(/([A-Z])/g,' $1').trim()+' .......... '+ENV.services[k]); });
+    return lines;
+  }
+  if(/^INFO\s+(ADMINISTRATIONSERVICE|DISTRIBUTIONSERVICE|RECEIVERSERVICE|PMSRV)/i.test(cmd)){
+    const map = {ADMINISTRATIONSERVICE:'AdministrationService', DISTRIBUTIONSERVICE:'DistributionService', RECEIVERSERVICE:'ReceiverService', PMSRV:'PerformanceMetricsService'};
+    const m = cmd.match(/^INFO\s+(\S+)/i);
+    const svc = map[m[1].toUpperCase()];
+    push(m[1].toUpperCase()+'   Status: '+ENV.services[svc]);
+    return lines;
+  }
+  if(/^STATUS\s+DEPLOYMENT$/i.test(cmd)){
+    push('Deployment: '+ENV.deployment+'   OCPU: 2 (Auto Scale: ON)');
+    push('Trail storage used: 38% of allocated Block Volume');
+    push('All services: '+(Object.values(ENV.services).every(s=>s==='RUNNING')?'ACTIVE':'DEGRADED'));
+    return lines;
+  }
+  if(/^(INFO|STATUS)\s+EXTRACT\s+(\S+)/i.test(cmd)){
+    const m = cmd.match(/^(INFO|STATUS)\s+EXTRACT\s+(\S+)/i);
+    const e = ENV.extracts[m[2].toUpperCase()];
+    if(!e){ push('OGG-02047: Group '+m[2]+' does not exist.', 'err'); return lines; }
+    push('EXTRACT   '+m[2].toUpperCase()+'   Status '+e.status);
+    if(/INFO/i.test(m[1])){
+      push('Checkpoint Lag    '+fmtLag(e.lag));
+      push('Capture mode      '+e.mode);
+      push('Source            '+e.source);
+      push('Trail             '+e.trail);
+    }
+    return lines;
+  }
+  if(/^(INFO|STATUS)\s+REPLICAT\s+(\S+)/i.test(cmd)){
+    const m = cmd.match(/^(INFO|STATUS)\s+REPLICAT\s+(\S+)/i);
+    const r = ENV.replicats[m[2].toUpperCase()];
+    if(!r){ push('OGG-02047: Group '+m[2]+' does not exist.', 'err'); return lines; }
+    push('REPLICAT   '+m[2].toUpperCase()+'   Status '+r.status);
+    if(/INFO/i.test(m[1])){
+      push('Apply Type        '+(r.type||'CLASSIC'));
+      push('Checkpoint Lag    '+fmtLag(r.lag));
+      push('Trail             '+r.trail);
+      push('Applied records   '+r.applied);
+    }
+    return lines;
+  }
+  if(/^(SEND\s+EXTRACT\s+(\S+),\s*GETLAG|LAG\s+EXTRACT\s+(\S+))/i.test(cmd)){
+    const name = (cmd.match(/EXTRACT\s+(\S+)/i)||[])[1];
+    const e = name && ENV.extracts[name.toUpperCase().replace(',','')];
+    if(!e){ push('OGG-02047: Group not found.', 'err'); return lines; }
+    push('Sending GETLAG request to EXTRACT '+name.replace(',','')+' ...');
+    push('Last record lag: '+fmtLag(e.lag)+' seconds');
+    return lines;
+  }
+  if(/^(SEND\s+REPLICAT\s+(\S+),\s*GETLAG|LAG\s+REPLICAT\s+(\S+))/i.test(cmd)){
+    const name = (cmd.match(/REPLICAT\s+(\S+)/i)||[])[1];
+    const r = name && ENV.replicats[name.toUpperCase().replace(',','')];
+    if(!r){ push('OGG-02047: Group not found.', 'err'); return lines; }
+    push('Sending GETLAG request to REPLICAT '+name.replace(',','')+' ...');
+    push('At checkpoint lag: '+fmtLag(r.lag)+' seconds');
+    return lines;
+  }
+  if(/^STATS\s+(EXTRACT|REPLICAT)\s+(\S+)/i.test(cmd)){
+    const m = cmd.match(/^STATS\s+(EXTRACT|REPLICAT)\s+(\S+)/i);
+    push('Total operations   '+ (m[1].toUpperCase()==='EXTRACT'? ENV.captured : ENV.applied));
+    push('Group '+m[2]+' statistics since last start.');
+    return lines;
+  }
+  if(/^START\s+EXTRACT\s+(\S+)/i.test(cmd)){
+    const n = cmd.match(/^START\s+EXTRACT\s+(\S+)/i)[1].toUpperCase();
+    const e = ENV.extracts[n]; if(!e){ push('OGG-02047: Group does not exist.','err'); return lines; }
+    if(e.status==='RUNNING'){ push('OGG-01640: Extract already running.', 'err'); return lines; }
+    push('Sending START request to EXTRACT '+n+' ...'); push('EXTRACT '+n+' starting.'); e.status='RUNNING'; e.lag=2;
+    push('EXTRACT '+n+' RUNNING.');
+    renderEnvPanel(); return lines;
+  }
+  if(/^STOP\s+EXTRACT\s+(\S+)/i.test(cmd)){
+    const n = cmd.match(/^STOP\s+EXTRACT\s+(\S+)/i)[1].toUpperCase();
+    const e = ENV.extracts[n]; if(!e){ push('OGG-02047: Group does not exist.','err'); return lines; }
+    push('Sending STOP request to EXTRACT '+n+' ...'); e.status='STOPPED'; push('EXTRACT '+n+' stopped.');
+    renderEnvPanel(); return lines;
+  }
+  if(/^START\s+REPLICAT\s+(\S+)/i.test(cmd)){
+    const n = cmd.match(/^START\s+REPLICAT\s+(\S+)/i)[1].toUpperCase();
+    const r = ENV.replicats[n]; if(!r){ push('OGG-02047: Group does not exist.','err'); return lines; }
+    if(r.status==='RUNNING'){ push('OGG-01640: Replicat already running.', 'err'); return lines; }
+    push('Sending START request to REPLICAT '+n+' ...'); push('REPLICAT '+n+' starting.'); r.status='RUNNING'; r.lag=3;
+    push('REPLICAT '+n+' RUNNING.');
+    renderEnvPanel(); return lines;
+  }
+  if(/^STOP\s+REPLICAT\s+(\S+)/i.test(cmd)){
+    const n = cmd.match(/^STOP\s+REPLICAT\s+(\S+)/i)[1].toUpperCase();
+    const r = ENV.replicats[n]; if(!r){ push('OGG-02047: Group does not exist.','err'); return lines; }
+    push('Sending STOP request to REPLICAT '+n+' ...'); r.status='STOPPED'; push('REPLICAT '+n+' stopped.');
+    renderEnvPanel(); return lines;
+  }
+  if(/^START\s+PATH\s+(\S+)/i.test(cmd)){
+    const n = cmd.match(/^START\s+PATH\s+(\S+)/i)[1].toUpperCase();
+    const p = ENV.paths[n]; if(!p){ push('OGG-02047: Path does not exist.','err'); return lines; }
+    p.status='RUNNING'; p.reconnects=0; push('PATH '+n+' RUNNING, connected.');
+    renderEnvPanel(); return lines;
+  }
+  if(/^STOP\s+PATH\s+(\S+)/i.test(cmd)){
+    const n = cmd.match(/^STOP\s+PATH\s+(\S+)/i)[1].toUpperCase();
+    const p = ENV.paths[n]; if(!p){ push('OGG-02047: Path does not exist.','err'); return lines; }
+    p.status='STOPPED'; push('PATH '+n+' stopped.');
+    renderEnvPanel(); return lines;
+  }
+  if(/^ADD\s+EXTRACT\s+(\S+)/i.test(cmd)){
+    const n = cmd.match(/^ADD\s+EXTRACT\s+(\S+)/i)[1].toUpperCase().replace(',','');
+    if(ENV.extracts[n]){ push('OGG-02021: Group name already exists.', 'err'); return lines; }
+    const mode = /INTEGRATED/i.test(cmd) ? 'INTEGRATED TRANLOG' : 'CLASSIC (TRANLOG)';
+    ENV.extracts[n] = {status:'STOPPED', mode:mode, trail:'./dirdat/aa', lag:0, source:'ORCLPDB1.SALES.ORDERS'};
+    push('EXTRACT added.'); push('Group '+n+' created in '+mode+' capture mode.');
+    renderEnvPanel(); return lines;
+  }
+  if(/^ALTER\s+EXTRACT\s+(\S+)/i.test(cmd)){
+    const n = cmd.match(/^ALTER\s+EXTRACT\s+(\S+)/i)[1].toUpperCase().replace(',','');
+    if(!ENV.extracts[n]){ push('OGG-02047: Group does not exist.', 'err'); return lines; }
+    if(ENV.extracts[n].status==='RUNNING'){ push('OGG-00446: Group is running - stop it before altering.', 'err'); return lines; }
+    push('EXTRACT altered.'); push('Checkpoint repositioned. Restart '+n+' for the change to take effect.');
+    return lines;
+  }
+  if(/^DELETE\s+EXTRACT\s+(\S+)/i.test(cmd)){
+    const n = cmd.match(/^DELETE\s+EXTRACT\s+(\S+)/i)[1].toUpperCase();
+    if(!ENV.extracts[n]){ push('OGG-02047: Group does not exist.', 'err'); return lines; }
+    if(ENV.extracts[n].status==='RUNNING'){ push('OGG-00446: Cannot delete a running group - STOP it first.', 'err'); return lines; }
+    delete ENV.extracts[n]; push('Extract '+n+' deleted.');
+    renderEnvPanel(); return lines;
+  }
+  if(/^ADD\s+REPLICAT\s+(\S+)/i.test(cmd)){
+    const n = cmd.match(/^ADD\s+REPLICAT\s+(\S+)/i)[1].toUpperCase().replace(',','');
+    if(ENV.replicats[n]){ push('OGG-02021: Group name already exists.', 'err'); return lines; }
+    let type = 'CLASSIC';
+    if(/PARALLEL/i.test(cmd) && /INTEGRATED/i.test(cmd)) type = 'PARALLEL INTEGRATED';
+    else if(/PARALLEL/i.test(cmd)) type = 'PARALLEL (NON-INTEGRATED)';
+    else if(/COORDINATED/i.test(cmd)) type = 'COORDINATED';
+    else if(/INTEGRATED/i.test(cmd)) type = 'INTEGRATED';
+    ENV.replicats[n] = {status:'STOPPED', trail:'./dirdat/ab', lag:0, applied:0, type:type};
+    push('REPLICAT added.'); push('Group '+n+' created in '+type+' apply mode.');
+    renderEnvPanel(); return lines;
+  }
+  if(/^ALTER\s+REPLICAT\s+(\S+)/i.test(cmd)){
+    const n = cmd.match(/^ALTER\s+REPLICAT\s+(\S+)/i)[1].toUpperCase().replace(',','');
+    if(!ENV.replicats[n]){ push('OGG-02047: Group does not exist.', 'err'); return lines; }
+    if(ENV.replicats[n].status==='RUNNING'){ push('OGG-00446: Group is running - stop it before altering.', 'err'); return lines; }
+    push('REPLICAT altered.'); push('Checkpoint repositioned. Restart '+n+' for the change to take effect.');
+    return lines;
+  }
+  if(/^DELETE\s+REPLICAT\s+(\S+)/i.test(cmd)){
+    const n = cmd.match(/^DELETE\s+REPLICAT\s+(\S+)/i)[1].toUpperCase();
+    if(!ENV.replicats[n]){ push('OGG-02047: Group does not exist.', 'err'); return lines; }
+    if(ENV.replicats[n].status==='RUNNING'){ push('OGG-00446: Cannot delete a running group - STOP it first.', 'err'); return lines; }
+    delete ENV.replicats[n]; push('Replicat '+n+' deleted.');
+    renderEnvPanel(); return lines;
+  }
+  if(/^ADD\s+(EXTTRAIL|RMTTRAIL)\s+(\S+)/i.test(cmd)){
+    const m = cmd.match(/^ADD\s+(EXTTRAIL|RMTTRAIL)\s+(\S+)/i);
+    push(m[1].toUpperCase()+' added.'); push('Trail '+m[2].replace(',','')+' registered.');
+    return lines;
+  }
+  if(/^INFO\s+EXTTRAIL\s+(\S+)/i.test(cmd)){
+    push('Trail sequence: '+String(ENV.seq).padStart(6,'0')+'   RBA: '+ENV.rba);
+    return lines;
+  }
+  if(/^VIEW\s+PARAMS?\s+(\S+)/i.test(cmd)){
+    const n = cmd.match(/^VIEW\s+PARAMS?\s+(\S+)/i)[1].toUpperCase();
+    if(ENV.extracts[n]){
+      const e = ENV.extracts[n];
+      push('EXTRACT '+n);
+      push('-- Apply/Capture Type: '+(e.mode||'INTEGRATED TRANLOG'));
+      push('USERIDALIAS salesdb_alias DOMAIN OracleGoldenGate');
+      push('EXTTRAIL '+e.trail);
+      push('TABLE SALES.ORDERS;');
+      push('TABLE SALES.ORDER_ITEMS;');
+    } else if(ENV.replicats[n]){
+      const r = ENV.replicats[n];
+      push('REPLICAT '+n);
+      push('-- Apply Type: '+(r.type||'CLASSIC'));
+      push('USERIDALIAS salesdb_alias DOMAIN OracleGoldenGate');
+      push('MAP SALES.ORDERS, TARGET SALES.ORDERS;');
+    } else {
+      push('OGG-02047: Group '+n+' does not exist.', 'err');
+    }
+    return lines;
+  }
+  if(/^ADD\s+PATH\s+(\S+)/i.test(cmd)){
+    const n = cmd.match(/^ADD\s+PATH\s+(\S+)/i)[1].toUpperCase().replace(',','');
+    if(ENV.paths[n]){ push('OGG-02021: Path already exists.', 'err'); return lines; }
+    ENV.paths[n] = {status:'STOPPED', from:'./dirdat/aa', to:'target deployment', reconnects:0};
+    push('PATH added.'); renderEnvPanel(); return lines;
+  }
+  if(/^INFO\s+PATH\s+(\S+)/i.test(cmd)){
+    const n = cmd.match(/^INFO\s+PATH\s+(\S+)/i)[1].toUpperCase();
+    const p = ENV.paths[n]; if(!p){ push('OGG-02047: Path does not exist.', 'err'); return lines; }
+    push('PATH '+n+'   Status: '+p.status+'   Reconnects: '+p.reconnects);
+    return lines;
+  }
+  if(/^REGISTER\s+EXTRACT\s+(\S+)\s+DATABASE/i.test(cmd)){
+    const n = cmd.match(/^REGISTER\s+EXTRACT\s+(\S+)/i)[1];
+    push('Extract '+n+' successfully registered with database ORCLPDB1.');
+    return lines;
+  }
+  if(/^UNREGISTER\s+EXTRACT\s+(\S+)\s+DATABASE/i.test(cmd)){
+    const n = cmd.match(/^UNREGISTER\s+EXTRACT\s+(\S+)/i)[1];
+    push('Extract '+n+' successfully unregistered from database ORCLPDB1.');
+    return lines;
+  }
+  if(/^ADD\s+TRANDATA\s+(\S+)/i.test(cmd)){
+    const t = cmd.match(/^ADD\s+TRANDATA\s+(\S+)/i)[1].toUpperCase();
+    ENV.trandata[t] = true;
+    push('Logging of supplemental redo data enabled for table '+t+'.');
+    return lines;
+  }
+  if(/^INFO\s+TRANDATA\s+(\S+)/i.test(cmd)){
+    const t = cmd.match(/^INFO\s+TRANDATA\s+(\S+)/i)[1].toUpperCase();
+    push('Logging of supplemental redo log data is '+(ENV.trandata[t] ? 'enabled' : 'NOT enabled')+' for table '+t+'.');
+    return lines;
+  }
+
+  push('OGG-00400: Command not recognized. Type HELP for a list of command groups.', 'err');
+  return lines;
+}
+
+// ==========================================================
+// GENERIC TERMINAL WIRING
+// ==========================================================
+function wireTerminal(scrollId, inputId, quickId){
+  const scroll = document.getElementById(scrollId);
+  const input = document.getElementById(inputId);
+  function printCmd(cmd){
+    const d = document.createElement('div');
+    d.innerHTML = '<span class="prompt">AdminClient&gt;</span> '+escapeHtml(cmd);
+    scroll.appendChild(d);
+  }
+  function printLines(lines){
+    lines.forEach(([text,cls])=>{
+      const d = document.createElement('div');
+      d.className = cls==='err' ? 'err' : (cls==='warn' ? 'warnl' : 'out');
+      d.textContent = text;
+      scroll.appendChild(d);
+    });
+    scroll.scrollTop = scroll.scrollHeight;
+  }
+  function run(cmd){
+    if(!cmd.trim()) return;
+    printCmd(cmd);
+    const out = execCommand(cmd);
+    printLines(out);
+    if(document.getElementById('promptLbl')) renderEnvPanel();
+  }
+  input.addEventListener('keydown', e=>{
+    if(e.key==='Enter'){ run(input.value); input.value=''; }
+  });
+  if(quickId){
+    const quickWrap = document.getElementById(quickId);
+    const quickCmds = [
+      'CONNECT https://ggdeploy01.oggcloud.example.com:443 AS oggadmin PASSWORD ********',
+      'INFO ALL','VERSION','HELP','INFO EXTRACT EXT1 DETAIL','STOP EXTRACT EXT1','START EXTRACT EXT1',
+      'STATS EXTRACT EXT1','STATS REPLICAT REP1','START REPLICAT REP1','STOP REPLICAT REP1',
+      'VIEW PARAMS EXT1','VIEW PARAMS REP1',
+      'INFO TRANDATA SALES.ORDERS','DISCONNECT'
+    ];
+    quickCmds.forEach(c=>{
+      const b = document.createElement('button');
+      b.className='qc'; b.textContent = c.length>40 ? c.slice(0,38)+'\u2026' : c;
+      b.title = c;
+      b.addEventListener('click', ()=>{ input.value=c; input.focus(); });
+      quickWrap.appendChild(b);
+    });
+  }
+  return {run};
+}
+function escapeHtml(s){ return s.replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+const term1 = wireTerminal('term1','term1Input','quick1');
+{
+  const d = document.createElement('div'); d.className='out';
+  d.textContent = 'AdminClient for Oracle GoldenGate 23ai Microservices. Type HELP for a list of commands.';
+  document.getElementById('term1').appendChild(d);
+}
+const term2 = wireTerminal('term2','term2Input', null);
+{
+  const d = document.createElement('div'); d.className='out';
+  d.textContent = 'Mini console \u2014 shares the same connection state as the Admin Client Terminal tab.';
+  document.getElementById('term2').appendChild(d);
+}
+
+// ==========================================================
+// TAB 2: COMMAND MATRIX + INTERACTIVE VIEWS
+// ==========================================================
+const CATEGORIES = [...new Set(CATALOG.map(c=>c.category))];
+let activeCat = CATEGORIES[0];
+
+function renderCatBar(){
+  const bar = document.getElementById('catBar'); bar.innerHTML='';
+  CATEGORIES.forEach(cat=>{
+    const b = document.createElement('button');
+    b.className = 'catbtn'+(cat===activeCat?' active':'');
+    b.textContent = cat;
+    b.addEventListener('click', ()=>{ activeCat=cat; renderCatBar(); renderMatrix(); });
+    bar.appendChild(b);
+  });
+}
+
+function cfBlock(label, content){
+  return `<div class="cf"><b>${label}</b>${content}</div>`;
+}
+function listBlock(arr){
+  if(!arr || !arr.length) return '<div style="color:var(--muted);">None documented.</div>';
+  return '<ul>'+arr.map(x=>'<li>'+x+'</li>').join('')+'</ul>';
+}
+
+const REPLICAT_TYPES = [
+  {name:'Classic Replicat', desc:'Single apply thread reads the trail sequentially and applies SQL directly to the target - no built-in parallelism.', use:'Legacy / low-volume configurations only.', param:'(no type keyword - default)', note:'Deprecated for new high-volume implementations.'},
+  {name:'Coordinated Replicat', desc:'Multiple discrete Replicat threads apply in parallel, coordinated by a coordinator thread using hashed splits you size manually.', use:'Pre-Parallel-Replicat parallelism needs.', param:'COORDINATED, MAXTHREADS &lt;n&gt;', note:'Largely superseded by Parallel Replicat; manual thread sizing.'},
+  {name:'Integrated Replicat', desc:'Apply is offloaded to the target Oracle database\u2019s inbound server, which computes dependencies and parallelizes internally.', use:'Oracle-to-Oracle replication needing DB-integrated conflict handling.', param:'INTEGRATED', note:'Requires the target inbound server (Oracle DB only).'},
+  {name:'Parallel Replicat (Non-Integrated)', desc:'The Replicat process itself computes dependencies and parallelizes apply across multiple threads, outside the database.', use:'Modern default for high-volume apply against any supported target, including heterogeneous.', param:'PARALLEL', note:'Recommended default for new implementations.'},
+  {name:'Parallel Replicat (Integrated)', desc:'Combines Parallel Replicat\u2019s automatic dependency computation with Integrated apply via the Oracle inbound server.', use:'Highest-throughput Oracle-to-Oracle apply.', param:'PARALLEL, INTEGRATED', note:'Best of both: process-level parallelism plus DB-integrated apply.'},
+];
+function renderReplicatTypesCard(){
+  return `<div class="card" style="margin-bottom:14px;">
+    <h3>Replicat Apply Types</h3>
+    <table>
+      <tr><th>Type</th><th>How it applies</th><th>Typical use</th><th>ADD REPLICAT keyword</th><th>Note</th></tr>
+      ${REPLICAT_TYPES.map(t=>`<tr><td><b>${t.name}</b></td><td>${t.desc}</td><td>${t.use}</td><td><code class="inline">${t.param}</code></td><td>${t.note}</td></tr>`).join('')}
+    </table>
+  </div>`;
+}
+
+function renderMatrix(){
+  const wrap = document.getElementById('cmdMatrix'); wrap.innerHTML='';
+  if(activeCat==='Replicat Management'){ wrap.innerHTML += renderReplicatTypesCard(); }
+  CATALOG.filter(c=>c.category===activeCat).forEach(c=>{
+    const row = document.createElement('div');
+    row.className = 'cmd-row';
+    row.innerHTML = `
+      <div class="cmd-row-head">
+        <div><span class="cmd-name">${c.name}</span><span class="cmd-applies">${c.appliesTo}</span></div>
+        <span class="chev">&#9656;</span>
+      </div>
+      <div class="cmd-row-body">
+        ${cfBlock('Purpose','<p style="margin:0;color:var(--muted);">'+c.purpose+'</p>')}
+        <div class="cf-grid">
+          ${cfBlock('Syntax','<pre>'+c.syntax+'</pre>')}
+          ${cfBlock('Example','<pre>'+escapeHtml(c.example)+'</pre>')}
+          ${cfBlock('Expected Output','<pre>'+escapeHtml(c.output.join('\\n'))+'</pre>')}
+          ${cfBlock('Common Errors', listBlock(c.errors))}
+          ${cfBlock('Validation','<p style="margin:0;color:var(--muted);">'+c.validation+'</p>')}
+          ${cfBlock('Monitoring','<p style="margin:0;color:var(--muted);">'+c.monitoring+'</p>')}
+        </div>
+      </div>`;
+    row.querySelector('.cmd-row-head').addEventListener('click', ()=> row.classList.toggle('open'));
+    wrap.appendChild(row);
+  });
+}
+renderCatBar(); renderMatrix();
+
+// Interactive Views sub-tab
+const VIEWS = ['Parameters','Reports & Messages','Statistics','Transactions','Records','Checkpoints','Trail Sequence / RBA','Replication Lag','Throughput'];
+let activeView = VIEWS[0];
+function renderViewBar(){
+  const bar = document.getElementById('viewBar'); bar.innerHTML='';
+  VIEWS.forEach(v=>{
+    const b = document.createElement('button');
+    b.className = 'catbtn'+(v===activeView?' active':'');
+    b.textContent = v;
+    b.addEventListener('click', ()=>{ activeView=v; renderViewBar(); renderView(); });
+    bar.appendChild(b);
+  });
+}
+function renderView(){
+  const el = document.getElementById('viewPanel');
+  const e = ENV.extracts.EXT1, r = ENV.replicats.REP1;
+  const content = {
+    'Parameters': `<pre class="cf" style="background:#111417;color:#D7F5DE;border-radius:6px;padding:12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;">EXTRACT EXT1
+USERIDALIAS salesdb_alias DOMAIN OracleGoldenGate
+EXTTRAIL ./dirdat/aa
+TABLE SALES.ORDERS;
+TABLE SALES.ORDER_ITEMS;</pre>`,
+    'Reports & Messages': `<pre class="cf" style="background:#111417;color:#D7F5DE;border-radius:6px;padding:12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;">2026-08-09 10:14:02  INFO    OGG-01515  Positioned to Sequence 128, RBA 48213345.
+2026-08-09 10:14:02  INFO    OGG-01021  Command received from AdminClient: STATS.
+2026-08-09 10:14:03  INFO    OGG-02756  Recovery complete: 0 rows discarded.</pre>`,
+    'Statistics': `<div>Total inserts: <b>${Math.round(ENV.captured*0.6)}</b> &middot; Total updates: <b>${Math.round(ENV.captured*0.3)}</b> &middot; Total deletes: <b>${Math.round(ENV.captured*0.1)}</b> &middot; Total operations: <b>${ENV.captured}</b></div>`,
+    'Transactions': `<div>Open transactions: <b>0</b> &middot; Committed since start: <b>${ENV.captured}</b> &middot; Longest running txn: <b>00:00:04</b></div>`,
+    'Records': `<div>Records captured (Extract): <b>${ENV.captured}</b> &middot; Records applied (Replicat): <b>${ENV.applied}</b> &middot; Records in flight: <b>${Math.max(0,ENV.captured-ENV.applied)}</b></div>`,
+    'Checkpoints': `<div>EXT1 checkpoint: Sequence ${String(ENV.seq).padStart(6,'0')}, RBA ${ENV.rba}<br>REP1 checkpoint: Sequence ${String(Math.max(0,ENV.seq-1)).padStart(6,'0')}, RBA ${Math.max(0,ENV.rba-256)}</div>`,
+    'Trail Sequence / RBA': `<div>Current trail: ./dirdat/aa &middot; Sequence: <b>${String(ENV.seq).padStart(6,'0')}</b> &middot; RBA: <b>${ENV.rba}</b></div>`,
+    'Replication Lag': `<div>EXT1 lag: <b>${fmtLag(e.lag)}</b> &middot; REP1 lag: <b>${fmtLag(r.lag)}</b></div>`,
+    'Throughput': `<div>Current throughput: <b>${document.getElementById('statTput')?document.getElementById('statTput').textContent:'0 rec/s'}</b></div>`
+  }[activeView];
+  el.innerHTML = content;
+}
+renderViewBar(); renderView();
+
+// ==========================================================
+// TAB 4: COMMAND REFERENCE (matrix - rows = commands, columns = attributes)
+// ==========================================================
+let refActiveCat = 'All';
+function renderRefCatBar(){
+  const bar = document.getElementById('refCatBar'); bar.innerHTML='';
+  ['All'].concat(CATEGORIES).forEach(cat=>{
+    const b = document.createElement('button');
+    b.className = 'catbtn'+(cat===refActiveCat?' active':'');
+    b.textContent = cat;
+    b.addEventListener('click', ()=>{ refActiveCat=cat; renderRefCatBar(); renderReference(document.getElementById('refSearch').value); });
+    bar.appendChild(b);
+  });
+}
+
+function refCell(html){
+  return `<td><div class="refcell">${html}</div></td>`;
+}
+
+function renderReference(filterText){
+  const q = (filterText||'').toLowerCase();
+  const results = CATALOG.filter(c =>
+    (refActiveCat==='All' || c.category===refActiveCat) &&
+    (!q ||
+      c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q) ||
+      c.purpose.toLowerCase().includes(q) || c.appliesTo.toLowerCase().includes(q) ||
+      c.syntax.toLowerCase().includes(q)));
+  document.getElementById('refCount').textContent = results.length + ' of ' + CATALOG.length + ' commands';
+
+  const body = document.getElementById('refMatrixBody');
+  body.innerHTML = results.map(c => `
+    <tr>
+      <td class="colcmd"><span class="refcell-name">${c.name}<span class="refcell-applies">${c.appliesTo}</span></span></td>
+      <td class="colcat">${c.category}</td>
+      ${refCell('<p style="margin:0;">'+c.purpose+'</p>')}
+      ${refCell('<pre>'+c.syntax+'</pre>')}
+      ${refCell('<pre>'+escapeHtml(c.example)+'</pre>')}
+      ${refCell('<pre>'+escapeHtml(c.output.join('\\n'))+'</pre>')}
+      ${refCell(listBlock(c.errors))}
+      ${refCell('<p style="margin:0;">'+c.troubleshooting+'</p>')}
+      ${refCell('<p style="margin:0;">'+c.validation+'</p>')}
+    </tr>`).join('');
+}
+document.getElementById('refSearch').addEventListener('input', e=> renderReference(e.target.value));
+renderRefCatBar();
+renderReference('');
+
+// ==========================================================
+// TAB 3: LIVE SIMULATOR
+// ==========================================================
+const liveCanvas = document.getElementById('liveCanvas');
+const lctx = liveCanvas.getContext('2d');
+let packets = []; // {progress, kind}
+let netDown = false, dbDown = false;
+
+const liveNodes = [
+  {id:'srcdb', label:'Source DB', sub:'SALES.ORDERS', x:0.03, color:'#1B6FC9'},
+  {id:'extract', label:'Extract', sub:'EXT1', x:0.19, color:'#C74634'},
+  {id:'trail1', label:'Trail', sub:'./dirdat/aa', x:0.34, color:'#8A8D91'},
+  {id:'dist', label:'Distribution', sub:'Service', x:0.49, color:'#C74634'},
+  {id:'recv', label:'Receiver', sub:'Service', x:0.64, color:'#C74634'},
+  {id:'trail2', label:'Trail', sub:'./dirdat/ab', x:0.79, color:'#8A8D91'},
+  {id:'replicat', label:'Replicat', sub:'REP1', x:0.92, color:'#C74634'},
+];
+const liveTgt = {id:'tgtdb', label:'Target DB', sub:'SALES.ORDERS', x:1.03, color:'#1B6FC9'};
+
+function fitLive(c){
+  const ratio = window.devicePixelRatio||1;
+  const w = c.clientWidth;
+  c.width = w*ratio; c.height = 230*ratio;
+  const ctx = c.getContext('2d'); ctx.setTransform(ratio,0,0,ratio,0,0);
+  return {w,h:230};
+}
+
+function drawLive(){
+  const {w,h} = fitLive(liveCanvas);
+  lctx.clearRect(0,0,w,h);
+  const y = h*0.42;
+  const all = liveNodes.concat([liveTgt]);
+  lctx.strokeStyle = netDown ? '#F1B0A8' : '#E3E1DD'; lctx.lineWidth=3;
+  lctx.beginPath(); lctx.moveTo(all[0].x*w*0.88+w*0.04,y); lctx.lineTo(all[all.length-1].x*w*0.88+w*0.04,y); lctx.stroke();
+
+  all.forEach(n=>{
+    const px = n.x*w*0.88+w*0.04;
+    let color = n.color;
+    if((n.id==='srcdb'||n.id==='tgtdb') && dbDown) color = '#C62828';
+    if((n.id==='dist'||n.id==='recv') && netDown) color = '#C62828';
+    if(n.id==='extract' && ENV.extracts.EXT1.status!=='RUNNING') color = ENV.extracts.EXT1.status==='ABENDED' ? '#C62828' : '#8A8D91';
+    if(n.id==='replicat' && ENV.replicats.REP1.status!=='RUNNING') color = ENV.replicats.REP1.status==='ABENDED' ? '#C62828' : '#8A8D91';
+    lctx.beginPath(); lctx.arc(px,y,20,0,Math.PI*2); lctx.fillStyle='#fff'; lctx.fill();
+    lctx.lineWidth=3; lctx.strokeStyle=color; lctx.stroke();
+    lctx.fillStyle=color; lctx.font='10.5px -apple-system,Arial'; lctx.textAlign='center';
+    lctx.fillText(n.label, px, y+37);
+    if(n.sub){ lctx.fillStyle='#8A8D91'; lctx.font='9px -apple-system,Arial'; lctx.fillText(n.sub, px, y+49); }
+  });
+
+  // moving packets
+  packets.forEach(p=>{
+    const seq = all; const segCount = seq.length-1;
+    const segF = p.progress*segCount;
+    const idx = Math.min(Math.floor(segF), segCount-1);
+    const localT = segF-idx;
+    const p1=seq[idx], p2=seq[idx+1];
+    const x1=p1.x*w*0.88+w*0.04, x2=p2.x*w*0.88+w*0.04;
+    const px = x1+(x2-x1)*localT;
+    const colorMap = {I:'#2E7D32', U:'#1B6FC9', D:'#C74634'};
+    lctx.beginPath(); lctx.arc(px, y-32, 6, 0, Math.PI*2);
+    lctx.fillStyle = colorMap[p.kind]||'#2E7D32'; lctx.fill();
+  });
+}
+drawLive();
+window.addEventListener('resize', ()=>drawLive());
+
+function animatePackets(){
+  packets = packets.filter(p=>p.progress<1);
+  packets.forEach(p=> p.progress += 0.012*(netDown?0.15:1));
+  drawLive();
+  requestAnimationFrame(animatePackets);
+}
+animatePackets();
+
+function spawnTxn(kind){
+  if(ENV.extracts.EXT1.status!=='RUNNING' || dbDown){
+    logChkpt('Cannot generate transaction: Extract not running or source DB unreachable.');
+    return;
+  }
+  packets.push({progress:0, kind});
+  ENV.captured++;
+  ENV.rba += 256;
+  if(ENV.rba > 60000000){ ENV.rba = 0; ENV.seq++; }
+  const op = applySourceOp(kind);
+  const applyDelay = 1600;
+  if(ENV.replicats.REP1.status==='RUNNING' && !netDown){
+    setTimeout(()=>{ ENV.applied++; if(op) applyTargetOp(op); refreshLiveStats(); }, applyDelay);
+  }
+  refreshLiveStats();
+}
+document.getElementById('btnInsert').addEventListener('click', ()=>spawnTxn('I'));
+document.getElementById('btnUpdate').addEventListener('click', ()=>spawnTxn('U'));
+document.getElementById('btnDelete').addEventListener('click', ()=>spawnTxn('D'));
+document.getElementById('btnBurst').addEventListener('click', ()=>{
+  const kinds=['I','U','D'];
+  for(let i=0;i<10;i++) setTimeout(()=>spawnTxn(kinds[Math.floor(Math.random()*3)]), i*180);
+});
+
+// ---- Source / Target data tables (SALES.ORDERS) ----
+const CUSTOMERS = ['Acme Corp','Nimbus Retail','Trellis Foods','Vantage Labs','Orbit Systems','Harbor Goods','Cascade Metals','Lumen Traders'];
+const STATUSES = ['OPEN','SHIPPED','CANCELLED','BACKORDER'];
+function seedRows(){
+  return [
+    {id:1001, customer:'Acme Corp', amount:'4200.00', status:'OPEN'},
+    {id:1002, customer:'Nimbus Retail', amount:'1580.50', status:'OPEN'},
+    {id:1003, customer:'Trellis Foods', amount:'960.00', status:'SHIPPED'},
+    {id:1004, customer:'Vantage Labs', amount:'3120.75', status:'OPEN'},
+    {id:1005, customer:'Orbit Systems', amount:'275.20', status:'CANCELLED'},
+  ];
+}
+let sourceRows = seedRows();
+let targetRows = seedRows().map(r=>({...r}));
+let nextOrderId = 1006;
+
+function renderDataTables(flashId, flashCls, side){
+  const srcBody = document.getElementById('sourceTableBody');
+  const tgtBody = document.getElementById('targetTableBody');
+  const rowHtml = (r, isFlash) => `<tr data-id="${r.id}" class="${isFlash?flashCls:''}"><td>${r.id}</td><td>${r.customer}</td><td>$${r.amount}</td><td>${r.status}</td></tr>`;
+  srcBody.innerHTML = sourceRows.map(r=> rowHtml(r, side==='source' && r.id===flashId)).join('') || '<tr><td colspan="4" style="color:var(--muted);">No rows.</td></tr>';
+  tgtBody.innerHTML = targetRows.map(r=> rowHtml(r, side==='target' && r.id===flashId)).join('') || '<tr><td colspan="4" style="color:var(--muted);">No rows.</td></tr>';
+}
+renderDataTables();
+
+function applySourceOp(kind){
+  if(kind==='I'){
+    const row = {id: nextOrderId++, customer: CUSTOMERS[Math.floor(Math.random()*CUSTOMERS.length)], amount:(Math.random()*4500+50).toFixed(2), status:'OPEN'};
+    sourceRows.unshift(row);
+    if(sourceRows.length>8) sourceRows.pop();
+    renderDataTables(row.id,'row-insert','source');
+    return {kind:'I', row:{...row}};
+  }
+  if(kind==='U'){
+    if(!sourceRows.length) return null;
+    const row = sourceRows[Math.floor(Math.random()*sourceRows.length)];
+    row.amount = (Math.random()*4500+50).toFixed(2);
+    row.status = STATUSES[Math.floor(Math.random()*STATUSES.length)];
+    renderDataTables(row.id,'row-update','source');
+    return {kind:'U', row:{...row}};
+  }
+  if(kind==='D'){
+    if(!sourceRows.length) return null;
+    const idx = Math.floor(Math.random()*sourceRows.length);
+    const row = sourceRows[idx];
+    renderDataTables(row.id,'row-delete','source');
+    sourceRows.splice(idx,1);
+    return {kind:'D', row:{...row}};
+  }
+}
+function applyTargetOp(op){
+  if(!op) return;
+  if(op.kind==='I'){
+    targetRows.unshift({...op.row});
+    if(targetRows.length>8) targetRows.pop();
+    renderDataTables(op.row.id,'row-insert','target');
+  } else if(op.kind==='U'){
+    const t = targetRows.find(r=>r.id===op.row.id);
+    if(t){ t.amount=op.row.amount; t.status=op.row.status; }
+    renderDataTables(op.row.id,'row-update','target');
+  } else if(op.kind==='D'){
+    targetRows = targetRows.filter(r=>r.id!==op.row.id);
+    renderDataTables(op.row.id,'row-delete','target');
+  }
+}
+
+function refreshLiveStats(){
+  document.getElementById('statCaptured').textContent = ENV.captured;
+  document.getElementById('statApplied').textContent = ENV.applied;
+  document.getElementById('statSeq').textContent = String(ENV.seq).padStart(6,'0');
+  document.getElementById('statRba').textContent = ENV.rba;
+  document.getElementById('statLag').textContent = fmtLag(ENV.replicats.REP1.lag);
+  document.getElementById('statTput').textContent = (netDown||dbDown) ? '0 rec/s' : (ENV.extracts.EXT1.status==='RUNNING' ? (2+Math.round(Math.random()*3))+' rec/s' : '0 rec/s');
+  renderView();
+  renderChkpt();
+}
+function renderChkpt(){
+  const e=ENV.extracts.EXT1, r=ENV.replicats.REP1;
+  document.getElementById('chkptView').textContent =
+`EXT1  status=${e.status}  lag=${fmtLag(e.lag)}  seq=${String(ENV.seq).padStart(6,'0')}  rba=${ENV.rba}
+REP1  status=${r.status}  lag=${fmtLag(r.lag)}  applied=${ENV.applied}
+Reports: OGG-01515 Positioned to Sequence ${String(ENV.seq).padStart(6,'0')}, RBA ${ENV.rba}.
+Statistics: captured=${ENV.captured}  applied=${ENV.applied}  in-flight=${Math.max(0,ENV.captured-ENV.applied)}`;
+}
+function logChkpt(msg){
+  document.getElementById('chkptView').textContent = msg + '\\n\\n' + document.getElementById('chkptView').textContent;
+}
+refreshLiveStats();
+
+// process/failure controls
+document.getElementById('liveStartExt').addEventListener('click', ()=>{ term2.run('START EXTRACT EXT1'); refreshLiveStats(); drawLive(); });
+document.getElementById('liveStopExt').addEventListener('click', ()=>{ term2.run('STOP EXTRACT EXT1'); refreshLiveStats(); drawLive(); });
+document.getElementById('liveStartRep').addEventListener('click', ()=>{ term2.run('START REPLICAT REP1'); refreshLiveStats(); drawLive(); });
+document.getElementById('liveStopRep').addEventListener('click', ()=>{ term2.run('STOP REPLICAT REP1'); refreshLiveStats(); drawLive(); });
+document.getElementById('liveRestartAll').addEventListener('click', ()=>{
+  ['STOP EXTRACT EXT1','START EXTRACT EXT1','STOP REPLICAT REP1','START REPLICAT REP1'].forEach(c=>term2.run(c));
+  refreshLiveStats(); drawLive();
+});
+document.getElementById('failProcess').addEventListener('click', ()=>{
+  ENV.replicats.REP1.status='ABENDED';
+  logChkpt('OGG-01296: Replicat REP1 ABENDED on a DML apply error (simulated process failure).');
+  renderEnvPanel(); refreshLiveStats(); drawLive();
+});
+document.getElementById('failNetwork').addEventListener('click', ()=>{
+  netDown = !netDown;
+  ENV.paths.PATH1.status = netDown ? 'DOWN' : 'RUNNING';
+  ENV.paths.PATH1.reconnects = netDown ? ENV.paths.PATH1.reconnects+1 : ENV.paths.PATH1.reconnects;
+  logChkpt(netDown ? 'OGG-15092: Distribution Path PATH1 lost connectivity to the target deployment (simulated network failure).' : 'PATH1 connectivity restored.');
+  renderEnvPanel(); refreshLiveStats(); drawLive();
+});
+document.getElementById('failDb').addEventListener('click', ()=>{
+  dbDown = !dbDown;
+  if(dbDown){ ENV.extracts.EXT1.status='ABENDED'; logChkpt('ORA-03135: Connection lost contact - EXT1 ABENDED (simulated database connectivity failure).'); }
+  else { ENV.extracts.EXT1.status='RUNNING'; logChkpt('Database connectivity restored. Restart EXT1 to resume capture.'); }
+  renderEnvPanel(); refreshLiveStats(); drawLive();
+});
+document.getElementById('injectLag').addEventListener('click', ()=>{
+  ENV.extracts.EXT1.lag += 45; ENV.replicats.REP1.lag += 90;
+  logChkpt('Simulated replication lag injected: EXT1 +45s, REP1 +90s.');
+  renderEnvPanel(); refreshLiveStats();
+});
+document.getElementById('liveResetAll').addEventListener('click', ()=>{
+  ENV = freshEnv(); ENV.connected = true; netDown=false; dbDown=false; packets=[];
+  sourceRows = seedRows(); targetRows = seedRows().map(r=>({...r})); nextOrderId = 1006;
+  renderDataTables();
+  renderEnvPanel(); refreshLiveStats(); drawLive();
+  document.getElementById('term2').innerHTML='<div class="out">Environment reset to steady state.</div>';
+});
+
+// scenarios
+const SCENARIOS = [
+  {title:'Extract ABENDED on source connectivity loss', hint:'Try: INFO EXTRACT EXT1 DETAIL, then fix connectivity and START EXTRACT EXT1.',
+   apply:()=>{ dbDown=true; ENV.extracts.EXT1.status='ABENDED'; }},
+  {title:'Replicat stuck on DML apply error', hint:'Try: INFO REPLICAT REP1 DETAIL, review the report, then START REPLICAT REP1 once resolved.',
+   apply:()=>{ ENV.replicats.REP1.status='ABENDED'; }},
+  {title:'Distribution Path down (network outage)', hint:'Try: INFO PATH PATH1, then START PATH PATH1 once network is restored.',
+   apply:()=>{ netDown=true; ENV.paths.PATH1.status='DOWN'; }},
+  {title:'Rising replication lag with everything RUNNING', hint:'Try: SEND REPLICAT REP1, GETLAG and STATS REPLICAT REP1 to isolate apply-side bottleneck.',
+   apply:()=>{ ENV.replicats.REP1.lag += 300; }},
+];
+function renderScenarios(){
+  const wrap = document.getElementById('scenarioList'); wrap.innerHTML='';
+  SCENARIOS.forEach(s=>{
+    const c = document.createElement('div'); c.className='scenario-card';
+    c.innerHTML = `<h4>${s.title}</h4><p>${s.hint}</p>`;
+    const b = document.createElement('button'); b.className='action sm secondary'; b.textContent='Trigger Scenario';
+    b.addEventListener('click', ()=>{ s.apply(); renderEnvPanel(); refreshLiveStats(); drawLive(); logChkpt('Scenario triggered: '+s.title); });
+    c.appendChild(b);
+    wrap.appendChild(c);
+  });
+}
+renderScenarios();
+
+// command builder
+const TYPE_OPTIONS = {
+  EXTRACT: [
+    {label:'\u2014 type (optional) \u2014', extra:''},
+    {label:'Classic Extract', extra:'TRANLOG, BEGIN NOW'},
+    {label:'Integrated Extract', extra:'INTEGRATED TRANLOG, BEGIN NOW'},
+  ],
+  REPLICAT: [
+    {label:'\u2014 type (optional) \u2014', extra:''},
+    {label:'Classic Replicat', extra:'EXTTRAIL ./dirdat/ab'},
+    {label:'Coordinated Replicat', extra:'COORDINATED, MAXTHREADS 4, EXTTRAIL ./dirdat/ab'},
+    {label:'Integrated Replicat', extra:'INTEGRATED, EXTTRAIL ./dirdat/ab'},
+    {label:'Parallel Integrated Replicat', extra:'PARALLEL, INTEGRATED, EXTTRAIL ./dirdat/ab'},
+    {label:'Parallel Non-Integrated Replicat', extra:'PARALLEL, EXTTRAIL ./dirdat/ab'},
+  ],
+};
+function refreshTypeOptions(){
+  const obj = document.getElementById('bObj').value;
+  const verb = document.getElementById('bVerb').value;
+  const typeSel = document.getElementById('bType');
+  const opts = TYPE_OPTIONS[obj];
+  const relevant = opts && (verb==='ADD' || verb==='ALTER');
+  typeSel.style.display = relevant ? '' : 'none';
+  typeSel.innerHTML = '';
+  if(relevant){
+    opts.forEach((o,i)=>{
+      const el = document.createElement('option');
+      el.value = i; el.textContent = o.label;
+      typeSel.appendChild(el);
+    });
+  }
+}
+const NAME_ONLY_VERBS = ['CONNECT','DBLOGIN','VIEW PARAM'];
+const NO_PARAM_VERBS = ['INFO ALL','DISCONNECT','HISTORY','VERSION','HELP'];
+function refreshBuilderVisibility(){
+  const verb = document.getElementById('bVerb').value;
+  const objRow = document.getElementById('bObj');
+  const nameEl = document.getElementById('bName');
+  const extraEl = document.getElementById('bExtra');
+  const nameOnly = NAME_ONLY_VERBS.includes(verb);
+  const noParam = NO_PARAM_VERBS.includes(verb);
+  objRow.style.display = (nameOnly || noParam) ? 'none' : '';
+  extraEl.style.display = (nameOnly || noParam) ? 'none' : '';
+  nameEl.style.display = noParam ? 'none' : '';
+  if(verb==='CONNECT') nameEl.placeholder = 'host:port, e.g. ggdeploy01.oggcloud.example.com:443';
+  else if(verb==='DBLOGIN') nameEl.placeholder = 'credential alias, e.g. salesdb_alias';
+  else if(verb==='VIEW PARAM') nameEl.placeholder = 'group name, e.g. EXT1 or REP1';
+  else nameEl.placeholder = 'name / schema.table, e.g. EXT1';
+  refreshTypeOptions();
+}
+document.getElementById('bVerb').addEventListener('change', refreshBuilderVisibility);
+document.getElementById('bObj').addEventListener('change', refreshTypeOptions);
+document.getElementById('bType').addEventListener('change', ()=>{
+  const obj = document.getElementById('bObj').value;
+  const idx = Number(document.getElementById('bType').value);
+  const opt = TYPE_OPTIONS[obj] && TYPE_OPTIONS[obj][idx];
+  if(opt) document.getElementById('bExtra').value = opt.extra;
+});
+refreshBuilderVisibility();
+
+document.getElementById('bBuild').addEventListener('click', ()=> buildCmd(false));
+document.getElementById('bRun').addEventListener('click', ()=> buildCmd(true));
+function buildCmd(run){
+  const verb = document.getElementById('bVerb').value;
+  const obj = document.getElementById('bObj').value;
+  const name = document.getElementById('bName').value.trim();
+  const extra = document.getElementById('bExtra').value.trim();
+  let cmd;
+  if(NO_PARAM_VERBS.includes(verb)){
+    cmd = verb;
+  } else if(verb==='CONNECT'){
+    cmd = 'CONNECT https://'+(name||'ggdeploy01.oggcloud.example.com:443')+' AS oggadmin PASSWORD ********';
+  } else if(verb==='DBLOGIN'){
+    cmd = 'DBLOGIN USERIDALIAS '+(name||'salesdb_alias')+' DOMAIN OracleGoldenGate';
+  } else if(verb==='VIEW PARAM'){
+    cmd = 'VIEW PARAMS '+(name||'<name>');
+  } else {
+    const n = name || '<name>';
+    cmd = verb+' '+obj+' '+n;
+    if(obj==='PATH' && (verb==='START'||verb==='STOP'||verb==='INFO')) cmd = verb+' PATH '+n;
+    if(extra) cmd += ', '+extra;
+  }
+  document.getElementById('bOut').textContent = cmd;
+  if(run) term2.run(cmd);
+}
+
+// live search (reuses reference renderer, into a separate container)
+document.getElementById('liveSearch').addEventListener('input', e=>{
+  const q = e.target.value.toLowerCase();
+  const wrap = document.getElementById('liveSearchResults'); wrap.innerHTML='';
+  if(!q) return;
+  CATALOG.filter(c=> c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q) || c.purpose.toLowerCase().includes(q))
+    .slice(0,8)
+    .forEach(c=>{
+      const row = document.createElement('div'); row.className='cmd-row';
+      row.innerHTML = `<div class="cmd-row-head"><div><span class="cmd-name">${c.name}</span><span class="cmd-applies">${c.category}</span></div><span class="chev">&#9656;</span></div>
+        <div class="cmd-row-body">${cfBlock('Syntax','<pre>'+c.syntax+'</pre>')}${cfBlock('Example','<pre>'+escapeHtml(c.example)+'</pre>')}</div>`;
+      row.querySelector('.cmd-row-head').addEventListener('click', ()=> row.classList.toggle('open'));
+      wrap.appendChild(row);
+    });
+});
+
+</script>
+</body>
+</html>

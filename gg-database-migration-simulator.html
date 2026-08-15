@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oracle GoldenGate | Database Migration Simulator</title>
+<style>
+  :root{
+    --redwood:#C74634;
+    --redwood-dark:#9C3327;
+    --ink:#1B1B1B;
+    --ink-soft:#5F6368;
+    --paper:#FFFFFF;
+    --panel:#FAF9F7;
+    --line:#E3E1DD;
+    --good:#2E7D32;
+    --bad:#b3261e;
+    --warn:#B45309;
+    --primary-blue:#1B6FC9;
+    --radius:10px;
+    font-size:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{max-width:100%;overflow-x:hidden;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    background:var(--panel);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+  }
+  header{
+    background:var(--ink); color:#fff; padding:18px 28px;
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  }
+  header .title{ display:flex; align-items:center; gap:12px; }
+  header .badge{
+    background:var(--redwood); color:#fff; font-size:11px; font-weight:700;
+    letter-spacing:.06em; padding:4px 10px; border-radius:4px; text-transform:uppercase;
+  }
+  header h1{ font-size:18px; margin:0; font-weight:600; }
+  header .sub{ font-size:12px; color:#C9C9C9; margin-top:2px; }
+  .version-badge{
+    background:rgba(255,255,255,.12); color:#fff; font-size:11px; font-weight:700;
+    padding:4px 10px; border-radius:20px; cursor:pointer; border:1px solid rgba(255,255,255,.25);
+    white-space:nowrap;
+  }
+  .version-badge:hover{ background:rgba(255,255,255,.2); }
+  .back-link{ font-size:12px; color:#C74634; text-decoration:none; font-weight:700; letter-spacing:.02em; transition:opacity .15s; }
+  .back-link:hover{ opacity:.8; }
+  #changelogPanel{
+    display:none; background:var(--paper); border:1px solid var(--line); border-radius:10px;
+    padding:16px 20px; max-width:960px; margin:16px auto 0;
+  }
+  #changelogPanel.open{display:block;}
+  #changelogPanel h3{ margin:0 0 10px; font-size:14px; color:var(--redwood-dark); }
+  #changelogPanel .cl-entry{ border-left:3px solid var(--redwood); padding:4px 0 4px 12px; margin-bottom:10px; }
+  #changelogPanel .cl-entry .cl-ver{ font-weight:700; font-size:13px; }
+  #changelogPanel .cl-entry .cl-date{ color:var(--ink-soft); font-size:11.5px; margin-left:8px; }
+  #changelogPanel .cl-entry ul{ margin:4px 0 0; padding-left:18px; font-size:12.5px; color:var(--ink-soft); }
+  #changelogPanel .cl-close{ float:right; background:none; border:none; color:var(--ink-soft); cursor:pointer; font-size:13px; }
+  nav.tabs{
+    display:flex; overflow-x:auto; background:var(--paper);
+    border-bottom:2px solid var(--line); position:sticky; top:0; z-index:50;
+    scrollbar-width:none; padding:0 20px;
+  }
+  nav.tabs::-webkit-scrollbar{display:none;}
+  nav.tabs button{
+    flex:0 0 auto; background:none; border:none; padding:14px 16px;
+    font-size:0.82rem; font-weight:600; color:var(--ink-soft); cursor:pointer;
+    border-bottom:3px solid transparent; white-space:nowrap;
+  }
+  nav.tabs button:hover{ color:var(--ink); }
+  nav.tabs button.active{ color:var(--redwood); border-bottom-color:var(--redwood); }
+  main{ max-width:960px; margin:0 auto; padding:16px 14px 60px; }
+  section.view{display:none;}
+  section.view.active{display:block;}
+  .card{
+    background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+    padding:16px; margin-bottom:14px;
+  }
+  .card h2{
+    font-size:1rem; margin:0 0 10px; display:flex; align-items:center; gap:8px;
+  }
+  .card h2 .num{
+    background:var(--redwood); color:#fff; width:22px;height:22px; border-radius:50%;
+    font-size:0.7rem; display:flex;align-items:center;justify-content:center; flex:0 0 auto;
+  }
+  .card p{ font-size:0.88rem; line-height:1.5; color:var(--ink); margin:0 0 8px;}
+  .card ul{ margin:6px 0; padding-left:20px; font-size:0.85rem; line-height:1.55;}
+  .card li{margin-bottom:4px;}
+  .card ol{ margin:6px 0; padding-left:20px; font-size:0.85rem; line-height:1.55;}
+  .card ol li{margin-bottom:6px;}
+  code, .code{
+    font-family:"SF Mono",Menlo,Consolas,monospace; background:#f1f1f4;
+    border:1px solid var(--line); border-radius:6px; padding:1px 6px;
+    font-size:0.78rem; color:var(--redwood-dark);
+  }
+  pre.code-block{
+    background:#1b1e27; color:#d6e2ff; font-family:"SF Mono",Menlo,Consolas,monospace;
+    font-size:0.72rem; line-height:1.5; padding:12px; border-radius:8px;
+    overflow-x:auto; margin:8px 0;
+  }
+  table.matrix{ width:100%; border-collapse:collapse; font-size:0.76rem; }
+  table.matrix th, table.matrix td{ border:1px solid var(--line); padding:6px 7px; text-align:center; }
+  table.matrix th{background:#f1f1f4; font-size:0.68rem;}
+  table.matrix td:first-child, table.matrix th:first-child{text-align:left; font-weight:600;}
+  .yes{color:var(--good); font-weight:700;}
+  .no{color:var(--bad); font-weight:700;}
+  .partial{color:var(--warn); font-weight:700;}
+
+  /* Diagram panel */
+  .diagram-wrap{ background:#0f1117; border-radius:10px; padding:14px 8px 20px; overflow-x:auto; }
+  .site-box{ fill:#1b1e27; stroke:#3a3f52; stroke-width:1; }
+  .site-label{ font:700 12px sans-serif; fill:#fff; }
+  .proc-label{ font:600 8.5px monospace; fill:#c9d4ff; }
+  .edge-label{ font:600 7px sans-serif; fill:#8b93ab; }
+
+  /* Journey timeline */
+  .journey{ display:flex; flex-direction:column; gap:0; }
+  .journey-step{ display:flex; gap:12px; position:relative; padding-bottom:22px; }
+  .journey-step:last-child{padding-bottom:0;}
+  .journey-step .dot{
+    width:28px;height:28px;border-radius:50%; background:var(--redwood); color:#fff;
+    display:flex;align-items:center;justify-content:center; font-size:0.75rem; font-weight:700;
+    flex:0 0 auto; z-index:1;
+  }
+  .journey-step .line{
+    position:absolute; left:13px; top:28px; bottom:-22px; width:2px; background:var(--line);
+  }
+  .journey-step:last-child .line{display:none;}
+  .journey-step .content{ padding-top:2px; }
+  .journey-step .content h3{ margin:0 0 4px; font-size:0.88rem; }
+  .journey-step .content p{ margin:0; font-size:0.8rem; color:var(--ink-soft); line-height:1.5;}
+  .journey-step .content .phase-tag{
+    display:inline-block; font-size:0.62rem; font-weight:700; letter-spacing:0.03em;
+    background:var(--panel); border:1px solid var(--line); color:var(--ink-soft);
+    padding:1px 7px; border-radius:5px; margin-top:5px;
+  }
+
+  /* Strategy advisor */
+  .advisor-grid{ display:grid; grid-template-columns:1fr; gap:10px; }
+  @media(min-width:640px){ .advisor-grid{grid-template-columns:1fr 1fr;} }
+  .advisor-field label{ display:block; font-size:0.76rem; font-weight:700; color:var(--ink-soft); margin-bottom:4px; }
+  .advisor-field select{
+    width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--line);
+    font-size:0.82rem; background:#fff; color:var(--ink);
+  }
+  .advisor-result{
+    border:1px solid var(--line); border-left:4px solid var(--redwood); border-radius:8px;
+    padding:12px 14px; background:#fff9f8; margin-top:14px;
+  }
+  .advisor-result h3{ margin:0 0 6px; font-size:0.95rem; color:var(--redwood-dark); }
+  .advisor-result .subtag{
+    display:inline-block; background:var(--redwood); color:#fff; font-size:0.62rem; font-weight:700;
+    padding:2px 8px; border-radius:5px; margin-bottom:8px;
+  }
+  .pill-row{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .pill{
+    font-size:0.68rem; font-weight:700; background:#eef1ff; color:#2540a8;
+    padding:3px 9px; border-radius:20px; border:1px solid #d6ddff;
+  }
+
+  /* Architecture explorer selector */
+  .arch-picker{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+  .arch-picker button{
+    flex:1 1 auto; background:#fff; border:1px solid var(--line); padding:9px 10px;
+    border-radius:8px; font-size:0.74rem; font-weight:700; cursor:pointer; color:var(--ink-soft);
+  }
+  .arch-picker button.active{ background:var(--redwood); color:#fff; border-color:var(--redwood); }
+  .arch-pane{display:none;}
+  .arch-pane.active{display:block;}
+
+  /* Live simulator */
+  .sel-row{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .sel-field{ flex:1 1 220px; }
+  .sel-field label{ display:block; font-size:0.72rem; font-weight:700; color:var(--ink-soft); margin-bottom:4px; }
+  .sel-field select{
+    width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--line);
+    font-size:0.8rem; background:#fff; color:var(--ink);
+  }
+  .phase-stepper{ display:flex; gap:4px; margin-bottom:12px; flex-wrap:wrap; }
+  .phase-stepper .ph{
+    flex:1 1 auto; text-align:center; padding:8px 4px; border-radius:7px; background:var(--panel);
+    border:1px solid var(--line); font-size:0.66rem; font-weight:700; color:var(--ink-soft); position:relative;
+  }
+  .phase-stepper .ph.current{ background:var(--redwood); color:#fff; border-color:var(--redwood); }
+  .phase-stepper .ph.done{ background:#e7f5ee; color:var(--good); border-color:#bfe4d2; }
+  .sim-controls{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  .sim-controls button.main-action{
+    flex:1 1 auto; background:var(--redwood); color:#fff; border:none;
+    padding:10px 12px; border-radius:8px; font-weight:700; font-size:0.8rem; cursor:pointer;
+  }
+  .sim-controls button.main-action:disabled{ opacity:0.4; cursor:not-allowed; }
+  .sim-controls button.secondary{
+    flex:1 1 auto; background:#fff; border:1px solid var(--line); padding:10px 12px;
+    border-radius:8px; font-weight:700; font-size:0.8rem; cursor:pointer; color:var(--ink);
+  }
+  .progress-wrap{ background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:10px;}
+  .progress-wrap .lbl{ display:flex; justify-content:space-between; font-size:0.72rem; font-weight:700; color:var(--ink-soft); margin-bottom:6px;}
+  .progress-track{ height:9px; border-radius:5px; background:#e6e6ea; overflow:hidden; }
+  .progress-fill{ height:100%; width:0%; background:linear-gradient(90deg,#2563eb,#7c3aed); transition:width 0.25s linear; }
+  .progress-fill.cdc{ background:linear-gradient(90deg,#7c3aed,#c74634); }
+  .progress-fill.val{ background:linear-gradient(90deg,#1c7c4c,#5adf9a); }
+  .progress-fill.cut{ background:linear-gradient(90deg,#c74634,#9a3527); }
+  .metric-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
+  @media(min-width:640px){ .metric-grid{grid-template-columns:repeat(4,1fr);} }
+  .metric-card{ background:#fff; border:1px solid var(--line); border-radius:8px; padding:9px 10px; }
+  .metric-card .v{ font-size:1.05rem; font-weight:800; color:var(--ink); }
+  .metric-card .k{ font-size:0.64rem; font-weight:700; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.03em; }
+  #simLog{
+    background:#12141c; color:#d6e2ff; font-family:"SF Mono",Menlo,Consolas,monospace;
+    font-size:0.7rem; line-height:1.6; border-radius:9px; padding:12px;
+    height:260px; overflow-y:auto;
+  }
+  #simLog .win{color:#5adf9a; font-weight:700;}
+  #simLog .lose{color:#ff8a80; font-weight:700;}
+  #simLog .noop{color:#8b93ab; font-style:italic;}
+  #simLog .info{color:#8b93ab;}
+  #simLog .tag{color:#ffd479;}
+  #simLog .hdr{color:#fff; font-weight:700;}
+  .checklist{ list-style:none; margin:0; padding:0; font-size:0.8rem; }
+  .checklist li{ display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px dashed var(--line); }
+  .checklist li:last-child{border-bottom:none;}
+  .checklist .box{
+    width:16px;height:16px;border-radius:4px;border:2px solid var(--line); flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center; font-size:0.6rem; color:#fff;
+  }
+  .checklist li.checked .box{ background:var(--good); border-color:var(--good); }
+  .checklist li.checked span.txt{ color:var(--ink-soft); text-decoration:line-through; }
+
+  /* Dashboard */
+  .kpi-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+  @media(min-width:640px){ .kpi-grid{grid-template-columns:repeat(4,1fr);} }
+  .kpi-card{ background:#fff; border:1px solid var(--line); border-radius:10px; padding:12px; text-align:center; }
+  .kpi-card .big{ font-size:1.4rem; font-weight:800; color:var(--redwood-dark); }
+  .kpi-card .lbl{ font-size:0.68rem; font-weight:700; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.03em; margin-top:2px;}
+  .ring-wrap{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+  .status-dot{ width:9px;height:9px;border-radius:50%; display:inline-block; margin-right:5px;}
+  .status-dot.ok{background:var(--good);}
+  .status-dot.warn{background:var(--warn);}
+  .status-dot.bad{background:var(--bad);}
+  .status-dot.idle{background:#b7bccb;}
+
+  /* Scenario / practice cards */
+  .scenario-card{ border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:12px; background:#fff; }
+  .scenario-card h3{ margin:0 0 4px; font-size:0.95rem; }
+  .scenario-card .meta{ font-size:0.68rem; font-weight:700; color:var(--redwood-dark); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:8px; }
+  .scenario-card .grid2{ display:grid; grid-template-columns:1fr; gap:10px; margin-top:8px; }
+  @media(min-width:640px){ .scenario-card .grid2{grid-template-columns:1fr 1fr;} }
+  .scenario-card .blk{ background:var(--panel); border-radius:8px; padding:8px 10px; }
+  .scenario-card .blk h4{ margin:0 0 4px; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.03em; color:var(--ink-soft); }
+  .scenario-card .blk p{ margin:0; font-size:0.8rem; }
+  .legend{ display:flex; gap:14px; flex-wrap:wrap; font-size:0.7rem; color:var(--ink-soft); margin-top:8px; }
+  .legend span{display:inline-flex; align-items:center; gap:5px;}
+  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block;}
+  footer{ text-align:center; color:var(--ink-soft); font-size:0.7rem; padding:20px 10px; }
+</style>
+<script>
+/* Basic deterrents against casual view-source / copying.
+   NOTE: This does not provide real security — any determined visitor can
+   still access the page source via browser dev tools, curl, or other means. */
+document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+document.addEventListener('keydown', function(e){
+  var k = e.key ? e.key.toUpperCase() : '';
+  if (
+    k === 'F12' ||
+    (e.ctrlKey && k === 'U') ||
+    (e.ctrlKey && e.shiftKey && (k === 'I' || k === 'J' || k === 'C')) ||
+    (e.metaKey && e.altKey && (k === 'I' || k === 'J' || k === 'C'))
+  ) {
+    e.preventDefault();
+  }
+});
+</script>
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <span class="badge">MIGRATION</span>
+    <div>
+      <h1>Oracle GoldenGate Database Migration Simulator</h1>
+      <div class="sub">Migration Journey &middot; Strategy Advisor &middot; Architecture Explorer &middot; Live Simulator &middot; Migration Dashboard &middot; Best Practices &middot; Customer Scenarios</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <button class="version-badge" onclick="toggleChangelog()">v1.0.0 &middot; Changelog</button>
+    <a href="https://www.claudeusercontent.com/index.html" class="back-link">&#8592; Back to GoldenGate Experience Center</a>
+  </div>
+</header>
+
+<div id="changelogPanel">
+  <button class="cl-close" onclick="toggleChangelog()">&#10005; Close</button>
+  <h3>Version History</h3>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.0.0</span><span class="cl-date">2026-08-09</span>
+    <ul>
+      <li>Initial release: Migration Journey, Strategy Advisor, Architecture Explorer (3 patterns), Live Simulator (5 source / 5 target database options across Initial Load, CDC, Validation, Golive/Cutover), Migration Dashboard, Best Practices, Customer Scenarios.</li>
+      <li>Built to match the GoldenGate Experience Center visual language (Redwood red / ink / white).</li>
+    </ul>
+  </div>
+</div>
+
+<nav class="tabs" id="tabs">
+  <button class="active" data-view="journey">Migration Journey</button>
+  <button data-view="advisor">Strategy Advisor</button>
+  <button data-view="arch">Architecture Explorer</button>
+  <button data-view="sim">Live Simulator</button>
+  <button data-view="dashboard">Migration Dashboard</button>
+  <button data-view="practices">Best Practices</button>
+  <button data-view="scenarios">Customer Scenarios</button>
+</nav>
+
+<main>
+
+  <!-- ============ 1. MIGRATION JOURNEY ============ -->
+  <section class="view active" id="view-journey">
+    <div class="card">
+      <h2><span class="num">i</span>Why GoldenGate for database migration</h2>
+      <p>A database migration &mdash; moving a schema from an old engine, version, or platform to a new one &mdash; traditionally means a <strong>maintenance window</strong>: stop the application, export/copy the data, load it at the target, re-point the application, go live. For small databases that's fine. For a multi-terabyte, always-on system, that window can be hours or days the business cannot afford.</p>
+      <p>Oracle GoldenGate turns that single big-bang cutover into two parallel tracks that run <strong>while the source stays live and writable</strong>: a one-time <strong>Initial Load</strong> of existing data, and a continuous <strong>Change Data Capture (CDC)</strong> stream of everything that changes at the source from the moment the load started. The target keeps catching up in near real time until the two are in sync &mdash; at which point cutover is a short, low-risk switch rather than a long outage.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">ii</span>The end-to-end journey</h2>
+      <div class="journey">
+        <div class="journey-step">
+          <div class="dot">1</div><div class="line"></div>
+          <div class="content">
+            <h3>Assess &amp; Discover</h3>
+            <p>Inventory schemas, table sizes, data types, unsupported objects (LOBs, XMLType, spatial), peak transaction volume, and application dependencies (triggers, sequences, stored procedures) that don't replicate automatically.</p>
+            <span class="phase-tag">Weeks before migration</span>
+          </div>
+        </div>
+        <div class="journey-step">
+          <div class="dot">2</div><div class="line"></div>
+          <div class="content">
+            <h3>Plan the Strategy</h3>
+            <p>Choose homogeneous vs. heterogeneous path, downtime tolerance, Initial Load method, network topology, and rollback approach. See the Strategy Advisor tab for a guided recommendation.</p>
+            <span class="phase-tag">Weeks before migration</span>
+          </div>
+        </div>
+        <div class="journey-step">
+          <div class="dot">3</div><div class="line"></div>
+          <div class="content">
+            <h3>Prepare Source &amp; Target</h3>
+            <p>Enable supplemental logging / <code>ADD TRANDATA</code> at the source; provision and pre-create target schema (DDL conversion for heterogeneous targets); size trail files, network bandwidth, and target apply resources.</p>
+            <span class="phase-tag">Days before migration</span>
+          </div>
+        </div>
+        <div class="journey-step">
+          <div class="dot">4</div><div class="line"></div>
+          <div class="content">
+            <h3>Start CDC Capture First</h3>
+            <p>Start the Extract capturing changes <strong>before</strong> the Initial Load begins, so no transaction committed during the (potentially long) bulk copy is ever lost &mdash; it simply queues in the trail until Replicat is ready to apply it.</p>
+            <span class="phase-tag">Migration day</span>
+          </div>
+        </div>
+        <div class="journey-step">
+          <div class="dot">5</div><div class="line"></div>
+          <div class="content">
+            <h3>Initial Load</h3>
+            <p>Bulk-copy the existing data using GoldenGate Direct Load, a file-to-Replicat load, or a native utility (Data Pump / RMAN / external table) &mdash; whichever suits the data volume and source/target combination.</p>
+            <span class="phase-tag">Migration day</span>
+          </div>
+        </div>
+        <div class="journey-step">
+          <div class="dot">6</div><div class="line"></div>
+          <div class="content">
+            <h3>CDC Catch-Up &amp; Sync</h3>
+            <p>Replicat applies the backlog of changes captured during the load, then continues in near real time. Monitor end-to-end latency until it stabilizes at seconds, not minutes.</p>
+            <span class="phase-tag">Hours to days</span>
+          </div>
+        </div>
+        <div class="journey-step">
+          <div class="dot">7</div><div class="line"></div>
+          <div class="content">
+            <h3>Validate</h3>
+            <p>Reconcile row counts and checksums/hashes between source and target (e.g. GoldenGate Veridata or custom reconciliation), confirm sequences, constraints, and dependent objects match.</p>
+            <span class="phase-tag">Before cutover</span>
+          </div>
+        </div>
+        <div class="journey-step">
+          <div class="dot">8</div>
+          <div class="content">
+            <h3>Golive / Cutover &amp; Fallback</h3>
+            <p>Briefly quiesce source writes, let final lag drain to zero, switch the application connection to the target, and optionally reverse CDC direction for a rollback safety net before decommissioning the source.</p>
+            <span class="phase-tag">Cutover window &mdash; typically minutes</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">iii</span>What makes this "near-zero downtime"</h2>
+      <p>The outage window shrinks to just the time it takes to: stop new writes at the source, let the last few seconds of already-captured changes drain through CDC, flip the application's connection string, and resume writes at the target. Everything else &mdash; the bulk copy and the vast majority of change synchronization &mdash; happens <strong>while the business keeps running</strong>.</p>
+    </div>
+  </section>
+
+  <!-- ============ 2. MIGRATION STRATEGY ADVISOR ============ -->
+  <section class="view" id="view-advisor">
+    <div class="card">
+      <h2><span class="num">?</span>Get a recommended approach</h2>
+      <p>Answer four questions about the migration and get a suggested strategy, GoldenGate component shape, and rationale. This is a simplified decision aid for learning purposes &mdash; real engagements should validate against a full technical assessment.</p>
+      <div class="advisor-grid">
+        <div class="advisor-field">
+          <label>Downtime tolerance</label>
+          <select id="advDowntime">
+            <option value="zero">Zero / near-zero (seconds to a couple minutes)</option>
+            <option value="hours">A few hours acceptable</option>
+            <option value="window">Full maintenance window is fine</option>
+          </select>
+        </div>
+        <div class="advisor-field">
+          <label>Data volume</label>
+          <select id="advVolume">
+            <option value="small">Small &mdash; under 100 GB</option>
+            <option value="medium">Medium &mdash; 100 GB to 5 TB</option>
+            <option value="large">Large &mdash; over 5 TB</option>
+          </select>
+        </div>
+        <div class="advisor-field">
+          <label>Source &rarr; target engines</label>
+          <select id="advEngine">
+            <option value="homogeneous">Homogeneous (Oracle &rarr; Oracle)</option>
+            <option value="heterogeneous">Heterogeneous (cross-engine, e.g. SQL Server &rarr; PostgreSQL)</option>
+            <option value="analytics">To a data warehouse / lakehouse (e.g. &rarr; Snowflake, BigQuery)</option>
+          </select>
+        </div>
+        <div class="advisor-field">
+          <label>Workload profile</label>
+          <select id="advWorkload">
+            <option value="oltp">High-throughput OLTP</option>
+            <option value="mixed">Mixed OLTP + reporting</option>
+            <option value="batch">Mostly batch / low change rate</option>
+          </select>
+        </div>
+      </div>
+      <div class="sim-controls" style="margin-top:14px;">
+        <button class="main-action" onclick="runAdvisor()">Get recommendation</button>
+      </div>
+      <div class="advisor-result" id="advisorResult" style="display:none;"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">i</span>How the advisor reasons</h2>
+      <ul>
+        <li><strong>Zero-downtime + any volume</strong> almost always points to Extract-first CDC with a parallel Initial Load and a short cutover window &mdash; the pattern covered in the Live Simulator.</li>
+        <li><strong>Large volume</strong> favors a native bulk-load utility (Data Pump, RMAN, cloud import service, or bulk export/import) for the Initial Load instead of GoldenGate's row-by-row Direct Load, with CDC layered on top to catch up.</li>
+        <li><strong>Heterogeneous engines</strong> add DDL/data-type conversion work up front and usually rule out GoldenGate's fastest same-engine load paths, pushing toward file-based bulk load plus CDC.</li>
+        <li><strong>Data warehouse / lakehouse targets</strong> typically only need Replicat delivering to a staging or landing layer &mdash; transformation and modeling happen downstream, not in the migration path itself.</li>
+        <li><strong>Full maintenance window acceptable</strong> can simplify to a native export/import with no CDC at all &mdash; though most teams still add CDC for a safety margin and fast rollback.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 3. ARCHITECTURE EXPLORER ============ -->
+  <section class="view" id="view-arch">
+    <div class="card">
+      <h2><span class="num">i</span>Choose a migration pattern</h2>
+      <p>Select a pattern to see its GoldenGate process topology. All three share the same backbone &mdash; Extract at the source, trail files, Replicat at the target &mdash; but differ in load method and target shape.</p>
+      <div class="arch-picker">
+        <button class="active" data-arch="homog" onclick="showArch('homog')">Homogeneous Cloud Migration</button>
+        <button data-arch="hetero" onclick="showArch('hetero')">Heterogeneous Cross-Engine</button>
+        <button data-arch="dw" onclick="showArch('dw')">Data Warehouse / Lakehouse</button>
+      </div>
+
+      <div class="arch-pane active" id="arch-homog">
+        <p><strong>Oracle &rarr; Oracle (on-prem to OCI / Exadata Cloud / Autonomous Database).</strong> Same engine end-to-end, so GoldenGate Direct Load or Data Pump can move data at near-native speed, and datatypes/DDL carry over with minimal conversion.</p>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 640 260" width="100%" style="max-width:640px;display:block;margin:0 auto;">
+            <rect class="site-box" x="20" y="60" width="180" height="120" rx="10"/>
+            <text class="site-label" x="34" y="82">SOURCE &mdash; Oracle (on-prem)</text>
+            <text class="proc-label" x="34" y="104">EXTORA (Integrated Extract)</text>
+            <text class="proc-label" x="34" y="120">DIRECT LOAD or Data Pump</text>
+            <text class="proc-label" x="34" y="136">export &rarr; Initial Load path</text>
+            <text class="proc-label" x="34" y="158">Trail: rt000000001 &hellip;</text>
+
+            <rect class="site-box" x="440" y="60" width="180" height="120" rx="10"/>
+            <text class="site-label" x="454" y="82">TARGET &mdash; OCI / Autonomous DB</text>
+            <text class="proc-label" x="454" y="104">Parallel Replicat</text>
+            <text class="proc-label" x="454" y="120">(integrated mode)</text>
+            <text class="proc-label" x="454" y="136">Direct DDL &amp; type mapping:</text>
+            <text class="proc-label" x="454" y="152">none required (same engine)</text>
+
+            <line x1="200" y1="100" x2="440" y2="100" stroke="#3a3f52" stroke-width="1.5"/>
+            <text class="edge-label" x="270" y="93">Initial Load (bulk, one-time)</text>
+            <line x1="200" y1="140" x2="440" y2="140" stroke="#3a3f52" stroke-width="1.5"/>
+            <text class="edge-label" x="270" y="133">CDC trail (continuous)</text>
+          </svg>
+        </div>
+        <p style="margin-top:8px;">Because both ends speak Oracle natively, teams often use RMAN duplication, Data Pump over a database link, or GoldenGate's own Direct Load for the bulk copy, then rely on GoldenGate purely for CDC catch-up and cutover.</p>
+      </div>
+
+      <div class="arch-pane" id="arch-hetero">
+        <p><strong>Cross-engine (e.g. Microsoft SQL Server &rarr; PostgreSQL, or MySQL &rarr; Oracle).</strong> Datatypes, identity/sequence generation, trigger logic, and DDL are engine-specific, so a conversion step (manual or tool-assisted, e.g. Oracle Database Migration Service / SQL Developer) precedes the data movement. GoldenGate's own datatype mapping handles ordinary column conversions in-flight.</p>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 640 280" width="100%" style="max-width:640px;display:block;margin:0 auto;">
+            <rect class="site-box" x="20" y="30" width="180" height="110" rx="10"/>
+            <text class="site-label" x="34" y="52">SOURCE &mdash; SQL Server</text>
+            <text class="proc-label" x="34" y="74">Extract (log-based CDC)</text>
+            <text class="proc-label" x="34" y="90">Native bulk export</text>
+            <text class="proc-label" x="34" y="106">(BCP / native tools)</text>
+
+            <rect class="site-box" x="230" y="170" width="180" height="90" rx="10"/>
+            <text class="site-label" x="244" y="192">CONVERSION LAYER</text>
+            <text class="proc-label" x="244" y="212">DDL &amp; datatype mapping</text>
+            <text class="proc-label" x="244" y="228">schema pre-created at target</text>
+
+            <rect class="site-box" x="440" y="30" width="180" height="110" rx="10"/>
+            <text class="site-label" x="454" y="52">TARGET &mdash; PostgreSQL</text>
+            <text class="proc-label" x="454" y="74">Replicat (non-integrated)</text>
+            <text class="proc-label" x="454" y="90">File-to-Replicat bulk load</text>
+            <text class="proc-label" x="454" y="106">or native COPY / pg_restore</text>
+
+            <line x1="200" y1="70" x2="440" y2="70" stroke="#3a3f52" stroke-width="1.5"/>
+            <text class="edge-label" x="270" y="63">CDC trail (continuous)</text>
+            <line x1="110" y1="140" x2="290" y2="170" stroke="#3a3f52" stroke-width="1.5"/>
+            <line x1="410" y1="170" x2="530" y2="140" stroke="#3a3f52" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <p style="margin-top:8px;">GoldenGate Extract is DDL-agnostic about the target &mdash; it captures logical row changes, and Replicat applies them against the pre-mapped target schema. The conversion layer runs once, up front; from then on CDC just keeps flowing.</p>
+      </div>
+
+      <div class="arch-pane" id="arch-dw">
+        <p><strong>Migrating operational data into an analytics platform (Snowflake, BigQuery, OCI Data Lakehouse).</strong> Here GoldenGate's job is narrower: land clean, ordered change data into a target table or staging layer. Modeling, transformation, and medallion-style layering happen downstream in the target platform, not inside the replication path.</p>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 640 260" width="100%" style="max-width:640px;display:block;margin:0 auto;">
+            <rect class="site-box" x="20" y="60" width="170" height="120" rx="10"/>
+            <text class="site-label" x="34" y="82">SOURCE &mdash; OLTP DB</text>
+            <text class="proc-label" x="34" y="104">Extract (Integrated)</text>
+            <text class="proc-label" x="34" y="120">Trail: continuous CDC</text>
+            <text class="proc-label" x="34" y="136">Initial Load: bulk export</text>
+
+            <rect class="site-box" x="245" y="60" width="150" height="120" rx="10"/>
+            <text class="site-label" x="258" y="82">STAGING</text>
+            <text class="proc-label" x="258" y="104">Replicat &rarr; landing</text>
+            <text class="proc-label" x="258" y="120">tables / object store</text>
+            <text class="proc-label" x="258" y="136">(raw / bronze)</text>
+
+            <rect class="site-box" x="450" y="60" width="170" height="120" rx="10"/>
+            <text class="site-label" x="464" y="82">SNOWFLAKE / BIGQUERY</text>
+            <text class="proc-label" x="464" y="104">Native ELT / dbt / tasks</text>
+            <text class="proc-label" x="464" y="120">model into curated /</text>
+            <text class="proc-label" x="464" y="136">analytics-ready layers</text>
+
+            <line x1="190" y1="120" x2="245" y2="120" stroke="#3a3f52" stroke-width="1.5"/>
+            <line x1="395" y1="120" x2="450" y2="120" stroke="#3a3f52" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <p style="margin-top:8px;">GoldenGate delivers <strong>only to the landing/staging layer</strong> &mdash; it does not model curated or analytics-ready structures itself. That transformation is the target platform's job, run on its own schedule, decoupled from replication latency.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. LIVE SIMULATOR ============ -->
+  <section class="view" id="view-sim">
+    <div class="card">
+      <h2><span class="num">&#9654;</span>Live migration simulator</h2>
+      <p>Pick a source and target database, then run the migration through its four phases: <strong>Initial Load &rarr; Change Data Capture &rarr; Validation &rarr; Golive / Cutover</strong>. Metrics and the log update as each phase runs.</p>
+      <div class="sel-row">
+        <div class="sel-field">
+          <label>Source database</label>
+          <select id="simSource">
+            <option value="Oracle Database">Oracle Database</option>
+            <option value="Microsoft SQL Server">Microsoft SQL Server</option>
+            <option value="MySQL / MySQL HeatWave">MySQL / MySQL HeatWave</option>
+            <option value="PostgreSQL">PostgreSQL</option>
+            <option value="IBM Db2 LUW">IBM Db2 LUW</option>
+          </select>
+        </div>
+        <div class="sel-field">
+          <label>Target database</label>
+          <select id="simTarget">
+            <option value="Oracle Autonomous Database (OCI)">Oracle Autonomous Database (OCI)</option>
+            <option value="OCI PostgreSQL">OCI PostgreSQL</option>
+            <option value="MySQL HeatWave">MySQL HeatWave</option>
+            <option value="Snowflake">Snowflake</option>
+            <option value="Google BigQuery">Google BigQuery</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="phase-stepper" id="phaseStepper">
+        <div class="ph current" data-ph="0">1. Initial Load</div>
+        <div class="ph" data-ph="1">2. Change Data Capture</div>
+        <div class="ph" data-ph="2">3. Validation</div>
+        <div class="ph" data-ph="3">4. Golive / Cutover</div>
+      </div>
+
+      <div class="sim-controls">
+        <button class="main-action" id="runPhaseBtn" onclick="runNextPhase()">Start Initial Load</button>
+        <button class="secondary" onclick="resetMigrationSim()">Reset</button>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="lbl"><span id="progressLabel">Ready to start</span><span id="progressPct">0%</span></div>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+
+      <div class="metric-grid">
+        <div class="metric-card"><div class="v" id="mRows">0</div><div class="k">Rows migrated</div></div>
+        <div class="metric-card"><div class="v" id="mLag">&mdash;</div><div class="k">Replication lag</div></div>
+        <div class="metric-card"><div class="v" id="mMismatch">&mdash;</div><div class="k">Validation mismatches</div></div>
+        <div class="metric-card"><div class="v" id="mStatus">Idle</div><div class="k">Migration status</div></div>
+      </div>
+
+      <div id="simLog"></div>
+      <div class="legend">
+        <span><i style="background:#2563eb;"></i>Initial Load</span>
+        <span><i style="background:#7c3aed;"></i>CDC</span>
+        <span><i style="background:#1c7c4c;"></i>Validation</span>
+        <span><i style="background:#c74634;"></i>Cutover</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">&#9989;</span>Cutover checklist</h2>
+      <p style="margin-bottom:6px;">Fills in as the Golive / Cutover phase runs.</p>
+      <ul class="checklist" id="cutoverChecklist">
+        <li data-item="0"><span class="box"></span><span class="txt">Freeze new writes at the source</span></li>
+        <li data-item="1"><span class="box"></span><span class="txt">Confirm end-to-end lag has drained to zero</span></li>
+        <li data-item="2"><span class="box"></span><span class="txt">Final validation pass matches</span></li>
+        <li data-item="3"><span class="box"></span><span class="txt">Repoint application connection string to target</span></li>
+        <li data-item="4"><span class="box"></span><span class="txt">Resume writes at target &amp; (optionally) enable reverse CDC fallback</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 5. MIGRATION DASHBOARD ============ -->
+  <section class="view" id="view-dashboard">
+    <div class="card">
+      <h2><span class="num">&#128202;</span>Migration Dashboard</h2>
+      <p>A live snapshot of the migration run from the Live Simulator tab. Run or advance phases there and return here to see the summary update &mdash; this mirrors the kind of operational dashboard teams build around GoldenGate's monitoring APIs during a real migration.</p>
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="big" id="dRows">0</div><div class="lbl">Rows migrated</div></div>
+        <div class="kpi-card"><div class="big" id="dLag">&mdash;</div><div class="lbl">Replication lag</div></div>
+        <div class="kpi-card"><div class="big" id="dReadiness">0%</div><div class="lbl">Cutover readiness</div></div>
+        <div class="kpi-card"><div class="big" id="dPhase">1 / 4</div><div class="lbl">Current phase</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">i</span>Route summary</h2>
+      <p><strong>Source:</strong> <span id="dSource">Oracle Database</span> &nbsp;&rarr;&nbsp; <strong>Target:</strong> <span id="dTarget">Oracle Autonomous Database (OCI)</span></p>
+      <p><span class="status-dot idle" id="dStatusDot"></span><strong id="dStatusText">Not started</strong> &mdash; open the Live Simulator tab to begin.</p>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">ii</span>Phase completion</h2>
+      <div class="phase-stepper" id="dashStepper">
+        <div class="ph current" data-ph="0">1. Initial Load</div>
+        <div class="ph" data-ph="1">2. Change Data Capture</div>
+        <div class="ph" data-ph="2">3. Validation</div>
+        <div class="ph" data-ph="3">4. Golive / Cutover</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="num">iii</span>Reading a real dashboard</h2>
+      <ul>
+        <li><strong>Replication lag</strong> should trend toward, and hold at, single-digit seconds before cutover is considered safe.</li>
+        <li><strong>Rows migrated</strong> vs. source row count tells you how far through Initial Load (or CDC backlog) the migration is.</li>
+        <li><strong>Cutover readiness</strong> in production tooling typically gates on: lag threshold met, zero unresolved validation mismatches, and no active long-running source transactions.</li>
+        <li>Teams commonly build this view on top of the GoldenGate Microservices REST API (Performance Metrics service) rather than screen-scraping logs.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 6. BEST PRACTICES ============ -->
+  <section class="view" id="view-practices">
+    <div class="card">
+      <h2><span class="num">1</span>Sizing &amp; supplemental logging</h2>
+      <ul>
+        <li>Enable minimal supplemental logging at the database level, plus <code>ADD TRANDATA</code> per table capturing at least the primary/unique key columns &mdash; the same prerequisite that underpins every other module in this suite.</li>
+        <li>Size trail files and disk for the <em>peak</em> change rate, not the average, and account for the backlog that accumulates while the Initial Load is running.</li>
+        <li>Right-size parallel Replicat threads to the target's apply capacity; over-parallelizing against a small target instance just creates lock contention.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2><span class="num">2</span>Network &amp; security</h2>
+      <ul>
+        <li>Use encrypted trail files and TLS for Extract-to-Replicat communication, especially across a WAN or cloud interconnect (FastConnect, Direct Connect, ExpressRoute).</li>
+        <li>Pre-provision enough bandwidth for the Initial Load's bulk transfer window &mdash; it's usually the single largest data-movement event in the whole project.</li>
+        <li>Scope database and OS credentials for GoldenGate service accounts to least privilege, and rotate them after cutover.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2><span class="num">3</span>Initial Load method selection</h2>
+      <ul>
+        <li>Prefer native bulk utilities (Data Pump, RMAN, cloud import services, native <code>COPY</code>/bulk-insert) for large tables &mdash; they generally outperform GoldenGate's row-by-row Direct Load.</li>
+        <li>Reserve GoldenGate Direct Load or file-to-Replicat load for smaller tables, heterogeneous targets without a fast native path, or environments where a single consistent tool is preferred end-to-end.</li>
+        <li>Always start Extract capturing CDC <em>before</em> the bulk load begins, so nothing committed mid-load is lost.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2><span class="num">4</span>CDC &amp; trail management</h2>
+      <ul>
+        <li>Monitor checkpoint progress and trail growth continuously during the catch-up window; a stalled Replicat quickly becomes a large backlog.</li>
+        <li>Set trail purge/retention policy only after confirming Replicat has durably applied and checkpointed past a given trail file.</li>
+        <li>Watch for long-running source transactions that can hold up checkpoint advancement and inflate apparent lag.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2><span class="num">5</span>Validation strategy</h2>
+      <ul>
+        <li>Reconcile row counts per table first &mdash; cheap, fast, and catches gross mismatches immediately.</li>
+        <li>Follow with checksum or hash-based comparison (e.g. Oracle GoldenGate Veridata, or a custom column-hash job) for data-level confidence beyond row counts.</li>
+        <li>Validate dependent objects too: sequences, identity columns, constraints, indexes, and materialized views &mdash; these don't always replicate automatically, especially cross-engine.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2><span class="num">6</span>Cutover &amp; rollback planning</h2>
+      <ul>
+        <li>Rehearse the cutover runbook at least once in a non-production dry run, timing each step.</li>
+        <li>Keep the source available and consider enabling reverse CDC (target &rarr; source) immediately post-cutover as a fast, low-risk rollback path if issues surface.</li>
+        <li>Define an explicit go/no-go checklist (see the Live Simulator's cutover checklist) and a named decision-maker before the window opens.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ 7. CUSTOMER SCENARIOS ============ -->
+  <section class="view" id="view-scenarios">
+    <div class="card">
+      <h2><span class="num">i</span>Representative migration scenarios</h2>
+      <p>Composite, illustrative scenarios based on common patterns seen across GoldenGate migration engagements &mdash; useful as talking points for customer-facing conversations.</p>
+    </div>
+
+    <div class="scenario-card">
+      <h3>Core Banking: Zero-Downtime Move to OCI</h3>
+      <div class="meta">Homogeneous &middot; Oracle &rarr; Oracle Exadata Cloud (OCI) &middot; Financial Services</div>
+      <p>A retail bank needed to retire an aging on-prem data center hosting its core banking platform without a service interruption customers would notice.</p>
+      <div class="grid2">
+        <div class="blk"><h4>Challenge</h4><p>24x7 transaction processing, regulatory uptime commitments, and a multi-terabyte database ruled out any planned outage window longer than a few minutes.</p></div>
+        <div class="blk"><h4>Approach</h4><p>RMAN-based Initial Load in parallel with GoldenGate Integrated Extract capturing CDC from the outset; Parallel Replicat applied the catch-up backlog against the OCI Exadata target.</p></div>
+        <div class="blk"><h4>GG components</h4><p>Integrated Extract, Parallel Replicat (integrated mode), trail encryption over FastConnect, GoldenGate Veridata for reconciliation.</p></div>
+        <div class="blk"><h4>Outcome</h4><p>Cutover window held under five minutes; reverse CDC ran for two weeks post-cutover as a rollback safety net before the source was decommissioned.</p></div>
+      </div>
+    </div>
+
+    <div class="scenario-card">
+      <h3>Retail: Heterogeneous Cost-Optimization Migration</h3>
+      <div class="meta">Heterogeneous &middot; Microsoft SQL Server &rarr; PostgreSQL &middot; Retail</div>
+      <p>A retailer wanted to move a large order-management database off costly proprietary licensing onto open-source PostgreSQL without disrupting order processing during peak season.</p>
+      <div class="grid2">
+        <div class="blk"><h4>Challenge</h4><p>Datatype and identity-column differences between engines, plus stored-procedure logic that had no direct PostgreSQL equivalent and needed rewriting.</p></div>
+        <div class="blk"><h4>Approach</h4><p>Schema conversion tooling handled DDL translation up front; GoldenGate Extract captured SQL Server CDC while a native bulk export/import moved historical data, with column-level datatype mapping configured in Replicat.</p></div>
+        <div class="blk"><h4>GG components</h4><p>Log-based Extract on SQL Server, file-based Initial Load, Replicat column mapping and datatype conversion functions.</p></div>
+        <div class="blk"><h4>Outcome</h4><p>Migration completed outside peak season with a single-hour cutover window; ongoing licensing costs dropped materially post-migration.</p></div>
+      </div>
+    </div>
+
+    <div class="scenario-card">
+      <h3>Telecom: Analytics Offload to the Cloud</h3>
+      <div class="meta">Data Warehouse &middot; Oracle OLTP &rarr; Snowflake &middot; Telecommunications</div>
+      <p>A telecom operator needed near-real-time customer usage data in Snowflake for analytics, without adding reporting load to the operational Oracle database.</p>
+      <div class="grid2">
+        <div class="blk"><h4>Challenge</h4><p>Reporting queries were competing with OLTP workload on the source, and batch ETL windows couldn't keep pace with the desired analytics freshness.</p></div>
+        <div class="blk"><h4>Approach</h4><p>GoldenGate replicated continuously into a Snowflake landing layer; downstream dbt models transformed landing data into curated analytics tables on Snowflake's own schedule, decoupled from replication.</p></div>
+        <div class="blk"><h4>GG components</h4><p>Integrated Extract, Replicat delivering to Snowflake staging tables only (no transformation in the replication path).</p></div>
+        <div class="blk"><h4>Outcome</h4><p>Analytics freshness improved from a nightly batch to minutes, with zero measurable impact on OLTP source performance.</p></div>
+      </div>
+    </div>
+
+    <div class="scenario-card">
+      <h3>Insurance: Multi-Region Cloud Migration with Rollback Safety Net</h3>
+      <div class="meta">Homogeneous &middot; Oracle on-prem &rarr; OCI (multi-region) &middot; Insurance</div>
+      <p>An insurer migrating policy-management systems to a new cloud region needed a conservative rollback story given strict regulatory and audit requirements.</p>
+      <div class="grid2">
+        <div class="blk"><h4>Challenge</h4><p>Any post-cutover data issue had to be reversible without data loss, and auditors required evidence that source and target stayed reconciled throughout.</p></div>
+        <div class="blk"><h4>Approach</h4><p>Standard Initial Load + CDC catch-up, but cutover was staged behind a full validation sign-off gate, and bidirectional replication was pre-configured (using the patterns from the Bi-Directional Replication module) so the source could resume as primary within minutes if needed.</p></div>
+        <div class="blk"><h4>GG components</h4><p>Integrated Extract/Replicat pair each direction, Auto CDR pre-armed but inactive until fallback triggered, row-count and checksum validation reports archived for audit.</p></div>
+        <div class="blk"><h4>Outcome</h4><p>Cutover proceeded without incident; the pre-armed fallback path was never invoked but satisfied the audit requirement for a tested reversible migration.</p></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>Oracle GoldenGate Database Migration Simulator &middot; part of the GoldenGate Experience Center &middot; Ravikumar Vasudevan</footer>
+
+<script>
+  function toggleChangelog(){
+    document.getElementById('changelogPanel').classList.toggle('open');
+  }
+  // ---------- Tab navigation ----------
+  const tabButtons = document.querySelectorAll('#tabs button');
+  tabButtons.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      tabButtons.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('section.view').forEach(v=>v.classList.remove('active'));
+      document.getElementById('view-'+btn.dataset.view).classList.add('active');
+    });
+  });
+
+  // ---------- Strategy Advisor ----------
+  function runAdvisor(){
+    const downtime = document.getElementById('advDowntime').value;
+    const volume = document.getElementById('advVolume').value;
+    const engine = document.getElementById('advEngine').value;
+    const workload = document.getElementById('advWorkload').value;
+
+    let strategy, rationale, components;
+
+    if(engine === 'analytics'){
+      strategy = 'Continuous CDC into a landing/staging layer, with modeling done downstream';
+      rationale = [
+        'The target is an analytics platform, so GoldenGate\'s job is to land clean, ordered change data — not to model curated tables.',
+        'Initial Load seeds historical data into the same landing layer that CDC will continue feeding.',
+        (downtime==='zero') ? 'Because there is no true "cutover" (the source keeps running as the operational system), downtime tolerance is not the binding constraint here.' : 'Downtime tolerance is largely irrelevant for this pattern since the source stays live as the system of record.'
+      ];
+      components = ['Integrated Extract','Replicat → staging/landing tables','Downstream ELT (dbt / native tasks)','No CDR needed (one-way feed)'];
+    }
+    else if(downtime === 'window'){
+      strategy = 'Native export/import during a scheduled maintenance window';
+      rationale = [
+        'A full maintenance window removes the main reason to run parallel CDC — a straightforward bulk export/import is simpler to execute and validate.',
+        'Consider still enabling GoldenGate CDC for a short period post-cutover as a low-cost rollback safety net.',
+        (volume==='large') ? 'At this data volume, confirm the chosen window is long enough for the native bulk transfer alone — this is the biggest risk to the plan.' : 'Volume is manageable within a single window using native tools.'
+      ];
+      components = ['Native export/import (Data Pump, RMAN, bulk COPY, etc.)','Optional: Extract + Replicat for short post-cutover rollback safety net'];
+    }
+    else if(downtime === 'zero' || downtime === 'hours'){
+      let loadMethod;
+      if(volume === 'large'){
+        loadMethod = 'a native bulk-load utility (Data Pump, RMAN, or cloud import service) for the Initial Load, run in parallel with GoldenGate CDC capture';
+      } else if(engine === 'heterogeneous'){
+        loadMethod = 'a file-based bulk export/import (with DDL/datatype conversion) for the Initial Load, run in parallel with GoldenGate CDC capture';
+      } else {
+        loadMethod = 'GoldenGate Direct Load (or a native bulk utility) for the Initial Load, run in parallel with GoldenGate CDC capture';
+      }
+      strategy = 'Live migration: Extract-first CDC + parallel Initial Load, short cutover window';
+      rationale = [
+        'Start Extract capturing changes before the Initial Load begins so nothing committed mid-load is ever lost.',
+        'Use ' + loadMethod + '.',
+        'Let Replicat apply the backlog and reach near-zero lag before validating and cutting over.',
+        (downtime==='zero') ? 'A near-zero downtime target means the cutover window itself must be tightly scripted and rehearsed — see the Live Simulator and Best Practices tabs.' : 'A multi-hour tolerance gives useful buffer for a slower final validation pass before cutover.'
+      ];
+      components = ['Integrated Extract (CDC from day one)', loadMethod.includes('Direct Load') ? 'GoldenGate Direct Load or native bulk load' : 'Native bulk load utility', 'Parallel Replicat (integrated mode)', 'Row-count + checksum validation', 'Reverse CDC as rollback fallback'];
+    }
+
+    if(engine === 'heterogeneous' && !components.some(c=>c.toLowerCase().includes('conversion'))){
+      components.unshift('Schema/DDL conversion pass (one-time, pre-migration)');
+    }
+    if(workload === 'oltp'){
+      rationale.push('High-throughput OLTP source: size trail files and network bandwidth for peak change rate, not average, to avoid CDC falling behind during business-hours spikes.');
+    }
+
+    const resultEl = document.getElementById('advisorResult');
+    resultEl.style.display = 'block';
+    resultEl.innerHTML = `
+      <span class="subtag">Recommended strategy</span>
+      <h3>${strategy}</h3>
+      <ul>${rationale.map(r=>'<li>'+r+'</li>').join('')}</ul>
+      <div class="pill-row">${components.map(c=>'<span class="pill">'+c+'</span>').join('')}</div>
+    `;
+  }
+
+  // ---------- Architecture Explorer ----------
+  function showArch(name){
+    document.querySelectorAll('.arch-picker button').forEach(b=>b.classList.remove('active'));
+    document.querySelector('.arch-picker button[data-arch="'+name+'"]').classList.add('active');
+    document.querySelectorAll('.arch-pane').forEach(p=>p.classList.remove('active'));
+    document.getElementById('arch-'+name).classList.add('active');
+  }
+
+  // ---------- Live Migration Simulator ----------
+  const migState = {
+    phase: 0, // 0=Initial Load,1=CDC,2=Validation,3=Cutover,4=done
+    running: false,
+    rows: 0,
+    totalRows: 4200000,
+    lag: null,
+    mismatches: null,
+    status: 'Idle'
+  };
+  const phaseNames = ['Initial Load','Change Data Capture','Validation','Golive / Cutover'];
+  const phaseBtnLabels = ['Start Initial Load','Start Change Data Capture','Run Validation','Run Golive / Cutover'];
+  const progressFillClasses = ['','cdc','val','cut'];
+
+  function simLog(html){
+    const el = document.getElementById('simLog');
+    const line = document.createElement('div');
+    line.innerHTML = html;
+    el.appendChild(line);
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function updateStepper(idPrefix, currentPhase, done){
+    document.querySelectorAll('#'+idPrefix+' .ph').forEach(ph=>{
+      const p = parseInt(ph.dataset.ph, 10);
+      ph.classList.remove('current','done');
+      if(done && p <= currentPhase) ph.classList.add('done');
+      else if(!done && p === currentPhase) ph.classList.add('current');
+      else if(!done && p < currentPhase) ph.classList.add('done');
+    });
+  }
+
+  function updateMetrics(){
+    document.getElementById('mRows').textContent = migState.rows.toLocaleString('en-US');
+    document.getElementById('mLag').textContent = migState.lag===null ? '—' : migState.lag;
+    document.getElementById('mMismatch').textContent = migState.mismatches===null ? '—' : migState.mismatches;
+    document.getElementById('mStatus').textContent = migState.status;
+    syncDashboard();
+  }
+
+  function syncDashboard(){
+    document.getElementById('dRows').textContent = migState.rows.toLocaleString('en-US');
+    document.getElementById('dLag').textContent = migState.lag===null ? '—' : migState.lag;
+    const readiness = Math.min(100, Math.round(((migState.phase + (migState.running?0.5:0)) / 4) * 100));
+    document.getElementById('dReadiness').textContent = (migState.phase>=4 ? 100 : readiness) + '%';
+    document.getElementById('dPhase').textContent = Math.min(migState.phase+1,4) + ' / 4';
+    document.getElementById('dSource').textContent = document.getElementById('simSource').value;
+    document.getElementById('dTarget').textContent = document.getElementById('simTarget').value;
+    const dot = document.getElementById('dStatusDot');
+    const txt = document.getElementById('dStatusText');
+    dot.className = 'status-dot ' + (migState.status==='Idle' ? 'idle' : migState.status==='Cutover complete' ? 'ok' : migState.running ? 'warn' : 'ok');
+    txt.textContent = migState.status;
+    updateStepper('dashStepper', migState.phase, migState.phase>=4);
+  }
+
+  function setProgress(pct, label, cls){
+    document.getElementById('progressPct').textContent = Math.round(pct)+'%';
+    document.getElementById('progressLabel').textContent = label;
+    const fill = document.getElementById('progressFill');
+    fill.style.width = pct+'%';
+    fill.className = 'progress-fill' + (cls ? ' '+cls : '');
+  }
+
+  function checkOff(idx){
+    const li = document.querySelector('#cutoverChecklist li[data-item="'+idx+'"]');
+    if(li){ li.classList.add('checked'); li.querySelector('.box').textContent = '✓'; }
+  }
+
+  function setRunBtn(disabled, label){
+    const btn = document.getElementById('runPhaseBtn');
+    btn.disabled = disabled;
+    if(label) btn.textContent = label;
+  }
+
+  function runNextPhase(){
+    if(migState.running || migState.phase > 3) return;
+    migState.running = true;
+    setRunBtn(true);
+    document.getElementById('simSource').disabled = true;
+    document.getElementById('simTarget').disabled = true;
+    updateStepper('phaseStepper', migState.phase, false);
+
+    const src = document.getElementById('simSource').value;
+    const tgt = document.getElementById('simTarget').value;
+
+    if(migState.phase === 0) runInitialLoad(src, tgt);
+    else if(migState.phase === 1) runCDC(src, tgt);
+    else if(migState.phase === 2) runValidation();
+    else if(migState.phase === 3) runCutover();
+  }
+
+  function finishPhase(){
+    migState.running = false;
+    migState.phase += 1;
+    updateStepper('phaseStepper', migState.phase, migState.phase>=4);
+    if(migState.phase < 4){
+      setRunBtn(false, phaseBtnLabels[migState.phase]);
+    } else {
+      migState.status = 'Cutover complete';
+      setRunBtn(true, 'Migration complete');
+      simLog('<span class="hdr">Migration complete — application is now live against the target database.</span>');
+    }
+    updateMetrics();
+  }
+
+  function runInitialLoad(src, tgt){
+    migState.status = 'Initial Load running';
+    simLog(`<span class="hdr">Phase 1: Initial Load</span> — ${src} &rarr; ${tgt}`);
+    simLog('<span class="info">CDC capture started first — Extract is now queuing all new changes to trail while the bulk load runs.</span>');
+    let pct = 0;
+    const timer = setInterval(()=>{
+      pct += 6 + Math.random()*4;
+      if(pct >= 100){ pct = 100; }
+      migState.rows = Math.round(migState.totalRows * (pct/100));
+      setProgress(pct, 'Bulk-loading existing data', '');
+      updateMetrics();
+      if(pct % 24 < 6) simLog(`<span class="info">Loaded ${migState.rows.toLocaleString('en-US')} of ${migState.totalRows.toLocaleString('en-US')} rows&hellip;</span>`);
+      if(pct >= 100){
+        clearInterval(timer);
+        simLog(`<span class="win">Initial Load complete</span> — ${migState.totalRows.toLocaleString('en-US')} rows loaded to ${tgt}.`);
+        finishPhase();
+      }
+    }, 220);
+  }
+
+  function runCDC(src, tgt){
+    migState.status = 'CDC catching up';
+    simLog('<span class="hdr">Phase 2: Change Data Capture</span> — applying backlog accumulated during Initial Load');
+    let pct = 0;
+    let lagMs = 48000;
+    const timer = setInterval(()=>{
+      pct += 8 + Math.random()*5;
+      if(pct >= 100) pct = 100;
+      lagMs = Math.max(400, Math.round(48000 * (1 - pct/100)));
+      migState.lag = lagMs >= 1000 ? (lagMs/1000).toFixed(1)+'s' : lagMs+'ms';
+      setProgress(pct, 'Applying change backlog · lag '+migState.lag, 'cdc');
+      updateMetrics();
+      if(pct % 25 < 8) simLog(`<span class="info">Replicat applying backlog&hellip; end-to-end lag now ${migState.lag}</span>`);
+      if(pct >= 100){
+        clearInterval(timer);
+        migState.lag = '0.4s';
+        updateMetrics();
+        simLog('<span class="win">CDC caught up</span> — end-to-end lag stabilized at 0.4s.');
+        finishPhase();
+      }
+    }, 220);
+  }
+
+  function runValidation(){
+    migState.status = 'Validating';
+    simLog('<span class="hdr">Phase 3: Validation</span> — row-count and checksum reconciliation');
+    let pct = 0;
+    const timer = setInterval(()=>{
+      pct += 10 + Math.random()*6;
+      if(pct >= 100) pct = 100;
+      setProgress(pct, 'Reconciling source vs. target', 'val');
+      if(pct % 30 < 10) simLog('<span class="info">Comparing table row counts and column checksums&hellip;</span>');
+      if(pct >= 100){
+        clearInterval(timer);
+        migState.mismatches = 0;
+        updateMetrics();
+        simLog('<span class="win">Validation passed</span> — 0 mismatches across all replicated tables. Sequences and constraints confirmed.');
+        finishPhase();
+      }
+    }, 200);
+  }
+
+  function runCutover(){
+    migState.status = 'Cutover in progress';
+    simLog('<span class="hdr">Phase 4: Golive / Cutover</span>');
+    const steps = [
+      'Freezing new writes at the source&hellip;',
+      'Confirming end-to-end lag has drained to zero&hellip;',
+      'Final validation pass matches&hellip;',
+      'Repointing application connection string to target&hellip;',
+      'Resuming writes at target &amp; arming reverse CDC fallback&hellip;'
+    ];
+    let i = 0;
+    let pct = 0;
+    const timer = setInterval(()=>{
+      if(i < steps.length){
+        simLog('<span class="info">'+steps[i]+'</span>');
+        checkOff(i);
+        i += 1;
+        pct = (i/steps.length)*100;
+        setProgress(pct, steps[i-1].replace(/&hellip;$/,''), 'cut');
+      } else {
+        clearInterval(timer);
+        setProgress(100, 'Cutover complete', 'cut');
+        simLog('<span class="win">Cutover complete</span> — application is live against the target database.');
+        finishPhase();
+      }
+    }, 500);
+  }
+
+  function resetMigrationSim(){
+    migState.phase = 0;
+    migState.running = false;
+    migState.rows = 0;
+    migState.lag = null;
+    migState.mismatches = null;
+    migState.status = 'Idle';
+    document.getElementById('simSource').disabled = false;
+    document.getElementById('simTarget').disabled = false;
+    document.getElementById('simLog').innerHTML = '';
+    setProgress(0, 'Ready to start', '');
+    setRunBtn(false, phaseBtnLabels[0]);
+    document.querySelectorAll('#cutoverChecklist li').forEach(li=>{
+      li.classList.remove('checked');
+      li.querySelector('.box').textContent = '';
+    });
+    updateStepper('phaseStepper', 0, false);
+    updateMetrics();
+    simLog('<span class="info">Simulator reset. Select a source and target, then start the migration.</span>');
+  }
+
+  resetMigrationSim();
+</script>
+
+</body>
+</html>
