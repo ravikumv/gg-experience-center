@@ -425,6 +425,23 @@ input:focus,select:focus{border-color:#C74634;}
 
   footer.note{margin-top:36px;font-size:12px;color:#5F6368;border-top:1px solid #E3E1DD;padding-top:16px;}
 
+
+/* ── Version badge + changelog panel ── */
+.version-badge{background:rgba(255,255,255,.12);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer;border:1px solid rgba(255,255,255,.25);white-space:nowrap;letter-spacing:.03em;transition:all .15s;}
+.version-badge:hover{background:rgba(255,255,255,.22);}
+.back-link{font-size:12px;color:#C74634;text-decoration:none;font-weight:700;letter-spacing:.02em;transition:opacity .15s;}
+.back-link:hover{opacity:.8;}
+#changelogPanel{display:none;background:#fff;border:1px solid #E3E1DD;border-radius:10px;padding:16px 20px;max-width:1500px;margin:0 auto 24px;}
+#changelogPanel.open{display:block;}
+#changelogPanel h3{margin:0 0 10px;font-size:14px;color:#9C3327;font-weight:700;}
+.cl-entry{border-left:3px solid #C74634;padding:4px 0 4px 12px;margin-bottom:10px;}
+.cl-entry .cl-ver{font-weight:700;font-size:13px;color:#1B1B1B;}
+.cl-entry .cl-date{color:#5F6368;font-size:11.5px;margin-left:8px;}
+.cl-entry ul{margin:4px 0 0;padding-left:18px;font-size:12.5px;color:#5F6368;line-height:1.6;}
+.cl-close{float:right;background:none;border:none;color:#5F6368;cursor:pointer;font-size:14px;padding:0;}
+header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+header .title{display:flex;align-items:center;gap:14px;}
+
 </style>
 </head>
 <body>
@@ -433,19 +450,64 @@ input:focus,select:focus{border-color:#C74634;}
     <span class="badge">GoldenGate</span>
     <div>
       <h1>GoldenGate Fundamentals</h1>
-      <div class="sub">Supplemental Logging &amp; ADD TRANDATA Simulator · Oracle GoldenGate Microservices</div>
+      <div class="sub">Supplemental Logging &amp; ADD TRANDATA Simulator &middot; Oracle GoldenGate Microservices</div>
     </div>
   </div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <button class="version-badge" id="verBadge">v1.3.0 &middot; Changelog</button>
+    <a href="index.html" class="back-link">&#8592; Back to GoldenGate Experience Center</a>
+  </div>
 </header>
+
+<!-- Changelog panel -->
+<div id="changelogPanel">
+  <button class="cl-close" id="clClose">&#10005; Close</button>
+  <h3>Version History</h3>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.3.0</span><span class="cl-date">2026-08-14</span>
+    <ul>
+      <li>Tab reordered: Pre-Requisites, Sizing, Concept, Internals, Commands, Trandata Simulator, Live Simulator, Performance, FAQ, GG AI Bot.</li>
+      <li>FAQ tab added with 20 questions from GoldenGate Fundamentals FAQ covering supplemental logging, TRANDATA, LCRs, Trail files, Extract and Replicat types.</li>
+      <li>FAQ rendered as a clean table (no accordion, no expand/collapse buttons).</li>
+    </ul>
+  </div>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.2.0</span><span class="cl-date">2026-08-13</span>
+    <ul>
+      <li>Internals tab: DML Capture Pipeline rebuilt as always-visible 7-step vertical flow (no animate/reset buttons, no canvas packet animation).</li>
+      <li>Internals tab: LogMiner &mdash; What Extract Sees renamed to "Click to Animate"; step descriptions enlarged and bolded; vertical arrow animation updated.</li>
+      <li>Key Oracle Dictionary Views expanded with 5 new GoldenGate 26ai views: V$GOLDENGATE_CAPTURE, V$GOLDENGATE_TRANSACTION, V$GOLDENGATE_CAPABILITIES, DBA_GOLDENGATE_SUPPORT_MODE, DBA_GOLDENGATE_NOT_UNIQUE.</li>
+      <li>Version badge updated to v1.2.0 for change tracking.</li>
+    </ul>
+  </div>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.1.0</span><span class="cl-date">2026-08-11</span>
+    <ul>
+      <li>Live Simulator Step 6 animation rebuilt from reference: glowing particle travels source &rarr; Extract &rarr; Local Trail &rarr; Dist SVR &rarr; Recv SVR &rarr; Target Trail &rarr; 26ai (Option A) or direct (Option B), colour-coded by pipeline zone.</li>
+      <li>Concept tab updated: Standard vs Supplemental redo comparison rewritten with accurate GoldenGate 26ai technical content; Supplemental Logging Types table added.</li>
+      <li>Internals tab rebuilt: DML Pipeline, Redo Block Anatomy, LogMiner, and Live Redo Log Comparison aligned to desktop layout with no overlap.</li>
+      <li>All duplicate CSS blocks removed; single clean CSS injection with resolved literal values.</li>
+    </ul>
+  </div>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.0.0</span><span class="cl-date">2026-08-04</span>
+    <ul>
+      <li>Initial release: Pre-Requisites (checklist + GG user creation with Oracle 26ai roles), Sizing calculators, Concept overview, Commands (8-step wizard), Internals animations, Trandata Simulator, Performance charts, Live Simulator (6-step pipeline), and GG AI Bot.</li>
+      <li>Built on Oracle Redwood design system &mdash; red #C74634, ink #1B1B1B, off-white #FAF9F7.</li>
+      <li>Part of the GoldenGate Experience Center &mdash; Ravikumar Vasudevan.</li>
+    </ul>
+  </div>
+</div>
 <nav>
   <button class="active" data-view="prereq">Pre-Requisites</button>
   <button data-view="sizing">Sizing</button>
   <button data-view="concept">Concept</button>
-  <button data-view="commands">Commands</button>
   <button data-view="internals">Internals</button>
+  <button data-view="commands">Commands</button>
   <button data-view="simulator">Trandata Simulator</button>
-  <button data-view="performance">Performance</button>
   <button data-view="livesim">Live Simulator</button>
+  <button data-view="performance">Performance</button>
+  <button data-view="faq">FAQ</button>
   <button data-view="ai26">GG AI Bot</button>
 </nav>
 <main>
@@ -716,169 +778,223 @@ GRANT GG_ADMINISTRATOR TO c##ggadmin CONTAINER=ALL;</pre>
 </section>
 
 <section class="tab" id="view-concept">
-<!-- Stat cards -->
-        <div class="g2" style="margin-bottom:20px;">
-          <!-- Without supplemental -->
-          <div class="apex-region">
-            <div class="apex-region-header">
-              <div class="apex-region-title"><span class="apex-region-icon">📜</span> Standard Redo Log — WITHOUT Supplemental</div>
-              <span class="badge badge-danger">⚠ Missing Data</span>
-            </div>
-            <div class="apex-region-body">
-              <div class="code-label"><span class="code-dot" style="background:#6B7280;"></span> Oracle Default Redo Entry</div>
-              <div class="code-block">
-<span class="c-cm">-- Standard redo only logs CHANGED columns</span>
-<span class="c-kw">UPDATE</span> HR.EMPLOYEES
-  <span class="c-kw">SET</span> SALARY = <span class="c-val">95000</span>
-  <span class="c-kw">WHERE</span> EMPLOYEE_ID = <span class="c-val">101</span>;
 
-<span class="c-cm">-- Redo vector written by LGWR:</span>
-<span class="c-out">OP: 11.4 (update)  SCN: 0x0B.A43C21</span>
-  <span class="c-warn">col 5[SALARY]: 95000  ← after-image only</span>
-  <span class="c-warn">Row identity:   UNKNOWN ←  problem!</span>
-  <span class="c-warn">Before-image:   NOT CAPTURED</span>
-              </div>
-              <div class="apex-alert danger" style="margin-top:14px;margin-bottom:0;">
-                <span class="alert-icon">❌</span>
-                <div class="alert-body">
-                  <div class="alert-title">GoldenGate Extract Cannot Proceed</div>
-                  <div class="alert-text">Without the primary key in the redo vector, Extract cannot identify which row changed. It must scan the full table or skip the operation — both are unacceptable for real-time replication.</div>
-                </div>
-              </div>
-            </div>
+<!-- ══ LEFT / RIGHT: Standard vs Supplemental ══ -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+
+  <!-- LEFT -->
+  <div class="apex-region" style="border-top:3px solid #B45309;">
+    <div class="apex-region-header" style="background:#FFF7EA;">
+      <div class="apex-region-title" style="color:#B45309;">&#x1F536; Standard Redo Logging &mdash; Without Supplemental Logging</div>
+      <span class="badge badge-warning">&#x26A0; Incomplete</span>
+    </div>
+    <div class="apex-region-body">
+      <pre style="background:#111417;color:#D7F5DE;font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.7;padding:14px;border-radius:8px;overflow-x:auto;white-space:pre;margin:0 0 14px;">-- Normal database redo
+UPDATE HR.EMPLOYEES
+SET SALARY = 95000
+WHERE EMPLOYEE_ID = 101;
+
+-- Redo information:
+<span style="color:#FFCB8B;">Changed column: SALARY = 95000</span>
+<span style="color:#FFCB8B;">Required key information:</span>
+  <span style="color:#f88;">&#x26A0; May not be available</span></pre>
+      <div style="background:#FFF7EA;border:1.5px solid #F1DDAF;border-radius:8px;padding:12px 14px;">
+        <div style="font-weight:700;color:#B45309;font-size:13px;margin-bottom:4px;">&#x26A0; GoldenGate May Lack Key Information</div>
+        <div style="font-size:12.5px;color:#5F6368;line-height:1.6;">Without the required supplemental key information, GoldenGate may not be able to uniquely identify the affected row for UPDATE or DELETE operations.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="apex-region" style="border-top:3px solid #2E7D32;">
+    <div class="apex-region-header" style="background:#E6F4EA;">
+      <div class="apex-region-title" style="color:#2E7D32;">&#x1F511; Supplemental Logging Enabled &mdash; Additional Key Information Captured</div>
+      <span class="badge badge-success">&#x2714; Complete</span>
+    </div>
+    <div class="apex-region-body">
+      <pre style="background:#111417;color:#D7F5DE;font-family:ui-monospace,Menlo,monospace;font-size:12px;line-height:1.7;padding:14px;border-radius:8px;overflow-x:auto;white-space:pre;margin:0 0 14px;">-- Supplemental logging
+UPDATE HR.EMPLOYEES
+SET SALARY = 95000
+WHERE EMPLOYEE_ID = 101;
+
+-- Additional information:
+<span style="color:#8CF0A8;">EMPLOYEE_ID: 101       &#x2713; PK</span>
+<span style="color:#8CF0A8;">SALARY: 95000          &#x2713; Changed value</span>
+<span style="color:#8CF0A8;">Key information:       &#x2713; Available</span></pre>
+      <div style="background:#E6F4EA;border:1.5px solid rgba(46,125,50,.3);border-radius:8px;padding:12px 14px;">
+        <div style="font-weight:700;color:#2E7D32;font-size:13px;margin-bottom:4px;">&#x2705; GoldenGate Can Capture the Required Information</div>
+        <div style="font-size:12.5px;color:#5F6368;line-height:1.6;">Supplemental logging provides GoldenGate with additional key information needed to identify and replicate row changes accurately.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ HOW IT WORKS ══ -->
+<div class="apex-region" style="margin-bottom:20px;border-top:3px solid #1B1B1B;">
+  <div class="apex-region-header" style="background:#1B1B1B;">
+    <div class="apex-region-title" style="color:#fff;font-size:14px;font-weight:800;letter-spacing:.03em;">HOW IT WORKS</div>
+  </div>
+  <div class="apex-region-body" style="padding:20px;">
+
+    <!-- 4-step: left flow + right detail cards -->
+    <div style="display:grid;grid-template-columns:190px 1fr;gap:0;align-items:stretch;margin-bottom:20px;">
+
+      <!-- Left vertical flow diagram -->
+      <div style="background:#FAFAF9;border:1px solid #E3E1DD;border-right:none;border-radius:10px 0 0 10px;padding:20px 14px;display:flex;flex-direction:column;align-items:center;">
+        <div style="background:#E7F0FB;border:2px solid #1B6FC9;border-radius:8px;padding:8px 12px;text-align:center;width:100%;box-sizing:border-box;">
+          <div style="font-weight:800;font-size:10.5px;color:#1B6FC9;letter-spacing:.05em;">1. DATABASE CHANGE OCCURS</div>
+        </div>
+        <div style="width:2px;height:12px;background:#E3E1DD;"></div>
+        <div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#C74634;font-weight:700;background:#F3E9E7;border:1px solid rgba(199,70,52,.25);border-radius:5px;padding:4px 12px;">DML / DDL</div>
+        <div style="width:2px;height:8px;background:#E3E1DD;"></div>
+        <div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#1B1B1B;font-weight:700;background:#fff;border:1px solid #E3E1DD;border-radius:5px;padding:4px 12px;">Oracle Redo</div>
+        <div style="width:2px;height:12px;background:#C74634;"></div>
+        <div style="background:#E6F4EA;border:2px solid #2E7D32;border-radius:8px;padding:8px 12px;text-align:center;width:100%;box-sizing:border-box;">
+          <div style="font-weight:800;font-size:10.5px;color:#2E7D32;letter-spacing:.05em;">2. SUPPLEMENTAL INFORMATION</div>
+        </div>
+        <div style="width:2px;height:8px;background:#E3E1DD;"></div>
+        <div style="font-size:10px;color:#5F6368;background:#fff;border:1px solid #E3E1DD;border-radius:5px;padding:4px 10px;text-align:center;">Additional Key /<br>Column Information</div>
+        <div style="width:2px;height:12px;background:#2E7D32;"></div>
+        <div style="background:#FFF7EA;border:2px solid #B45309;border-radius:8px;padding:8px 12px;text-align:center;width:100%;box-sizing:border-box;">
+          <div style="font-weight:800;font-size:10.5px;color:#B45309;letter-spacing:.05em;">3. TRANDATA / SCHEMATRANDATA</div>
+        </div>
+        <div style="width:2px;height:12px;background:#B45309;"></div>
+        <div style="background:#F3E9E7;border:2px solid #C74634;border-radius:8px;padding:8px 12px;text-align:center;width:100%;box-sizing:border-box;">
+          <div style="font-weight:800;font-size:10.5px;color:#C74634;letter-spacing:.05em;">4. GOLDENGATE CAPTURES</div>
+        </div>
+        <div style="width:2px;height:8px;background:#E3E1DD;"></div>
+        <div style="display:flex;align-items:center;gap:3px;flex-wrap:wrap;justify-content:center;">
+          <span style="background:#E7F0FB;color:#1B6FC9;border:1px solid #1B6FC9;border-radius:4px;padding:2px 5px;font-family:ui-monospace,Menlo,monospace;font-size:9px;font-weight:700;">LogMiner</span>
+          <span style="color:#C74634;font-size:12px;font-weight:700;">&#8594;</span>
+          <span style="background:#F3E9E7;color:#C74634;border:1px solid #C74634;border-radius:4px;padding:2px 5px;font-family:ui-monospace,Menlo,monospace;font-size:9px;font-weight:700;">Extract</span>
+          <span style="color:#2E7D32;font-size:12px;font-weight:700;">&#8594;</span>
+          <span style="background:#E6F4EA;color:#2E7D32;border:1px solid #2E7D32;border-radius:4px;padding:2px 4px;font-family:ui-monospace,Menlo,monospace;font-size:9px;font-weight:700;">GG Trail</span>
+        </div>
+      </div>
+
+      <!-- Right detail cards -->
+      <div style="border:1px solid #E3E1DD;border-radius:0 10px 10px 0;overflow:hidden;">
+        <div style="border-left:4px solid #1B6FC9;background:#F0F4FF;padding:14px 18px;border-bottom:1px solid #E3E1DD;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px;">
+            <div style="width:26px;height:26px;border-radius:50%;background:#1B6FC9;color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
+            <div style="font-weight:700;font-size:13px;color:#1B1B1B;">DML / DDL Executes</div>
           </div>
-
-          <!-- With supplemental -->
-          <div class="apex-region">
-            <div class="apex-region-header">
-              <div class="apex-region-title"><span class="apex-region-icon">🔑</span> Supplemental Redo Log — WITH Logging Enabled</div>
-              <span class="badge badge-success">✔ Complete</span>
-            </div>
-            <div class="apex-region-body">
-              <div class="code-label"><span class="code-dot" style="background:#197A3B;"></span> Enhanced Redo Entry</div>
-              <div class="code-block">
-<span class="c-cm">-- Supplemental log appends extra vectors</span>
-<span class="c-kw">UPDATE</span> HR.EMPLOYEES
-  <span class="c-kw">SET</span> SALARY = <span class="c-val">95000</span>
-  <span class="c-kw">WHERE</span> EMPLOYEE_ID = <span class="c-val">101</span>;
-
-<span class="c-cm">-- Enhanced redo vector:</span>
-<span class="c-out">OP: 11.4  SCN: 0x0B.A43C21</span>
-  <span class="c-val">col 0[EMPLOYEE_ID]: 101</span>  <span class="c-cm">← PK ✔</span>
-  <span class="c-val">col 4[SALARY_BI]:  85000</span> <span class="c-cm">← before-image ✔</span>
-  <span class="c-val">col 5[SALARY]:     95000</span> <span class="c-cm">← after-image ✔</span>
-  <span class="c-val">col 1[EMAIL]: john@corp.com</span><span class="c-cm">← UK col ✔</span>
-              </div>
-              <div class="apex-alert success" style="margin-top:14px;margin-bottom:0;">
-                <span class="alert-icon">✅</span>
-                <div class="alert-body">
-                  <div class="alert-title">Extract Builds Complete LCR</div>
-                  <div class="alert-text">All pieces present: row identity (PK=101), before-image (85000→95000), key context. Trail file written. Replicat applies the change precisely at the target.</div>
-                </div>
-              </div>
-            </div>
+          <div style="font-size:12.5px;color:#5F6368;line-height:1.6;">Application issues DML or DDL. Oracle processes the change and records change information in the redo stream.</div>
+        </div>
+        <div style="border-left:4px solid #2E7D32;background:#E8F5E9;padding:14px 18px;border-bottom:1px solid #E3E1DD;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px;">
+            <div style="width:26px;height:26px;border-radius:50%;background:#2E7D32;color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
+            <div style="font-weight:700;font-size:13px;color:#1B1B1B;">Supplemental Information Is Added</div>
+          </div>
+          <div style="font-size:12.5px;color:#5F6368;line-height:1.6;margin-bottom:8px;">Based on the enabled supplemental logging configuration, Oracle adds the additional key or column information required for GoldenGate capture.</div>
+          <div style="display:inline-block;background:#fff;border:1px solid #A5D6A7;border-radius:5px;padding:4px 12px;font-size:11.5px;color:#2E7D32;font-weight:600;">Additional Key / Column Information</div>
+        </div>
+        <div style="border-left:4px solid #B45309;background:#FFF8EC;padding:14px 18px;border-bottom:1px solid #E3E1DD;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px;">
+            <div style="width:26px;height:26px;border-radius:50%;background:#B45309;color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
+            <div style="font-weight:700;font-size:13px;color:#1B1B1B;">TRANDATA / SCHEMATRANDATA</div>
+          </div>
+          <div style="font-size:12.5px;color:#5F6368;line-height:1.6;margin-bottom:8px;">Supplemental logging is configured at table or schema level to tell Oracle which additional columns to include in the redo stream for GoldenGate capture.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div style="background:#fff;border:1px solid #F1DDAF;border-radius:6px;padding:8px 10px;"><div style="font-weight:700;font-size:11px;color:#B45309;margin-bottom:3px;">ADD TRANDATA</div><div style="font-size:11px;color:#5F6368;line-height:1.5;">Table-level. Logs PK + conditional UK/FK. Best for stable table environments.</div></div>
+            <div style="background:#fff;border:1px solid #F1DDAF;border-radius:6px;padding:8px 10px;"><div style="font-weight:700;font-size:11px;color:#B45309;margin-bottom:3px;">ADD SCHEMATRANDATA</div><div style="font-size:11px;color:#5F6368;line-height:1.5;">Schema-level. Covers all current and future tables. Required for DDL replication.</div></div>
           </div>
         </div>
-
-        <!-- Architecture -->
-        <div class="apex-region">
-          <div class="apex-region-header">
-            <div class="apex-region-title"><span class="apex-region-icon">🏗️</span> Two-Level Supplemental Logging Architecture</div>
+        <div style="border-left:4px solid #C74634;background:#FDF3F1;padding:14px 18px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px;">
+            <div style="width:26px;height:26px;border-radius:50%;background:#C74634;color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">4</div>
+            <div style="font-weight:700;font-size:13px;color:#1B1B1B;">GoldenGate Captures the Change</div>
           </div>
-          <div class="apex-region-body">
-            <div class="arch-layer arch-oracle">
-              <div class="arch-label">🔴 Level 1 — Database Level (Minimal Supplemental Logging)</div>
-              <div class="arch-chips">
-                <div class="arch-chip">📋 Enables Redo Log Infrastructure</div>
-                <div class="arch-chip">🔧 ALTER DATABASE ADD SUPPLEMENTAL LOG DATA</div>
-                <div class="arch-chip">✔ Required Foundation for GGS</div>
-                <div class="arch-chip">📌 Very low overhead</div>
-              </div>
-            </div>
-            <div class="arch-conn">
-              <div class="arch-conn-line"></div>
-              <span>⬇ Enables table-level log group creation</span>
-              <div class="arch-conn-line"></div>
-            </div>
-            <div class="arch-layer arch-gg">
-              <div class="arch-label">🟡 Level 2 — Table / Schema Level (ADD TRANDATA)</div>
-              <div class="arch-chips">
-                <div class="arch-chip">📊 Per-table supplemental log groups</div>
-                <div class="arch-chip">🔑 Primary / Unique key columns</div>
-                <div class="arch-chip">📝 Before-image capture</div>
-                <div class="arch-chip">🛡️ ALLCOLS for CDR</div>
-                <div class="arch-chip">🏗️ SCHEMATRANDATA for bulk</div>
-              </div>
-            </div>
-            <div class="arch-conn">
-              <div class="arch-conn-line"></div>
-              <span>⬇ Extract reads enhanced redo via LogMiner / Integrated mode</span>
-              <div class="arch-conn-line"></div>
-            </div>
-            <div class="arch-layer arch-target">
-              <div class="arch-label">🟢 GoldenGate Extract — Trail File Production</div>
-              <div class="arch-chips">
-                <div class="arch-chip">🔍 Redo log mining (LogMiner API)</div>
-                <div class="arch-chip">📦 LCR construction</div>
-                <div class="arch-chip">🚀 Trail file write</div>
-                <div class="arch-chip">↔️ Downstream Replicat</div>
-              </div>
-            </div>
+          <div style="font-size:12.5px;color:#5F6368;line-height:1.6;margin-bottom:8px;">For Integrated Extract, Oracle LogMiner mines the redo and provides LCRs to Extract. Extract processes the change information and writes it to the GoldenGate trail.</div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <span style="background:#E7F0FB;color:#1B6FC9;border:1px solid rgba(27,111,201,.35);border-radius:5px;padding:4px 10px;font-size:11.5px;font-weight:700;">&#x2699;&#xFE0F; LogMiner</span>
+            <span style="color:#C74634;font-size:16px;font-weight:700;">&#8594;</span>
+            <span style="background:#F3E9E7;color:#C74634;border:1px solid rgba(199,70,52,.35);border-radius:5px;padding:4px 10px;font-size:11.5px;font-weight:700;">&#x1F4E4; Extract</span>
+            <span style="color:#2E7D32;font-size:16px;font-weight:700;">&#8594;</span>
+            <span style="background:#E6F4EA;color:#2E7D32;border:1px solid rgba(46,125,50,.35);border-radius:5px;padding:4px 10px;font-size:11.5px;font-weight:700;">&#x1F4C4; GoldenGate Trail</span>
           </div>
         </div>
+      </div>
+    </div>
 
-        <!-- Types table -->
-        <div class="apex-region">
-          <div class="apex-region-header">
-            <div class="apex-region-title"><span class="apex-region-icon">📋</span> Supplemental Log Types at a Glance</div>
-          </div>
-          <div class="apex-region-body no-pad">
-            <table class="apex-table">
-              <thead>
-                <tr>
-                  <th>Log Type</th><th>Scope</th><th>Columns Logged</th><th>GoldenGate Usage</th><th>Overhead</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Minimal</strong><br><small style="color:var(--text-muted); font-family:monospace;">ALTER DATABASE</small></td>
-                  <td>Database-wide</td>
-                  <td>Infrastructure only</td>
-                  <td><span class="badge badge-warning">⚠ Required foundation</span></td>
-                  <td><span class="badge badge-success">Very Low</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Primary Key</strong><br><small style="color:var(--text-muted); font-family:monospace;">ADD TRANDATA</small></td>
-                  <td>Table</td>
-                  <td>PK columns only</td>
-                  <td><span class="badge badge-success">✅ Minimum for GGS</span></td>
-                  <td><span class="badge badge-success">Low (+5–10%)</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Unique Key</strong><br><small style="color:var(--text-muted); font-family:monospace;">NOKEY option</small></td>
-                  <td>Table</td>
-                  <td>UK + PK columns</td>
-                  <td><span class="badge badge-info">Tables without PK</span></td>
-                  <td><span class="badge badge-warning">Medium (+15%)</span></td>
-                </tr>
-                <tr>
-                  <td><strong>All Columns</strong><br><small style="color:var(--text-muted); font-family:monospace;">ALLCOLS</small></td>
-                  <td>Table</td>
-                  <td>Every column — before + after image</td>
-                  <td><span class="badge badge-info">CDR / Bi-directional</span> <span class="badge badge-ai">Lakehouse / Iceberg</span></td>
-                  <td><span class="badge badge-danger">High (+40%)</span></td>
-                </tr>
-                <tr>
-                  <td><strong>SCHEMATRANDATA</strong><br><small style="color:var(--text-muted); font-family:monospace;">ADD SCHEMATRANDATA</small></td>
-                  <td>Schema-wide</td>
-                  <td>PK + UK per table</td>
-                  <td><span class="badge badge-success">✅ Recommended bulk</span></td>
-                  <td><span class="badge badge-success">Low (+5%)</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+    <!-- DML CAPTURE + DDL CAPTURE -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+      <div style="background:#F0F4FF;border:1.5px solid #C8D8F5;border-radius:10px;padding:16px;">
+        <div style="background:#1B3A6B;color:#fff;font-weight:800;font-size:12px;padding:6px 12px;border-radius:6px;text-align:center;margin-bottom:12px;letter-spacing:.05em;">DML CAPTURE &mdash; What GoldenGate Captures</div>
+        <div style="font-size:11.5px;color:#5F6368;margin-bottom:12px;line-height:1.5;">Supplemental logging (TRANDATA) ensures GoldenGate has the information it needs for INSERT, UPDATE and DELETE.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          <div style="background:#fff;border:1.5px solid #A5D6A7;border-radius:8px;padding:10px;"><div style="font-weight:700;font-size:11.5px;color:#2E7D32;margin-bottom:5px;">&#x2795; INSERT</div><div style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#1B1B1B;line-height:1.6;margin-bottom:5px;">INSERT INTO HR.EMPLOYEES (EMPLOYEE_ID, SALARY) VALUES (101, 95000);</div><div style="font-size:10px;font-weight:700;color:#5F6368;margin-bottom:3px;">What GG Captures</div><div style="font-size:10px;color:#5F6368;">New row values (after image)</div><div style="background:#F8F8F8;border:1px solid #E3E1DD;border-radius:4px;padding:5px 7px;margin-top:5px;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;line-height:1.6;">EMPLOYEE_ID : 101<br>SALARY : 95000</div><div style="margin-top:5px;font-size:10px;font-weight:700;color:#2E7D32;font-style:italic;">Think: INSERT = New Row / After Values</div></div>
+          <div style="background:#fff;border:1.5px solid #C8D8F5;border-radius:8px;padding:10px;"><div style="font-weight:700;font-size:11.5px;color:#1B6FC9;margin-bottom:5px;">&#x21BA; UPDATE</div><div style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#1B1B1B;line-height:1.6;margin-bottom:5px;">UPDATE HR.EMPLOYEES SET SALARY = 95000 WHERE EMPLOYEE_ID = 101;</div><div style="font-size:10px;font-weight:700;color:#5F6368;margin-bottom:3px;">What GG Captures</div><div style="font-size:10px;color:#5F6368;">Changed values (after image). Before image captured when required logging and Extract configuration are enabled.</div><div style="background:#F8F8F8;border:1px solid #E3E1DD;border-radius:4px;padding:5px 7px;margin-top:5px;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;line-height:1.6;"><strong>Key</strong>: EMPLOYEE_ID : 101<br><strong>Before</strong>: SALARY : 85000<br><strong>After</strong>: SALARY : 95000</div><div style="margin-top:5px;font-size:10px;font-weight:700;color:#1B6FC9;font-style:italic;">Think: UPDATE = Before + After</div></div>
+          <div style="background:#fff;border:1.5px solid #FFCC80;border-radius:8px;padding:10px;"><div style="font-weight:700;font-size:11.5px;color:#C74634;margin-bottom:5px;">&#x1F5D1; DELETE</div><div style="font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#1B1B1B;line-height:1.6;margin-bottom:5px;">DELETE FROM HR.EMPLOYEES WHERE EMPLOYEE_ID = 101;</div><div style="font-size:10px;font-weight:700;color:#5F6368;margin-bottom:3px;">What GG Captures</div><div style="font-size:10px;color:#5F6368;">Key/row-identifying information so the corresponding row can be deleted at the target.</div><div style="background:#F8F8F8;border:1px solid #E3E1DD;border-radius:4px;padding:5px 7px;margin-top:5px;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;line-height:1.6;">Key (Row Identity):<br>EMPLOYEE_ID : 101</div><div style="margin-top:5px;font-size:10px;font-weight:700;color:#C74634;font-style:italic;">Think: DELETE = Row Identity / Key Values</div></div>
         </div>
+      </div>
+      <div style="background:#F5F0FF;border:1.5px solid #C5B8E8;border-radius:10px;padding:16px;">
+        <div style="background:#4A3080;color:#fff;font-weight:800;font-size:12px;padding:6px 12px;border-radius:6px;text-align:center;margin-bottom:12px;letter-spacing:.05em;">DDL CAPTURE &mdash; How It Works</div>
+        <div style="font-size:11.5px;color:#5F6368;margin-bottom:12px;line-height:1.5;">DDL (CREATE / ALTER / DROP) is captured using GoldenGate DDL support. For Oracle DDL replication, SCHEMATRANDATA is required.</div>
+        <div style="display:grid;grid-template-columns:1fr 20px 1fr 20px 1fr 20px 1fr;align-items:center;gap:0;margin-bottom:12px;">
+          <div style="background:#fff;border:1.5px solid #C5B8E8;border-radius:7px;padding:8px 5px;text-align:center;"><div style="font-size:10px;font-weight:700;color:#4A3080;margin-bottom:3px;">DDL Operation</div><div style="font-family:ui-monospace,Menlo,monospace;font-size:9px;color:#1B1B1B;line-height:1.6;">CREATE TABLE<br>ALTER TABLE<br>DROP TABLE</div></div>
+          <div style="text-align:center;color:#4A3080;font-size:12px;font-weight:700;">&#8594;</div>
+          <div style="background:#fff;border:1.5px solid #C5B8E8;border-radius:7px;padding:8px 5px;text-align:center;"><div style="font-size:10px;font-weight:700;color:#4A3080;margin-bottom:3px;">GG DDL Support</div><div style="font-size:18px;">&#x2699;&#xFE0F;</div><div style="font-size:9px;color:#5F6368;">Extract captures the DDL.</div></div>
+          <div style="text-align:center;color:#4A3080;font-size:12px;font-weight:700;">&#8594;</div>
+          <div style="background:#fff;border:1.5px solid #C5B8E8;border-radius:7px;padding:8px 5px;text-align:center;"><div style="font-size:10px;font-weight:700;color:#4A3080;margin-bottom:3px;">SCHEMATRANDATA</div><div style="font-size:18px;">&#x1F4CA;</div><div style="font-size:9px;color:#5F6368;">Supplemental info at schema level.</div></div>
+          <div style="text-align:center;color:#4A3080;font-size:12px;font-weight:700;">&#8594;</div>
+          <div style="background:#fff;border:1.5px solid #C5B8E8;border-radius:7px;padding:8px 5px;text-align:center;"><div style="font-size:10px;font-weight:700;color:#4A3080;margin-bottom:3px;">Trail &amp; Replicat</div><div style="font-size:18px;">&#x1F4C4;</div><div style="font-size:9px;color:#5F6368;">DDL applied at target.</div></div>
+        </div>
+        <div style="background:#fff;border:1px solid #C5B8E8;border-radius:7px;padding:10px 12px;"><div style="font-weight:700;color:#4A3080;font-size:12px;margin-bottom:5px;">&#x2B50; Key Point</div><ul style="margin:0;padding-left:16px;font-size:11.5px;color:#5F6368;line-height:1.7;"><li>DDL parameter in Extract enables DDL capture.</li><li>Replicat processes DDL operations by default.</li><li>SCHEMATRANDATA strongly recommended (and required for Oracle DDL replication).</li></ul></div>
+      </div>
+    </div>
+
+    <!-- TRANDATA vs SCHEMATRANDATA + Important Notes + At a Glance -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;">
+      <div style="background:#F0F8FF;border:1.5px solid #90CAF9;border-radius:10px;padding:16px;"><div style="background:#1565C0;color:#fff;font-weight:800;font-size:11.5px;padding:6px 12px;border-radius:6px;text-align:center;margin-bottom:12px;letter-spacing:.05em;">TRANDATA vs SCHEMATRANDATA</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div><div style="font-weight:700;font-size:11px;color:#1565C0;margin-bottom:5px;">&#x1F4CA; ADD TRANDATA (Table)</div><ul style="margin:0;padding-left:14px;font-size:11px;color:#5F6368;line-height:1.6;"><li>Specific tables. DML capture.</li><li>Best for stable environments with controlled DDL.</li></ul></div><div><div style="font-weight:700;font-size:11px;color:#2E7D32;margin-bottom:5px;">&#x1F5C4; ADD SCHEMATRANDATA (Schema)</div><ul style="margin:0;padding-left:14px;font-size:11px;color:#5F6368;line-height:1.6;"><li>All current and future tables.</li><li>Required for Oracle DDL replication. Recommended for production.</li></ul></div></div></div>
+      <div style="background:#FFFDE7;border:1.5px solid #FFE082;border-radius:10px;padding:16px;"><div style="font-weight:700;font-size:13px;color:#B45309;margin-bottom:10px;">&#x1F4A1; Important Notes</div><ul style="margin:0;padding-left:16px;font-size:11.5px;color:#5F6368;line-height:1.75;"><li>Supplemental logging does not change your data. It only adds the information GoldenGate needs to identify and replicate changes accurately.</li><li>ALLCOLS logs all columns &mdash; required for bi-directional / CDR / Active-Active.</li><li>Minimal supplemental logging (database level) is the foundation.</li><li>TRANDATA not required for Initial Load. Required for ongoing CDC.</li></ul></div>
+      <div style="background:#FFF3F3;border:1.5px solid #FFABAB;border-radius:10px;padding:16px;"><div style="font-weight:700;font-size:13px;color:#C74634;margin-bottom:10px;">&#x1F3AF; At a Glance</div><table style="width:100%;font-size:12px;border-collapse:collapse;"><tr style="border-bottom:1px solid #FFABAB;"><td style="padding:6px 4px;font-weight:700;color:#2E7D32;width:56px;">INSERT</td><td style="padding:6px 4px;color:#5F6368;">=&nbsp;New Row / After Values</td></tr><tr style="border-bottom:1px solid #FFABAB;"><td style="padding:6px 4px;font-weight:700;color:#1B6FC9;">UPDATE</td><td style="padding:6px 4px;color:#5F6368;">=&nbsp;Before + After<br><span style="font-size:10px;">(when before-image available)</span></td></tr><tr style="border-bottom:1px solid #FFABAB;"><td style="padding:6px 4px;font-weight:700;color:#C74634;">DELETE</td><td style="padding:6px 4px;color:#5F6368;">=&nbsp;Row Identity / Key Values</td></tr><tr><td style="padding:6px 4px;font-weight:700;color:#4A3080;">DDL</td><td style="padding:6px 4px;color:#5F6368;">=&nbsp;DDL Support + SCHEMATRANDATA</td></tr></table></div>
+    </div>
+
+    <div style="margin-top:16px;background:#E7F0FB;border:1.5px solid rgba(27,111,201,.3);border-radius:8px;padding:12px 16px;font-size:12.5px;color:#1B1B1B;line-height:1.6;"><strong style="color:#1B6FC9;">&#x2139; Bottom Line:</strong> Use <code>TRANDATA</code> for table-level DML needs. For environments with DDL changes, use <code>SCHEMATRANDATA</code> and enable DDL support in Extract to ensure end-to-end replication reliability.</div>
+
+  </div>
+</div>
+
+<!-- ══ Supplemental Logging Types Table ══ -->
+<div class="apex-region" style="margin-bottom:20px;">
+  <div class="apex-region-header"><div class="apex-region-title"><span class="apex-region-icon">&#x1F4CB;</span> Supplemental Logging Types at a Glance</div></div>
+  <div class="apex-region-body" style="padding:0;">
+    <table class="apex-table">
+      <thead><tr><th>Log Type</th><th>Scope</th><th>Columns / Data Logged</th><th>GoldenGate Usage</th><th>Overhead</th></tr></thead>
+      <tbody>
+        <tr><td><code>Minimal Supplemental Logging</code></td><td>Database-wide</td><td>Row-chaining information</td><td><span style="color:#B45309;font-weight:700;">&#x1F7E0; Required Foundation</span></td><td><span style="color:#2E7D32;font-weight:600;">&#x1F7E2; Very Low</span></td></tr>
+        <tr><td><code>ADD TRANDATA</code></td><td>Table</td><td>PK + conditional UK/FK information</td><td><span style="color:#2E7D32;font-weight:700;">&#x1F7E2; Table-Level Logging</span></td><td><span style="color:#2E7D32;font-weight:600;">&#x1F7E2; Low</span></td></tr>
+        <tr><td><code>Key / Unique Key Logging</code></td><td>Table</td><td>Unique-key information for row identification</td><td><span style="color:#1B6FC9;font-weight:700;">&#x1F535; Tables Without Suitable PK</span></td><td><span style="color:#B45309;font-weight:600;">&#x1F7E0; Low&ndash;Medium</span></td></tr>
+        <tr><td><code>ADD TRANDATA ... ALLCOLS</code></td><td>Table</td><td>All supported key &amp; non-key columns</td><td><span style="color:#1B6FC9;font-weight:700;">&#x1F535; Bi-Directional / CDR</span></td><td><span style="color:#C74634;font-weight:600;">&#x1F534; Higher</span></td></tr>
+        <tr><td><code>ADD SCHEMATRANDATA</code></td><td>Schema</td><td>PK + UK/FK information for current &amp; future tables</td><td><span style="color:#2E7D32;font-weight:700;">&#x1F7E2; Recommended Schema-Level Setup</span></td><td><span style="color:#2E7D32;font-weight:600;">&#x1F7E2; Low&ndash;Medium</span></td></tr>
+      </tbody>
+    </table>
+    <div style="padding:8px 14px 10px;font-size:11.5px;color:#5F6368;border-top:1px solid #E3E1DD;">* Overhead is qualitative and workload-dependent.</div>
+  </div>
+</div>
+
+<!-- ══ Quick Reference Commands ══ -->
+<div class="apex-region">
+  <div class="apex-region-header"><div class="apex-region-title"><span class="apex-region-icon">&#x1F4BB;</span> Quick Reference &mdash; Enable Supplemental Logging</div></div>
+  <div class="apex-region-body" style="padding:0;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+      <div style="padding:14px 16px;border-right:1px solid #E3E1DD;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#5F6368;margin-bottom:8px;font-family:ui-monospace,Menlo,monospace;">SQL*Plus &mdash; Minimal (DB Level)</div>
+        <pre style="background:#111417;color:#8CF0A8;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;padding:10px 12px;border-radius:6px;margin:0;white-space:pre;">ALTER DATABASE ADD SUPPLEMENTAL LOG DATA;
+ALTER DATABASE FORCE LOGGING;</pre>
+      </div>
+      <div style="padding:14px 16px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#5F6368;margin-bottom:8px;font-family:ui-monospace,Menlo,monospace;">AdminClient &mdash; Table / Schema Level</div>
+        <pre style="background:#111417;color:#8CF0A8;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;padding:10px 12px;border-radius:6px;margin:0;white-space:pre;">DBLOGIN USERIDALIAS ggadmin_alias
+ADD SCHEMATRANDATA HR
+ADD TRANDATA HR.EMPLOYEES ALLCOLS</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
 </section>
 
 <section class="tab" id="view-commands">
@@ -1025,152 +1141,174 @@ GRANT GG_ADMINISTRATOR TO c##ggadmin CONTAINER=ALL;</pre>
 
 <section class="tab" id="view-internals">
 
-<!-- ══════════════════════════════════════════
-     1. DML Internal Pipeline
-══════════════════════════════════════════ -->
-<div class="apex-region" style="margin-bottom:20px;">
-  <div class="apex-region-header">
-    <div class="apex-region-title"><span class="apex-region-icon">🔬</span> DML Internal Pipeline — Click Animate</div>
-    <div style="display:flex;gap:8px;">
-      <button class="apex-btn apex-btn-primary" onclick="animatePipeline()">▶ Animate</button>
-      <button class="apex-btn apex-btn-secondary" onclick="resetPipeline()">↺ Reset</button>
-    </div>
-  </div>
-  <div class="apex-region-body" style="padding:16px;overflow-x:auto;">
-    <div class="pipe-container" id="pipeline">
-      <div class="pipe-box" id="pb0"><div class="pipe-icon">💻</div><div class="pipe-label">DML Statement</div><div class="pipe-sub">UPDATE / INSERT / DELETE</div></div>
-      <div class="pipe-arrow" id="pa0">→</div>
-      <div class="pipe-box" id="pb1"><div class="pipe-icon">🧠</div><div class="pipe-label">PGA / Buffer Cache</div><div class="pipe-sub">Row staged; undo allocated</div></div>
-      <div class="pipe-arrow" id="pa1">→</div>
-      <div class="pipe-box" id="pb2"><div class="pipe-icon">📝</div><div class="pipe-label">Redo Log Buffer</div><div class="pipe-sub">Change vectors in SGA</div></div>
-      <div class="pipe-arrow" id="pa2">→</div>
-      <div class="pipe-box" id="pb3"><div class="pipe-icon">➕</div><div class="pipe-label">Suppl. Log Writer</div><div class="pipe-sub">PK + before-image appended</div></div>
-      <div class="pipe-arrow" id="pa3">→</div>
-      <div class="pipe-box" id="pb4"><div class="pipe-icon">💾</div><div class="pipe-label">Online Redo Log</div><div class="pipe-sub">LGWR flushes; same SCN</div></div>
-      <div class="pipe-arrow" id="pa4">→</div>
-      <div class="pipe-box" id="pb5"><div class="pipe-icon">🔍</div><div class="pipe-label">GGS Extract</div><div class="pipe-sub">Mines redo → trail file</div></div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════
-     2. Redo Block Anatomy + LogMiner (side by side)
-══════════════════════════════════════════ -->
+<!-- ══ TOP ROW: DML Capture Pipeline + LogMiner side-by-side ══ -->
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
 
-  <!-- Redo Block Anatomy -->
-  <div class="apex-region">
+  <!-- LEFT: DML Capture Pipeline (always visible, no buttons) -->
+  <div class="apex-region" style="height:100%;">
     <div class="apex-region-header">
-      <div class="apex-region-title"><span class="apex-region-icon">📜</span> Redo Block Anatomy — Animated</div>
-      <button class="apex-btn apex-btn-secondary" onclick="animateRedoBlock()" style="padding:5px 12px;font-size:12px;">▶ Animate</button>
+      <div class="apex-region-title"><span class="apex-region-icon">&#x1F50C;</span> DML Capture Pipeline</div>
+      <button class="apex-btn apex-btn-primary" onclick="animatePipeline()" style="padding:5px 12px;font-size:11px;">&#9654; Click</button>
     </div>
-    <div class="apex-region-body" style="padding:16px;">
-      <!-- SCN header -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-        <div style="background:#1B1B1B;color:#D7F5DE;padding:4px 12px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:1px;font-family:ui-monospace,Menlo,monospace;">REDO LOG BLOCK — 512 bytes</div>
-        <div style="flex:1;height:1px;background:#E3E1DD;"></div>
-        <div id="rb-scn" style="font-size:11px;color:#C74634;font-weight:700;font-family:ui-monospace,Menlo,monospace;min-width:160px;text-align:right;"></div>
-      </div>
-      <!-- Two vectors -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-        <div id="rb-v1" style="border:1.5px solid #E3E1DD;border-radius:8px;padding:12px;">
-          <div style="font-size:10px;font-weight:700;letter-spacing:.05em;color:#5F6368;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #E3E1DD;font-family:ui-monospace,Menlo,monospace;text-transform:uppercase;">CV #1 — Standard DML</div>
-          <div style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;line-height:1.8;color:#1B1B1B;">
-            <div><span style="color:#C74634;font-weight:700;">OP:</span> 11.4 (UPDATE)</div>
-            <div><span style="color:#5F6368;">OBJ:</span> 74521 — HR.EMPLOYEES</div>
-            <div><span style="color:#5F6368;">DATA#5</span> [SALARY]: <span style="color:#2E7D32;">95000</span></div>
-            <div style="font-size:10px;color:#B45309;margin-top:4px;">← after-image only</div>
+    <div class="apex-region-body" style="padding:14px;">
+      <div id="dmlStatus" style="margin-bottom:10px;padding:10px 14px;background:#FAFAF9;border:1px solid #E3E1DD;border-radius:6px;font-size:13px;font-weight:700;color:#5F6368;min-height:44px;line-height:1.5;">Click <strong>&#9654; Click</strong> to step through the DML capture pipeline from SQL statement to GoldenGate trail.</div>
+      <div style="display:flex;flex-direction:column;gap:0;">
+
+        <!-- Step 1 -->
+        <div style="display:flex;align-items:flex-start;gap:10px;background:#FAFAF9;border:1.5px solid #E3E1DD;border-radius:8px 8px 0 0;padding:11px 13px;border-bottom:none;">
+          <div style="width:28px;height:28px;border-radius:50%;background:#1B6FC9;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
+          <div><div style="font-size:13px;font-weight:700;color:#1B1B1B;">DML Statement</div><div style="font-size:11px;color:#C74634;font-weight:600;font-family:ui-monospace,Menlo,monospace;margin-top:2px;">INSERT / UPDATE / DELETE</div><div style="font-size:11px;color:#5F6368;margin-top:3px;line-height:1.5;">Application issues a DML statement against the Oracle database.</div></div>
+        </div>
+        <div style="width:2px;height:10px;background:#C74634;margin-left:27px;opacity:.4;"></div>
+
+        <!-- Step 2 -->
+        <div style="display:flex;align-items:flex-start;gap:10px;background:#FAFAF9;border:1.5px solid #E3E1DD;border-radius:0;padding:11px 13px;border-bottom:none;">
+          <div style="width:28px;height:28px;border-radius:50%;background:#1B6FC9;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
+          <div><div style="font-size:13px;font-weight:700;color:#1B1B1B;">Database Processing</div><div style="font-size:11px;color:#C74634;font-weight:600;font-family:ui-monospace,Menlo,monospace;margin-top:2px;">PGA &#8594; Buffer Cache</div><div style="font-size:11px;color:#5F6368;margin-top:3px;line-height:1.5;">Oracle processes the transaction and modifies affected database blocks in the buffer cache.</div></div>
+        </div>
+        <div style="width:2px;height:10px;background:#C74634;margin-left:27px;opacity:.4;"></div>
+
+        <!-- Step 3 -->
+        <div style="display:flex;align-items:flex-start;gap:10px;background:#FAFAF9;border:1.5px solid #E3E1DD;border-radius:0;padding:11px 13px;border-bottom:none;">
+          <div style="width:28px;height:28px;border-radius:50%;background:#B45309;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:700;color:#1B1B1B;">Supplemental Logging Configuration</div>
+            <div style="margin-top:6px;display:flex;flex-direction:column;gap:3px;">
+              <div style="background:#E7F0FB;border:1px solid #1B6FC9;border-radius:4px;padding:3px 8px;font-size:10px;line-height:1.4;"><span style="font-weight:700;color:#1B6FC9;">DB Level</span> &mdash; Minimal Supplemental Logging</div>
+              <div style="background:#E6F4EA;border:1px solid #2E7D32;border-radius:4px;padding:3px 8px;font-size:10px;line-height:1.4;"><span style="font-weight:700;color:#2E7D32;">Table Level</span> &mdash; ADD TRANDATA &lt;table&gt;</div>
+              <div style="background:#FFF7EA;border:1px solid #B45309;border-radius:4px;padding:3px 8px;font-size:10px;line-height:1.4;"><span style="font-weight:700;color:#B45309;">Schema Level</span> &mdash; ADD SCHEMATRANDATA &lt;schema&gt;</div>
+            </div>
           </div>
         </div>
-        <div id="rb-v2" style="border:1.5px solid #E3E1DD;border-radius:8px;padding:12px;">
-          <div style="font-size:10px;font-weight:700;letter-spacing:.05em;color:#1B6FC9;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #E3E1DD;font-family:ui-monospace,Menlo,monospace;text-transform:uppercase;">CV #2 — Supplemental</div>
-          <div style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;line-height:1.8;color:#1B1B1B;">
-            <div><span style="color:#C74634;font-weight:700;">OP:</span> 5.1 (SUPPL)</div>
-            <div><span style="color:#5F6368;">DATA#0</span> [EMP_ID]: <span style="color:#2E7D32;">101</span> <span style="color:#2E7D32;font-weight:700;">← PK ✔</span></div>
-            <div><span style="color:#5F6368;">DATA#4</span> [SAL_BI]: <span style="color:#1B6FC9;">85000</span> <span style="color:#1B6FC9;font-weight:700;">← before ✔</span></div>
-          </div>
+        <div style="width:2px;height:10px;background:#C74634;margin-left:27px;opacity:.4;"></div>
+
+        <!-- Step 4 -->
+        <div style="display:flex;align-items:flex-start;gap:10px;background:#FAFAF9;border:1.5px solid #E3E1DD;border-radius:0;padding:11px 13px;border-bottom:none;">
+          <div style="width:28px;height:28px;border-radius:50%;background:#1B6FC9;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">4</div>
+          <div><div style="font-size:13px;font-weight:700;color:#1B1B1B;">Redo Generation</div><div style="font-size:11px;color:#C74634;font-weight:600;font-family:ui-monospace,Menlo,monospace;margin-top:2px;">Change + Supplemental Information &#8594; Redo</div><div style="font-size:11px;color:#5F6368;margin-top:3px;line-height:1.5;">Oracle generates redo containing the database change information and the supplemental information configured for GoldenGate capture.</div></div>
         </div>
+        <div style="width:2px;height:10px;background:#C74634;margin-left:27px;opacity:.4;"></div>
+
+        <!-- Step 5 -->
+        <div style="display:flex;align-items:flex-start;gap:10px;background:#FAFAF9;border:1.5px solid #E3E1DD;border-radius:0;padding:11px 13px;border-bottom:none;">
+          <div style="width:28px;height:28px;border-radius:50%;background:#1B6FC9;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">5</div>
+          <div><div style="font-size:13px;font-weight:700;color:#1B1B1B;">Online Redo Logs</div><div style="font-size:11px;color:#C74634;font-weight:600;font-family:ui-monospace,Menlo,monospace;margin-top:2px;">Redo Log Buffer &#8594; LGWR &#8594; Online Redo Logs</div><div style="font-size:11px;color:#5F6368;margin-top:3px;line-height:1.5;">LGWR writes redo from the redo log buffer to the online redo logs.</div></div>
+        </div>
+        <div style="width:2px;height:10px;background:#C74634;margin-left:27px;opacity:.4;"></div>
+
+        <!-- Step 6 -->
+        <div style="display:flex;align-items:flex-start;gap:10px;background:#FAFAF9;border:1.5px solid #E3E1DD;border-radius:0;padding:11px 13px;border-bottom:none;">
+          <div style="width:28px;height:28px;border-radius:50%;background:#C74634;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">6</div>
+          <div><div style="font-size:13px;font-weight:700;color:#1B1B1B;">GoldenGate Integrated Extract</div><div style="font-size:11px;color:#C74634;font-weight:600;font-family:ui-monospace,Menlo,monospace;margin-top:2px;">Online Redo &#8594; LogMiner &#8594; LCR &#8594; Extract</div><div style="font-size:11px;color:#5F6368;margin-top:3px;line-height:1.5;">Oracle logmining server mines the redo stream and provides Logical Change Records (LCRs) to Extract.</div></div>
+        </div>
+        <div style="width:2px;height:10px;background:#2E7D32;margin-left:27px;opacity:.4;"></div>
+
+        <!-- Step 7 -->
+        <div style="display:flex;align-items:flex-start;gap:10px;background:#E6F4EA;border:1.5px solid #2E7D32;border-radius:0 0 8px 8px;padding:11px 13px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:#2E7D32;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">7</div>
+          <div><div style="font-size:13px;font-weight:700;color:#2E7D32;">GoldenGate Trail</div><div style="font-size:11px;color:#2E7D32;font-weight:600;font-family:ui-monospace,Menlo,monospace;margin-top:2px;">Extract &#8594; GoldenGate Trail</div><div style="font-size:11px;color:#5F6368;margin-top:3px;line-height:1.5;">Extract processes the captured changes and writes them to the GoldenGate trail.</div></div>
+        </div>
+
       </div>
-      <!-- Footer -->
-      <div id="rb-footer" style="padding:9px 12px;background:#E6F4EA;border:1px solid rgba(46,125,50,.25);border-radius:6px;font-size:11.5px;color:#2E7D32;min-height:36px;"></div>
     </div>
   </div>
 
-  <!-- LogMiner -->
-  <div class="apex-region">
+  <!-- RIGHT: LogMiner — Click to Animate -->
+  <div class="apex-region" style="height:100%;">
     <div class="apex-region-header">
-      <div class="apex-region-title"><span class="apex-region-icon">🔍</span> LogMiner — What Extract Sees</div>
-      <button class="apex-btn apex-btn-secondary" onclick="animateLogMiner()" style="padding:5px 12px;font-size:12px;">▶ Animate</button>
+      <div class="apex-region-title"><span class="apex-region-icon">&#x1F50D;</span> LogMiner</div>
+      <button class="apex-btn apex-btn-primary" onclick="animateLogMiner()" style="padding:5px 12px;font-size:11px;">&#9654; Click</button>
     </div>
-    <div class="apex-region-body" style="padding:16px;">
-      <!-- 4-stage pipeline -->
-      <div style="display:grid;grid-template-columns:1fr 24px 1fr 24px 1fr 24px 1fr;align-items:center;gap:0;margin-bottom:14px;">
-        <div id="lm-s1" style="background:#FAFAF9;border:1.5px solid #E3E1DD;border-radius:8px;padding:10px 8px;text-align:center;transition:all .4s;">
-          <div style="font-size:18px;margin-bottom:4px;">📄</div>
-          <div style="font-size:11px;font-weight:700;color:#1B1B1B;">Redo Log</div>
-          <div style="font-size:9.5px;color:#5F6368;margin-top:2px;">Online / Archived</div>
+    <div class="apex-region-body" style="padding:14px;">
+
+      <!-- Status bar ON TOP (same as DML pipeline) -->
+      <div id="lm-status" style="margin-bottom:12px;padding:10px 14px;background:#FAFAF9;border:1px solid #E3E1DD;border-radius:6px;font-size:13px;font-weight:700;color:#5F6368;min-height:44px;line-height:1.5;">Click <strong>&#9654; Click</strong> to trace how Oracle redo is processed through LogMiner to the GoldenGate trail.</div>
+
+      <!-- 4-stage vertical flow -->
+      <div style="display:flex;flex-direction:column;gap:0;">
+
+        <div id="lm-s1" style="background:#FAFAF9;border:1.5px solid #E3E1DD;border-radius:8px 8px 0 0;padding:14px;transition:all .4s;border-bottom:none;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:28px;height:28px;border-radius:50%;background:#1B6FC9;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#1B1B1B;">Oracle Redo</div>
+              <div style="font-size:12px;font-weight:700;color:#5F6368;margin-top:3px;">Online / Archived Redo</div>
+            </div>
+          </div>
         </div>
-        <div id="lm-a1" style="text-align:center;font-size:16px;color:#E3E1DD;transition:color .4s;">→</div>
-        <div id="lm-s2" style="background:#FAFAF9;border:1.5px solid #E3E1DD;border-radius:8px;padding:10px 8px;text-align:center;transition:all .4s;">
-          <div style="font-size:18px;margin-bottom:4px;">⚙️</div>
-          <div style="font-size:11px;font-weight:700;color:#1B1B1B;">LogMiner</div>
-          <div style="font-size:9.5px;color:#5F6368;margin-top:2px;">V$LOGMNR_CONTENTS</div>
+
+        <div style="display:flex;align-items:center;justify-content:center;padding:6px 0;background:#FAFAF9;border-left:1.5px solid #E3E1DD;border-right:1.5px solid #E3E1DD;">
+          <span id="lm-arr1" style="font-size:20px;color:#E3E1DD;transition:color .4s;font-weight:700;">&#8595;</span>
         </div>
-        <div id="lm-a2" style="text-align:center;font-size:16px;color:#E3E1DD;transition:color .4s;">→</div>
-        <div id="lm-s3" style="background:#FAFAF9;border:1.5px solid #E3E1DD;border-radius:8px;padding:10px 8px;text-align:center;transition:all .4s;">
-          <div style="font-size:18px;margin-bottom:4px;">🔷</div>
-          <div style="font-size:11px;font-weight:700;color:#1B1B1B;">GGS Extract</div>
-          <div style="font-size:9.5px;color:#5F6368;margin-top:2px;">LCR Construction</div>
+
+        <div id="lm-s2" style="background:#FAFAF9;border:1.5px solid #E3E1DD;border-radius:0;padding:14px;transition:all .4s;border-bottom:none;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:28px;height:28px;border-radius:50%;background:#1B6FC9;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#1B1B1B;">LogMiner / Logmining Server</div>
+              <div style="font-size:12px;font-weight:700;color:#5F6368;margin-top:3px;">Mines Oracle redo and generates logical change information</div>
+            </div>
+          </div>
         </div>
-        <div id="lm-a3" style="text-align:center;font-size:16px;color:#E3E1DD;transition:color .4s;">→</div>
-        <div id="lm-s4" style="background:#FAFAF9;border:1.5px solid #E3E1DD;border-radius:8px;padding:10px 8px;text-align:center;transition:all .4s;">
-          <div style="font-size:18px;margin-bottom:4px;">🗃️</div>
-          <div style="font-size:11px;font-weight:700;color:#1B1B1B;">Trail File</div>
-          <div style="font-size:9.5px;color:#5F6368;margin-top:2px;">./dirdat/lt000001</div>
+
+        <div style="display:flex;align-items:center;justify-content:center;padding:6px 0;background:#FAFAF9;border-left:1.5px solid #E3E1DD;border-right:1.5px solid #E3E1DD;">
+          <span id="lm-arr2" style="font-size:20px;color:#E3E1DD;transition:color .4s;font-weight:700;">&#8595;</span>
         </div>
-      </div>
-      <!-- Status -->
-      <div id="lm-status" style="padding:10px 14px;background:#FAFAF9;border:1px solid #E3E1DD;border-radius:6px;font-size:12.5px;color:#5F6368;min-height:44px;transition:all .4s;line-height:1.5;">
-        Click <strong>▶ Animate</strong> to trace an UPDATE through the LogMiner pipeline.
+
+        <div id="lm-s3" style="background:#FAFAF9;border:1.5px solid #E3E1DD;border-radius:0;padding:14px;transition:all .4s;border-bottom:none;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:28px;height:28px;border-radius:50%;background:#C74634;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#1B1B1B;">Integrated Extract</div>
+              <div style="font-size:12px;font-weight:700;color:#5F6368;margin-top:3px;">Receives LCRs and processes captured changes</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:center;padding:6px 0;background:#FAFAF9;border-left:1.5px solid #E3E1DD;border-right:1.5px solid #E3E1DD;">
+          <span id="lm-arr3" style="font-size:20px;color:#E3E1DD;transition:color .4s;font-weight:700;">&#8595;</span>
+        </div>
+
+        <div id="lm-s4" style="background:#FAFAF9;border:1.5px solid #E3E1DD;border-radius:0 0 8px 8px;padding:14px;transition:all .4s;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:28px;height:28px;border-radius:50%;background:#2E7D32;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">4</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#1B1B1B;">GoldenGate Trail</div>
+              <div style="font-size:12px;font-weight:700;color:#5F6368;margin-top:3px;">Extract writes the processed changes to the trail</div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
 
 </div>
 
-<!-- ══════════════════════════════════════════
-     3. Live Redo Log Comparison
-══════════════════════════════════════════ -->
-<div class="apex-region" style="margin-bottom:20px;">
-  <div class="apex-region-header">
-    <div class="apex-region-title"><span class="apex-region-icon">⚖️</span> Live Redo Log Comparison</div>
-    <div class="apex-toggle">
-      <div class="toggle-track" id="suppTrack" onclick="toggleSupp()"><div class="toggle-thumb"></div></div>
-      <span class="toggle-label" id="suppLabel">Supplemental Logging: <strong>OFF</strong></span>
-    </div>
-  </div>
-  <div class="apex-region-body" id="redoLogBody" style="min-height:120px;padding:16px;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#1B1B1B;line-height:1.8;transition:opacity .25s;">
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════
-     4. Key Oracle Dictionary Views
-══════════════════════════════════════════ -->
+<!-- ══ Key Oracle Dictionary Views ══ -->
 <div class="apex-region">
   <div class="apex-region-header">
-    <div class="apex-region-title"><span class="apex-region-icon">📚</span> Key Oracle Dictionary Views</div>
+    <div class="apex-region-title"><span class="apex-region-icon">&#x1F4DA;</span> Key Oracle Dictionary Views</div>
+    <span class="badge badge-info">Oracle GoldenGate 26ai</span>
   </div>
   <div class="apex-region-body" style="padding:0;">
     <table class="apex-table">
       <thead><tr><th>View</th><th>Purpose</th><th>Key Columns</th></tr></thead>
       <tbody>
-        <tr><td><code>V$DATABASE</code></td><td>DB-level supplemental log status</td><td>SUPPLEMENTAL_LOG_DATA_MIN, _PK, _UI, _FK, _ALL, FORCE_LOGGING</td></tr>
-        <tr><td><code>DBA_LOG_GROUPS</code></td><td>Table-level log group definitions</td><td>LOG_GROUP_NAME, TABLE_NAME, LOG_GROUP_TYPE, ALWAYS</td></tr>
-        <tr><td><code>DBA_LOG_GROUP_COLUMNS</code></td><td>Columns in each log group</td><td>COLUMN_NAME, POSITION, LOG_GROUP_COLUMN_TYPE</td></tr>
-        <tr><td><code>V$LOGMNR_CONTENTS</code></td><td>Decoded redo log entries (mining session)</td><td>SCN, OPERATION, SQL_REDO, SQL_UNDO, ROW_ID</td></tr>
-        <tr><td><code>DBA_CAPTURE</code></td><td>GGS Integrated Extract capture metadata</td><td>CAPTURE_NAME, STATUS, REQUIRED_CHECKPOINT_SCN</td></tr>
+        <tr><td><code>V$DATABASE</code></td><td>Database-level supplemental logging status</td><td style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;"><code>SUPPLEMENTAL_LOG_DATA_MIN</code>, <code>SUPPLEMENTAL_LOG_DATA_PK</code>, <code>SUPPLEMENTAL_LOG_DATA_UI</code>, <code>SUPPLEMENTAL_LOG_DATA_FK</code>, <code>SUPPLEMENTAL_LOG_DATA_ALL</code></td></tr>
+        <tr><td><code>DBA_LOG_GROUPS</code></td><td>Table-level supplemental log group definitions</td><td style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;"><code>OWNER</code>, <code>LOG_GROUP_NAME</code>, <code>TABLE_NAME</code>, <code>LOG_GROUP_TYPE</code>, <code>ALWAYS</code></td></tr>
+        <tr><td><code>DBA_LOG_GROUP_COLUMNS</code></td><td>Columns included in supplemental log groups</td><td style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;"><code>OWNER</code>, <code>LOG_GROUP_NAME</code>, <code>TABLE_NAME</code>, <code>COLUMN_NAME</code>, <code>POSITION</code>, <code>LOGGING_PROPERTY</code></td></tr>
+        <tr><td><code>V$LOGMNR_CONTENTS</code></td><td>LogMiner output / decoded redo changes</td><td style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;"><code>SCN</code>, <code>OPERATION</code>, <code>SQL_REDO</code>, <code>SQL_UNDO</code>, <code>ROW_ID</code></td></tr>
+        <tr><td><code>DBA_CAPTURE</code></td><td>Oracle capture process metadata, including GoldenGate Integrated Capture</td><td style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;"><code>CAPTURE_NAME</code>, <code>STATUS</code>, <code>REQUIRED_CHECKPOINT_SCN</code></td></tr>
+        <tr style="background:#E7F0FB;"><td><code>V$GOLDENGATE_CAPTURE</code> <span class="badge badge-info" style="font-size:9px;margin-left:4px;">26ai</span></td><td>Active GoldenGate Integrated Extract capture sessions and state</td><td style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;"><code>CAPTURE_NAME</code>, <code>STATUS</code>, <code>CAPTURED_SCN</code>, <code>APPLIED_SCN</code>, <code>CAPTURE_TYPE</code></td></tr>
+        <tr style="background:#E7F0FB;"><td><code>V$GOLDENGATE_TRANSACTION</code> <span class="badge badge-info" style="font-size:9px;margin-left:4px;">26ai</span></td><td>In-flight transactions currently being processed by GoldenGate Integrated Extract</td><td style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;"><code>XIDUSN</code>, <code>XIDSLT</code>, <code>XIDSQN</code>, <code>START_SCN</code>, <code>MESSAGE_COUNT</code></td></tr>
+        <tr style="background:#E7F0FB;"><td><code>V$GOLDENGATE_CAPABILITIES</code> <span class="badge badge-info" style="font-size:9px;margin-left:4px;">26ai</span></td><td>Oracle database capabilities available for GoldenGate capture in the current environment</td><td style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;"><code>CAPABILITY_NAME</code>, <code>CAPABLE</code>, <code>REASON</code></td></tr>
+        <tr style="background:#E7F0FB;"><td><code>DBA_GOLDENGATE_SUPPORT_MODE</code> <span class="badge badge-info" style="font-size:9px;margin-left:4px;">26ai</span></td><td>Supplemental logging support mode per table &mdash; indicates whether GoldenGate can replicate the table</td><td style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;"><code>OWNER</code>, <code>TABLE_NAME</code>, <code>SUPPORT_MODE</code></td></tr>
+        <tr style="background:#E7F0FB;"><td><code>DBA_GOLDENGATE_NOT_UNIQUE</code> <span class="badge badge-info" style="font-size:9px;margin-left:4px;">26ai</span></td><td>Tables without a suitable unique key for GoldenGate capture &mdash; identifies tables requiring KEYCOLS or ALLCOLS</td><td style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;"><code>OWNER</code>, <code>TABLE_NAME</code>, <code>BAD_COLUMN</code></td></tr>
       </tbody>
     </table>
+    <div style="padding:9px 14px 10px;font-size:11.5px;color:#1B6FC9;font-weight:600;border-top:1px solid #E3E1DD;background:#E7F0FB;">
+      &#x2139; Rows highlighted in blue are Oracle GoldenGate 26ai views. Availability depends on database version and GoldenGate configuration.
+    </div>
   </div>
 </div>
 
@@ -1556,6 +1694,133 @@ TABLE pdb1.sales.orders;</pre>
     </div>
 </section>
 
+<section class="tab" id="view-faq">
+
+<div class="apex-region">
+  <div class="apex-region-header">
+    <div class="apex-region-title"><span class="apex-region-icon">&#x2753;</span> GoldenGate Fundamentals &mdash; Frequently Asked Questions</div>
+  </div>
+  <div class="apex-region-body" style="padding:0;">
+    <table class="apex-table" style="table-layout:fixed;width:100%;">
+      <colgroup>
+        <col style="width:36px;">
+        <col style="width:35%;">
+        <col>
+      </colgroup>
+      <thead>
+        <tr>
+          <th style="text-align:center;">#</th>
+          <th>Question</th>
+          <th>Answer</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">1</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">What is Oracle GoldenGate?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">Oracle GoldenGate is a real-time data integration and replication technology that captures database changes and delivers them to target systems with minimal impact on the source.</td>
+        </tr>
+        <tr style="background:#FAFAF9;">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">2</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">How does GoldenGate capture database changes?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">GoldenGate captures database changes from transaction logs/redo. For Oracle Integrated Extract, the Oracle database logmining infrastructure mines redo and provides Logical Change Records (LCRs) to Extract.</td>
+        </tr>
+        <tr style="">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">3</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">Why is supplemental logging required?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">Supplemental logging adds additional information to redo that GoldenGate needs to reliably identify and capture database changes, particularly information needed for row identification.</td>
+        </tr>
+        <tr style="background:#FAFAF9;">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">4</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">What is TRANDATA?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">ADD TRANDATA configures table-level supplemental logging required for GoldenGate change capture, including appropriate key information for identifying rows.</td>
+        </tr>
+        <tr style="">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">5</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">What is SCHEMATRANDATA?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">ADD SCHEMATRANDATA configures schema-level supplemental logging for current and future tables. For Oracle, it is also required when replicating DDL with GoldenGate.</td>
+        </tr>
+        <tr style="background:#FAFAF9;">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">6</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">What is an LCR?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">LCR (Logical Change Record) represents a logical database change. With Oracle Integrated Extract, the database logmining infrastructure mines redo and provides LCRs to Extract for processing.</td>
+        </tr>
+        <tr style="">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">7</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">What happens when an INSERT, UPDATE or DELETE occurs?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">The database processes the DML, generates redo, and supplemental logging provides additional information according to the configured logging. Extract captures the change, writes it to the Trail, and Replicat applies it to the target.</td>
+        </tr>
+        <tr style="background:#FAFAF9;">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">8</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">Does GoldenGate always capture before and after images?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">No. Before-image information is not automatically captured for every change. The information available depends on database supplemental logging and GoldenGate configuration. Therefore, supplemental logging should not simply be described as PK + before image.</td>
+        </tr>
+        <tr style="">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">9</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">What are the main components of GoldenGate?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">The fundamental replication flow is Extract &rarr; Trail &rarr; Replicat. Extract captures changes, Trail stores captured changes, and Replicat reads the Trail and applies the changes to the target.</td>
+        </tr>
+        <tr style="background:#FAFAF9;">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">10</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">What is a GoldenGate Trail?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">A Trail is a sequence of files containing GoldenGate change records. It provides persistence between capture and delivery and decouples Extract from Replicat.</td>
+        </tr>
+        <tr style="">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">11</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">Why does GoldenGate use Trail files?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">Trail files decouple capture from delivery and provide persistent storage for captured changes. If the target or Replicat is temporarily unavailable, Extract can continue capturing changes while they accumulate in the Trail.</td>
+        </tr>
+        <tr style="background:#FAFAF9;">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">12</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">What is Initial Load Extract?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">Initial Load Extract is used to extract existing table data for an initial load into the target. It is different from transaction-log-based change capture.</td>
+        </tr>
+        <tr style="">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">13</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">What happened to Classic Extract?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">Classic Extract is a legacy/traditional GoldenGate capture architecture. For Oracle Database in GoldenGate 26ai, Classic Extract is no longer supported and Integrated Extract is used for Oracle transaction capture. Other databases such as MySQL, PostgreSQL, SQL Server and Db2 use their respective supported capture mechanisms.</td>
+        </tr>
+        <tr style="background:#FAFAF9;">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">14</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">What is Integrated Extract?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">Integrated Extract is the Oracle capture architecture that integrates with the Oracle database logmining infrastructure to mine redo and provide LCRs to Extract.</td>
+        </tr>
+        <tr style="">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">15</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">What are the main Replicat types?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">GoldenGate provides several Replicat architectures, including Parallel Non-Integrated Replicat, Parallel Integrated Replicat, Coordinated Replicat, Integrated Replicat, and Classic Replicat, with availability and support depending on the GoldenGate version and target database.</td>
+        </tr>
+        <tr style="background:#FAFAF9;">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">16</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">What is Parallel Non-Integrated Replicat?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">Parallel Non-Integrated Replicat uses GoldenGate-controlled parallel apply processes to improve throughput without using the Oracle database integrated apply server. It is the recommended default parallel apply option for many Oracle deployments in current GoldenGate releases.</td>
+        </tr>
+        <tr style="">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">17</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">What is Parallel Integrated Replicat?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">Parallel Integrated Replicat uses parallel processing together with the Oracle database integrated apply infrastructure. It is a distinct architecture from Parallel Non-Integrated Replicat and should be selected based on the target database, GoldenGate version and required features.</td>
+        </tr>
+        <tr style="background:#FAFAF9;">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">18</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">What is Integrated Replicat?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">Integrated Replicat uses the Oracle database integrated apply infrastructure to apply GoldenGate changes. In GoldenGate 26ai, Integrated Replicat is deprecated, and Oracle recommends Parallel Replicat for appropriate workloads.</td>
+        </tr>
+        <tr style="">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">19</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">What is Coordinated Replicat?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">Coordinated Replicat uses multiple apply threads coordinated by a Replicat process to improve apply performance while maintaining transaction dependencies.</td>
+        </tr>
+        <tr style="background:#FAFAF9;">
+          <td style="width:36px;text-align:center;padding:10px 8px;font-weight:800;font-size:12px;color:#5F6368;vertical-align:top;">20</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:700;color:#1B1B1B;vertical-align:top;width:35%;line-height:1.5;">What is Classic Replicat?</td>
+          <td style="padding:10px 14px;font-size:13px;color:#5F6368;vertical-align:top;line-height:1.6;">Classic Replicat is the traditional single-process apply architecture. It is a legacy option and should not be presented as the preferred architecture for modern high-throughput Oracle deployments.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</section>
 <section class="tab" id="view-ai26">
 <div class="g2" style="align-items:start;">
 
@@ -1812,8 +2077,21 @@ result = qa_chain.invoke(
 </section>
 
 </main>
-<footer>Oracle GoldenGate Technical Simulator Suite · Ravikumar Vasudevan</footer>
+<footer>GoldenGate Fundamentals Simulator · part of the GoldenGate Experience Center · Ravikumar Vasudevan</footer>
 <script>
+/* ── Version badge / changelog toggle ── */
+(function(){
+  var btn = document.getElementById('verBadge');
+  var panel = document.getElementById('changelogPanel');
+  var close = document.getElementById('clClose');
+  if(btn && panel){
+    btn.addEventListener('click', function(){ panel.classList.toggle('open'); });
+  }
+  if(close && panel){
+    close.addEventListener('click', function(){ panel.classList.remove('open'); });
+  }
+})();
+
 /* tab wiring */
 document.querySelectorAll('nav button').forEach(function(btn){
   btn.addEventListener('click', function(){
@@ -1917,220 +2195,81 @@ function renderRedo(){
 }
 
 function animatePipeline(){
-  var boxIds  = ['pb0','pb1','pb2','pb3','pb4','pb5'];
-  var arrowIds= ['pa0','pa1','pa2','pa3','pa4'];
-  // reset
-  boxIds.forEach(function(id){var el=document.getElementById(id);if(el){el.classList.remove('active');el.style.opacity='1';}});
-  arrowIds.forEach(function(id){var el=document.getElementById(id);if(el){el.classList.remove('active');el.style.color='var(--border)';}});
-  // animate each box in sequence
-  boxIds.forEach(function(id,i){
-    setTimeout(function(){
-      // dim previous, light current
-      if(i>0){var prev=document.getElementById(boxIds[i-1]);if(prev){prev.classList.remove('active');prev.style.opacity='1';}}
-      var el=document.getElementById(id);
-      if(el){el.classList.add('active');el.style.opacity='1';}
-      // arrow before this box
-      if(i>0){var arr=document.getElementById(arrowIds[i-1]);if(arr){arr.classList.add('active');arr.style.color='var(--apex-red)';}}
-    }, 300 + i*550);
-  });
-  // final: remove active from last box after pause
-  setTimeout(function(){
-    var last=document.getElementById('pb5');if(last)last.classList.remove('active');
-    boxIds.forEach(function(id){var el=document.getElementById(id);if(el)el.style.opacity='1';});
-  }, 300+6*550+800);
-}
-function resetPipeline(){
-  var boxIds   = ['pb0','pb1','pb2','pb3','pb4','pb5'];
-  var arrowIds = ['pa0','pa1','pa2','pa3','pa4'];
+  var boxIds = ['pb0','pb1','pb2','pb3','pb4','pb5','pb6'];
+  var stepLabels = [
+    'Step 1 of 7 — Application issues a DML statement against the Oracle database.',
+    'Step 2 of 7 — Oracle processes the transaction and modifies affected database blocks in the buffer cache.',
+    'Step 3 of 7 — Supplemental logging configuration determines which additional columns Oracle adds to the redo stream.',
+    'Step 4 of 7 — Oracle generates redo containing the change information and the supplemental information for GoldenGate capture.',
+    'Step 5 of 7 — LGWR writes redo from the redo log buffer to the online redo logs.',
+    'Step 6 of 7 — Oracle logmining server mines the redo stream and provides Logical Change Records (LCRs) to Integrated Extract.',
+    'Step 7 of 7 — ✔ Extract processes the captured changes and writes them to the GoldenGate trail.'
+  ];
+  // Reset
   boxIds.forEach(function(id){
-    var el=document.getElementById(id);
-    if(el){el.classList.remove('active');el.style.opacity='1';}
+    var el = document.getElementById(id);
+    if(el){ el.style.outline='none'; el.style.boxShadow='none'; el.style.opacity='0.45'; }
   });
-  arrowIds.forEach(function(id){
-    var el=document.getElementById(id);
-    if(el){el.classList.remove('active');el.style.color='';}
-  });
-}
-
-function animateBars(type){
-  var ids=type==='redo'?['rb0','rb1','rb2','rb3','rb4']:['eb0','eb1','eb2','eb3'];
-  ids.forEach(function(id){
-    var el=document.getElementById(id);
-    if(!el)return;
-    el.style.transition='none';
-    el.style.height='0%';
-  });
-  requestAnimationFrame(function(){
-    requestAnimationFrame(function(){
-      ids.forEach(function(id,i){
-        var el=document.getElementById(id);
-        if(!el)return;
-        var raw=el.getAttribute('data-target')||'50';
-        var pct=raw.replace('%','')+'%';
-        el.style.transition='height 1.1s cubic-bezier(0.34,1.4,0.64,1) '+(i*0.12)+'s';
-        el.style.height=pct;
-      });
-    });
-  });
-}
-function selectTD(el){
-  document.querySelectorAll('.td-option').forEach(function(o){o.classList.remove('selected');});
-  if(el)el.classList.add('selected');
-}
-
-// SIZING CALCULATORS
-function calcMemory(){
-  var n=parseInt(gg$('numExtracts').value)||1;
-  var total=(n*1.25).toFixed(2);
-  var mb=Math.ceil(n*1.25*1024);
-  var r=gg$('memResult');var v=gg$('memSqlVal');
-  if(r)r.textContent='STREAMS_POOL_SIZE = '+total+' GB';
-  if(v)v.textContent=mb;
-}
-function calcTrail(){
-  var logSize=parseFloat(gg$('txnLogSize').value)||1;
-  var switches=parseInt(gg$('logSwitches').value)||10;
-  var days=parseInt(gg$('retDays').value)||7;
-  var result=(logSize*0.33*switches*days).toFixed(1);
-  var r=gg$('trailResult');if(r)r.textContent='Trail Storage = '+result+' GB';
-}
-
-// 26AI ASSISTANT
-function addMsg(role,text,fmt){
-  var area=gg$('aiChatArea');
-  var div=document.createElement('div');div.className='ai-msg '+role;
-  div.innerHTML='<div class="ai-msg-icon">'+(role==='user'?'👤':'26')+'</div><div class="ai-msg-text">'+(fmt?formatAI(text):text)+'</div>';
-  area.appendChild(div);area.scrollTop=area.scrollHeight;
-}
-function formatAI(t){
-  return t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-    .replace(/`([^`\n]+)`/g,'<code style="background:#F0EBFF;color:#6C3FC5;padding:1px 4px;border-radius:3px;font-size:11px;font-family:monospace;">$1</code>')
-    .replace(/\n/g,'<br>');
-}
-function showThinking(){
-  var area=gg$('aiChatArea');
-  var div=document.createElement('div');div.className='ai-msg ai';div.id='aiThinking';
-  div.innerHTML='<div class="ai-msg-icon">GG</div><div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ai-purple);padding:6px 0;"><span>26AI is thinking</span><span style="display:inline-flex;gap:3px;"><span style="width:6px;height:6px;border-radius:50%;background:var(--ai-purple);display:inline-block;animation:ai-bounce 1.2s infinite;"></span><span style="width:6px;height:6px;border-radius:50%;background:var(--ai-purple);display:inline-block;animation:ai-bounce 1.2s .2s infinite;"></span><span style="width:6px;height:6px;border-radius:50%;background:var(--ai-purple);display:inline-block;animation:ai-bounce 1.2s .4s infinite;"></span></span></div>';
-  area.appendChild(div);area.scrollTop=area.scrollHeight;return div;
-}
-async function sendAI(){
-  var input=gg$('aiInput');var q=input.value.trim();if(!q)return;
-  input.value='';addMsg('user',q,false);
-  var btn=gg$('aiSendBtn');btn.disabled=true;btn.textContent='...';
-  var thinking=showThinking();
-  try{
-    var res=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,
-        system:"You are GG AI Bot — an expert AI assistant for Oracle GoldenGate Microservices. Specialize in: supplemental logging, ADD TRANDATA, SCHEMATRANDATA, Extract (integrated/classic), AdminClient commands, redo log mechanics, performance tuning, CDB/PDB multitenant setups, GoldenGate user creation (Non-CDB and CDB with c## prefix), sizing guidelines (STREAMS_POOL_SIZE, trail file storage, network latency). Use **bold** for key terms, backticks for commands. Be concise and always include a practical command example.",
-        messages:[{role:"user",content:q}]})
-    });
-    var data=await res.json();
-    var response=(data.content&&data.content[0]&&data.content[0].text)||"Could not get response. Please try again.";
-    thinking.remove();addMsg('ai',response,true);
-  }catch(e){
-    thinking.remove();
-    addMsg('ai','**GG AI Bot** is ready to help!\n\nFor your question about **"'+q+'"**, here are key points:\n\n1. Always enable minimal supplemental logging at DB level first\n2. Use `ADD SCHEMATRANDATA schema` for bulk table coverage\n3. Use `ALLCOLS` only for CDR/bi-directional scenarios\n4. For CDB: use `c##ggadmin` with `CONTAINER=ALL` grants\n5. AdminClient is the recommended interface for GoldenGate 21c MA\n\n*Try asking about specific topics: user creation, OGG errors, sizing, or performance.*',true);
+  var dmlStatus = document.getElementById('dmlStatus');
+  if(dmlStatus) dmlStatus.innerHTML='<em>Starting…</em>';
+  var i = 0;
+  function next(){
+    if(i > 0){
+      var prev = document.getElementById(boxIds[i-1]);
+      if(prev){ prev.style.opacity='0.7'; prev.style.outline='none'; prev.style.boxShadow='none'; }
+    }
+    if(i >= boxIds.length){
+      if(dmlStatus){ dmlStatus.style.color='#2E7D32'; dmlStatus.innerHTML='<strong>Step 7 of 7 — ✔ Extract processes the captured changes and writes them to the GoldenGate trail.</strong>'; }
+      return;
+    }
+    var el = document.getElementById(boxIds[i]);
+    if(el){ el.style.opacity='1'; el.style.outline='2px solid #C74634'; el.style.boxShadow='0 0 0 4px rgba(199,70,52,.15)'; el.style.transition='all .4s'; }
+    if(dmlStatus){ dmlStatus.style.color='#5F6368'; dmlStatus.innerHTML='<strong>'+stepLabels[i]+'</strong>'; }
+    i++;
+    setTimeout(next, 2200);
   }
-  btn.disabled=false;btn.textContent='🤖 Ask GG Bot';
+  setTimeout(next, 300);
 }
-function quickPrompt(text){gg$('aiInput').value=text;sendAI();switchTab('ai26');}
+function resetPipeline(){ /* no-op */ }
+function startPackets(){ /* removed */ }
 
-// ── REDO BLOCK ANATOMY ANIMATION ──
-function animateRedoBlock(){
-  var v1 = document.getElementById('rb-v1');
-  var v2 = document.getElementById('rb-v2');
-  var scnEl = document.getElementById('rb-scn');
-  var footer = document.getElementById('rb-footer');
-  // Reset to visible
-  [v1,v2].forEach(function(el){
-    if(el){
-      el.style.opacity='0';
-      el.style.transform='translateY(10px)';
-      el.style.transition='none';
-      el.classList.remove('active');
-    }
-  });
-  if(scnEl){ scnEl.textContent='Waiting...'; scnEl.style.opacity='0'; }
-  if(footer){ footer.textContent=''; }
-
-  // Step 1: SCN assigned
-  setTimeout(function(){
-    if(scnEl){
-      scnEl.style.transition='opacity .4s';
-      scnEl.style.opacity='1';
-      var n=0; var target=0xA1B2C3;
-      var iv=setInterval(function(){
-        n+=Math.floor(target/18);
-        if(n>=target){n=target;clearInterval(iv);}
-        scnEl.textContent='SCN: 0x'+n.toString(16).toUpperCase().padStart(8,'0');
-      },60);
-    }
-  },100);
-
-  // Step 2: CV#1 appears
-  setTimeout(function(){
-    if(v1){
-      v1.style.transition='opacity .5s ease, transform .5s ease';
-      v1.style.opacity='1';
-      v1.style.transform='translateY(0)';
-      v1.classList.add('active');
-    }
-  },700);
-
-  // Step 3: CV#2 appears
-  setTimeout(function(){
-    if(v2){
-      v2.style.transition='opacity .5s ease, transform .5s ease';
-      v2.style.opacity='1';
-      v2.style.transform='translateY(0)';
-      v2.classList.add('active');
-    }
-  },1400);
-
-  // Step 4: footer message
-  setTimeout(function(){
-    if(footer){
-      footer.style.color='#2E7D32';
-      footer.textContent='✔ Both vectors written atomically by LGWR at same SCN';
-    }
-  },2100);
-}
 
 function animateLogMiner(){
-  var cards = ['lm-s1','lm-s2','lm-s3','lm-s4'];
+  var cards  = ['lm-s1','lm-s2','lm-s3','lm-s4'];
+  var arrows = ['lm-arr1','lm-arr2','lm-arr3'];
   var labels = [
-    'Reading redo stream from LGWR buffer...',
-    'Parsing raw redo vectors with LogMiner engine...',
-    'Filtering by supplemental log group definitions...',
-    'Building complete LCR — key + before-image + after-image ✔'
+    'Step 1 of 4 — Reading Oracle online and archived redo logs...',
+    'Step 2 of 4 — LogMiner / logmining server mining redo stream and generating Logical Change Records (LCRs)...',
+    'Step 3 of 4 — Integrated Extract receiving LCRs and processing captured change information...',
+    'Step 4 of 4 — ✔ Extract has written processed changes to the GoldenGate trail.'
   ];
   var statusEl = document.getElementById('lm-status');
-  // Reset
+  // Reset all
   cards.forEach(function(id){
     var el = document.getElementById(id);
-    if(el){ el.classList.remove('active'); el.style.opacity='0.35'; }
+    if(el){ el.classList.remove('active'); el.style.opacity='0.4'; el.style.borderColor='#E3E1DD'; el.style.background='#FAFAF9'; el.style.transition='all .5s'; }
   });
-  if(statusEl) statusEl.textContent = '';
+  arrows.forEach(function(id){ var el = document.getElementById(id); if(el) el.style.color='#E3E1DD'; });
+  if(statusEl) statusEl.innerHTML = '<em>Starting…</em>';
   var i = 0;
-  function highlightNext(){
+  function next(){
     if(i > 0){
       var prev = document.getElementById(cards[i-1]);
-      if(prev){ prev.classList.remove('active'); prev.style.opacity='0.6'; }
+      if(prev){ prev.style.opacity='0.7'; prev.style.borderColor='rgba(199,70,52,.35)'; prev.style.background='#FAFAF9'; }
     }
     if(i >= cards.length){
-      if(statusEl){ statusEl.style.color='#2E7D32'; statusEl.textContent='✔ LCR fully built — Extract writes to trail file'; }
+      if(statusEl){ statusEl.style.color='#2E7D32'; statusEl.innerHTML='<strong>Step 4 of 4 — ✔ Extract has written processed changes to the GoldenGate trail.</strong>'; }
       return;
     }
     var el = document.getElementById(cards[i]);
-    if(el){ el.classList.add('active'); el.style.opacity='1'; }
-    if(statusEl){ statusEl.style.color='#5F6368'; statusEl.textContent=labels[i]; }
+    if(el){ el.classList.add('active'); el.style.opacity='1'; el.style.borderColor='#C74634'; el.style.background='#F3E9E7'; }
+    if(i < arrows.length){ var arr = document.getElementById(arrows[i]); if(arr) arr.style.color='#C74634'; }
+    if(statusEl){ statusEl.style.color='#5F6368'; statusEl.innerHTML='<strong>'+labels[i]+'</strong>'; }
     i++;
-    setTimeout(highlightNext, 900);
+    setTimeout(next, 2200);
   }
-  highlightNext();
+  setTimeout(next, 300);
 }
-
 
 function runSim(){
   var schema  = (gg$('simSchema')||{}).value || 'HR';
@@ -2204,6 +2343,120 @@ function clearSim(){
 
 
 // Expose to window for inline onclick handlers
+function animateBars(type){
+  var prefix = type === 'redo' ? 'rb' : 'eb';
+  var bars = document.querySelectorAll('[id^="'+prefix+'"]');
+  bars.forEach(function(bar){
+    var target = parseInt(bar.getAttribute('data-target') || '0', 10);
+    bar.style.height = '0%';
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        bar.style.transition = 'height 1.2s cubic-bezier(.34,1.4,.64,1)';
+        bar.style.height = target + '%';
+      });
+    });
+  });
+}
+window.animateBars = animateBars;
+
+function selectTD(el){
+  if(!el) return;
+  var container = el.parentElement;
+  if(container){
+    container.querySelectorAll('.td-card').forEach(function(c){
+      c.classList.remove('td-selected');
+    });
+  }
+  el.classList.add('td-selected');
+}
+window.selectTD = selectTD;
+
+/* ── calcMemory: Sizing tab ── */
+function calcMemory(){
+  var ne = parseInt((document.getElementById('numExtracts')||{}).value||'1',10);
+  var result = document.getElementById('memResult');
+  var sqlVal = document.getElementById('memSqlVal');
+  var streamsMB = ne * 300;
+  var pgaMB    = ne * 150;
+  var totalMB  = streamsMB + pgaMB + 512;
+  if(result) result.textContent = totalMB.toLocaleString() + ' MB recommended';
+  if(sqlVal)  sqlVal.textContent =
+    'ALTER SYSTEM SET STREAMS_POOL_SIZE = ' + streamsMB + 'M SCOPE=SPFILE;' +
+    ' -- PGA target (approx): ' + pgaMB + 'M per Extract process.' +
+    ' -- SGA minimum: 512M for LogMiner dictionary cache';
+}
+
+/* ── calcTrail: Sizing tab ── */
+function calcTrail(){
+  var txn  = parseFloat((document.getElementById('txnLogSize')||{}).value||'5');
+  var sw   = parseInt((document.getElementById('logSwitches')||{}).value||'8',10);
+  var ret  = parseInt((document.getElementById('retDays')||{}).value||'7',10);
+  var result = document.getElementById('trailResult');
+  var dailyGB  = (txn * sw).toFixed(1);
+  var totalGB  = (txn * sw * ret).toFixed(1);
+  var trailGB  = (txn * sw * ret * 0.6).toFixed(1);
+  if(result) result.innerHTML =
+    '<strong>Daily redo volume:</strong> ~' + dailyGB + ' GB/day<br>' +
+    '<strong>Retention period (' + ret + ' days):</strong> ~' + totalGB + ' GB<br>' +
+    '<strong>Estimated trail storage:</strong> ~' + trailGB + ' GB (approx 60% of redo after filtering)';
+}
+
+/* ── sendAI: GG AI Bot tab ── */
+async function sendAI(){
+  var input = document.getElementById('aiInput');
+  var chatArea = document.getElementById('aiChatArea');
+  var sendBtn  = document.getElementById('aiSendBtn');
+  if(!input || !chatArea) return;
+  var msg = (input.value||'').trim();
+  if(!msg) return;
+  input.value = '';
+  if(sendBtn) sendBtn.disabled = true;
+
+  // Add user bubble
+  var userDiv = document.createElement('div');
+  userDiv.className = 'ai-msg user';
+  userDiv.innerHTML = '<div class="ai-msg-icon">U</div><div class="ai-msg-bubble">' + msg.replace(/</g,'&lt;') + '</div>';
+  chatArea.appendChild(userDiv);
+
+  // Thinking indicator
+  var thinkDiv = document.createElement('div');
+  thinkDiv.className = 'ai-msg';
+  thinkDiv.innerHTML = '<div class="ai-msg-icon">GG</div><div class="ai-msg-bubble" id="aiThinking"><em>Thinking…</em></div>';
+  chatArea.appendChild(thinkDiv);
+  chatArea.scrollTop = chatArea.scrollHeight;
+
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        system:'You are a GoldenGate expert. Answer questions about Oracle GoldenGate Microservices Architecture, supplemental logging, ADD TRANDATA, SCHEMATRANDATA, Extract, Replicat, and related topics concisely and accurately.',
+        messages:[{role:'user',content:msg}]
+      })
+    });
+    var data = await res.json();
+    var reply = (data.content && data.content[0] && data.content[0].text) ? data.content[0].text : 'No response received.';
+    var thinkEl = document.getElementById('aiThinking');
+    if(thinkEl) thinkEl.innerHTML = reply.split('\n').join('<br>');
+  } catch(e) {
+    var thinkEl = document.getElementById('aiThinking');
+    if(thinkEl) thinkEl.innerHTML = '<em>Error contacting AI. Please try again.</em>';
+  }
+  chatArea.scrollTop = chatArea.scrollHeight;
+  if(sendBtn) sendBtn.disabled = false;
+}
+
+/* ── quickPrompt: GG AI Bot tab ── */
+function quickPrompt(text){
+  var input = document.getElementById('aiInput');
+  if(input){ input.value = text; sendAI(); }
+}
+
+/* ── animateRedoBlock: stub (section removed) ── */
+function animateRedoBlock(){ /* Redo Block section removed in v1.2.0 */ }
+
 window.switchTab=switchTab; window.toggleCheck=toggleCheck; window.selectStep=selectStep;
 window.toggleSupp=toggleSupp;
 renderRedo(); window.animatePipeline=animatePipeline;window.resetPipeline=resetPipeline; window.animateBars=animateBars;
@@ -2524,6 +2777,10 @@ MAP pdb1.sales.orders, TARGET pdb_tgt.sales.orders;`,
   resetBtn.addEventListener('click', resetSim);
 
 })();
+
+window.calcMemory=calcMemory; window.calcTrail=calcTrail;
+window.sendAI=sendAI; window.quickPrompt=quickPrompt;
+window.animateRedoBlock=animateRedoBlock;
 </script>
 </body>
 </html>
