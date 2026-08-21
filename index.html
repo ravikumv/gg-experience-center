@@ -80,6 +80,9 @@
     --crimson:#991B1B;
     --crimson-bg:#FBE9E7;
     --crimson-border:#F0B4AC;
+    --lime:#65A30D;
+    --lime-bg:#EFF7DA;
+    --lime-border:#C8E29A;
     --mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
     --disp:-apple-system,'Segoe UI Semibold','Avenir Next',ui-sans-serif,system-ui,sans-serif;
     --body:-apple-system,'Segoe UI',ui-sans-serif,system-ui,sans-serif;
@@ -162,6 +165,7 @@
   .icon.realtime{background:var(--fuchsia-bg);color:var(--fuchsia);}
   .icon.migration{background:var(--gold-bg);color:var(--gold);}
   .icon.troubleshooting{background:var(--crimson-bg);color:var(--crimson);}
+  .icon.veridata{background:var(--lime-bg);color:var(--lime);}
 
   .card .module-no{
     font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
@@ -214,6 +218,7 @@
   .card.realtime .card-head{border-top:3px solid var(--fuchsia);}
   .card.migration .card-head{border-top:3px solid var(--gold);}
   .card.troubleshooting .card-head{border-top:3px solid var(--crimson);}
+  .card.veridata .card-head{border-top:3px solid var(--lime);}
 
   /* ---------- FOOTER ---------- */
   footer{
@@ -248,7 +253,7 @@
 </section>
 
 <div class="stats">
-  <div class="stat">📦 <b>17</b> Modules</div>
+  <div class="stat">📦 <b>18</b> Modules</div>
   <div class="stat">🧪 <b>Interactive</b> Experiences</div>
   <div class="stat">🎨 <b>Self-Contained</b> HTML</div>
 </div>
@@ -657,6 +662,30 @@
       </div>
       <div class="card-foot">
         <a class="btn-open" href="https://ravikumv.github.io/gg-experience-center/gg-agent-simulator.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
+      </div>
+    </div>
+
+    <!-- Module 18: Veridata -->
+    <div class="card veridata">
+      <div class="card-head">
+        <div class="icon veridata">🧬</div>
+        <div>
+          <p class="module-no">Module 18 · Data Quality</p>
+          <h3>GoldenGate Veridata</h3>
+        </div>
+      </div>
+      <div class="card-body">
+        <p>Explore Oracle GoldenGate Veridata for data comparison — validating that source and target
+        stay in sync after replication, spotting row-level and value-level drift, and reconciling
+        differences with confidence.</p>
+        <div class="tag-row">
+          <span class="tag">Data Comparison</span>
+          <span class="tag">Drift Detection</span>
+          <span class="tag">Reconciliation</span>
+        </div>
+      </div>
+      <div class="card-foot">
+        <a class="btn-open" href="https://ravikumv.github.io/gg-experience-center/veridata-data-comparison-simulator.html" target="_blank" rel="noopener">Open Online <span class="arrow">→</span></a>
       </div>
     </div>
 

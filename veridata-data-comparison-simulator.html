@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Ravikumar Vasudevan">
+<meta name="contact" content="ravikumar.v.v@oracle.com">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-80TRRSXZBL"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-80TRRSXZBL');
+</script>
+<title>Oracle GoldenGate Veridata — Data Comparison Simulator | Compare Pairs, Parameter Mapping &amp; Live Compare</title>
+<style>
+:root{
+  --redwood:#C74634;
+  --redwood-dark:#9C3327;
+  --redwood-light:#F3E9E7;
+  --ink:#1B1B1B;
+  --muted:#5F6368;
+  --panel:#FFFFFF;
+  --line:#E3E1DD;
+  --bg:#FAF9F7;
+  --ok:#2E7D32;
+  --warn:#B45309;
+  --primary-blue:#1B6FC9;
+  --db2-blue:#0F62FE;
+  --sql-crimson:#A21942;
+  --miss:#A6362C;
+  --miss-light:#FBE8E5;
+  --src:var(--primary-blue);
+  --src-light:#E7F0FB;
+  --tgt:var(--ok);
+  --tgt-light:#E6F4EA;
+  --radius:10px;
+  --shadow:0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;max-width:100%;overflow-x:hidden;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.5;
+}
+a{color:var(--redwood);}
+::selection{background:var(--redwood-light);}
+
+/* ===== Header ===== */
+header{
+  background:var(--ink);color:#fff;padding:18px 28px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+}
+header .title{display:flex;align-items:center;gap:12px;}
+header .badge{
+  background:var(--redwood);color:#fff;font-size:11px;font-weight:700;
+  letter-spacing:.06em;padding:4px 10px;border-radius:4px;text-transform:uppercase;
+}
+h1{margin:0;font-size:18px;font-weight:600;color:#fff;}
+.subtitle{font-size:12px;color:#C9C9C9;margin-top:2px;}
+.version-badge{
+  background:rgba(255,255,255,.12);color:#fff;font-size:11px;font-weight:700;
+  padding:4px 10px;border-radius:20px;cursor:pointer;border:1px solid rgba(255,255,255,.25);
+  white-space:nowrap;
+}
+.version-badge:hover{background:rgba(255,255,255,.2);}
+a.back{color:var(--redwood);text-decoration:none;font-size:12.5px;font-weight:600;}
+#changelogPanel{
+  display:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:16px 20px;max-width:1500px;margin:0 auto 24px;
+}
+#changelogPanel.open{display:block;}
+#changelogPanel h3{margin:0 0 10px;font-size:14px;color:var(--redwood-dark);}
+.cl-entry{border-left:3px solid var(--redwood);padding:4px 0 4px 12px;margin-bottom:10px;}
+.cl-entry .cl-ver{font-weight:700;font-size:13px;}
+.cl-entry .cl-date{color:var(--muted);font-size:11.5px;margin-left:8px;}
+.cl-entry ul{margin:4px 0 0;padding-left:18px;font-size:12.5px;color:var(--muted);}
+.cl-close{float:right;background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;}
+
+/* ===== Tabs ===== */
+nav.tabbar{
+  display:flex;gap:2px;background:#fff;border-bottom:2px solid var(--line);
+  padding:0 20px;overflow-x:auto;position:sticky;top:0;z-index:20;
+}
+nav.tabbar::-webkit-scrollbar{height:4px;}
+.tab-btn{
+  border:none;background:transparent;padding:14px 16px;
+  font-size:13.5px;font-weight:600;color:var(--muted);
+  cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;
+  transition:.15s;
+}
+.tab-btn:hover{color:var(--ink);}
+.tab-btn.active{color:var(--redwood);border-bottom-color:var(--redwood);}
+
+main{max-width:1500px;margin:0 auto;padding:26px 32px 60px;}
+section.tab{display:none;animation:fadein .25s ease;}
+section.tab.active{display:block;}
+@keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+.hero{background:var(--redwood-light);border:1px solid #EAD9D5;border-radius:10px;padding:18px 22px;margin-bottom:18px;}
+.hero h2{margin:0 0 8px;color:var(--redwood-dark);}
+.hero p{margin:0 0 6px;font-size:13.5px;color:var(--ink);line-height:1.7;}
+.analogy{background:#fff;border-left:3px solid var(--warn);border-radius:8px;padding:11px 14px;margin-top:10px;font-size:12.5px;color:var(--muted);}
+.analogy b{color:var(--warn);}
+.kcode{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:var(--redwood-dark);background:var(--redwood-light);padding:1px 5px;border-radius:3px;}
+
+h2{font-size:20px;margin:4px 0 6px;}
+p.lead{color:var(--muted);font-size:14px;margin:0 0 20px;max-width:900px;}
+
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px 20px;box-shadow:var(--shadow);
+}
+.card h3{margin:0 0 8px;font-size:14.5px;color:var(--redwood-dark);display:flex;align-items:center;gap:8px;}
+.card>p{margin:0;font-size:13px;color:var(--muted);line-height:1.55;}
+.grid{display:grid;gap:16px;}
+.grid-2{grid-template-columns:repeat(2,1fr);}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+@media(max-width:900px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}}
+
+.pill{
+  display:inline-block;background:var(--redwood-light);color:var(--redwood-dark);
+  font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.03em;
+  text-transform:uppercase;margin-right:6px;margin-bottom:6px;
+}
+.pill.blue{background:#E7F0FB;color:var(--primary-blue);}
+.pill.db2{background:#E4EEFE;color:var(--db2-blue);}
+.pill.sql{background:#FBE5EB;color:var(--sql-crimson);}
+.pill.grey{background:#EEEFEF;color:var(--muted);}
+.pill.green{background:#E6F4EA;color:var(--ok);}
+.icon-circle{
+  width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-size:17px;flex-shrink:0;
+}
+
+/* ===== Architecture flow ===== */
+.flow-wrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px 18px;box-shadow:var(--shadow);}
+.flow-track{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;justify-content:center;}
+.flow-col{display:flex;flex-direction:column;gap:10px;min-width:150px;flex:1;}
+.flow-node-box{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:12px;font-size:12.5px;text-align:center;}
+.flow-node-box b{display:block;font-size:13px;margin-bottom:2px;}
+.flow-node-box.core{background:var(--ink);color:#fff;border-color:var(--ink);}
+.flow-node-box.core.small{background:#fff;color:var(--ink);border-color:var(--line);}
+.flow-arrow-col{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-width:44px;}
+.flow-arrow{font-size:18px;color:var(--muted);}
+.flow-arrow-lbl{font-size:9px;color:var(--muted);text-align:center;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+
+/* ===== Connectivity ===== */
+.conn-card table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px;}
+.conn-card td{padding:3px 0;vertical-align:top;}
+.conn-card td:first-child{color:var(--muted);width:42%;}
+.status-chip{margin-top:8px;font-size:11px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:4px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:5px;}
+.status-chip.ok{background:var(--tgt-light);color:var(--tgt);}
+.status-chip.pending{background:#FBF0DC;color:var(--warn);}
+
+/* ===== Parameter builder ===== */
+.sim-layout{display:grid;grid-template-columns:280px 1fr;gap:18px;}
+@media(max-width:980px){.sim-layout{grid-template-columns:1fr;}}
+.sim-panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);}
+.sim-panel h4{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);}
+.field-group{margin-bottom:14px;}
+.field-group label{display:block;font-size:11.5px;font-weight:700;color:var(--ink);margin-bottom:5px;}
+select,input[type=text]{
+  width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;
+  font-size:12.5px;background:#fff;color:var(--ink);font-family:inherit;
+}
+.pill-toggle{display:flex;flex-wrap:wrap;gap:6px;}
+.pill-toggle .opt{
+  border:1.5px solid var(--line);background:#fff;border-radius:20px;padding:6px 12px;
+  font-size:11.5px;cursor:pointer;user-select:none;color:var(--muted);
+}
+.pill-toggle .opt.active{border-color:var(--redwood);color:var(--redwood-dark);background:var(--redwood-light);font-weight:700;}
+
+.code-block{
+  background:#111417;color:#D7F5DE;border-radius:8px;padding:14px 16px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;line-height:1.65;
+  overflow-x:auto;white-space:pre;
+}
+.code-block .cm{color:#8a8a8a;}
+.code-block .kw{color:#FFD479;}
+.code-block .str{color:#8CF0A8;}
+.code-block .num{color:#7DA6FF;}
+.code-block .lbl{color:#7FB3D5;}
+.block-title{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin:18px 0 8px;font-weight:700;}
+.block-title:first-child{margin-top:0;}
+
+/* ===== Live Simulator ===== */
+.op-btns{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;}
+.run-btn{
+  border:none;background:var(--redwood);color:#fff;padding:10px 18px;border-radius:8px;
+  font-size:13px;font-weight:700;cursor:pointer;transition:.15s;
+}
+.run-btn:hover{background:var(--redwood-dark);}
+.run-btn:disabled{opacity:.5;cursor:default;}
+.ghost-btn{
+  border:1.5px solid var(--redwood);background:#fff;color:var(--redwood-dark);padding:9px 16px;
+  border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;
+}
+
+.metric-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0;}
+@media(max-width:900px){.metric-strip{grid-template-columns:repeat(2,1fr);}}
+.metric-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;box-shadow:var(--shadow);}
+.metric-card .m-label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;}
+.metric-card .m-value{font-size:20px;font-weight:800;color:var(--ink);margin-top:2px;}
+.metric-card.good .m-value{color:var(--tgt);}
+.metric-card.warn .m-value{color:var(--warn);}
+.metric-card.miss .m-value{color:var(--miss);}
+
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px;}
+@media(max-width:980px){.compare-grid{grid-template-columns:1fr;}}
+.table-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+.table-card .tc-head{
+  padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;
+  background:#fff;
+}
+.table-card .tc-head h4{margin:0;font-size:13px;}
+.table-card .tc-head .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;}
+.table-card.src .tc-head .dot{background:var(--src);}
+.table-card.tgt .tc-head .dot{background:var(--tgt);}
+.data-table{width:100%;border-collapse:collapse;font-size:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+.data-table thead th{
+  background:var(--bg);text-align:left;padding:8px 12px;font-size:10.5px;text-transform:uppercase;
+  letter-spacing:.03em;color:var(--muted);border-bottom:1px solid var(--line);font-weight:700;
+}
+.data-table tbody td{padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap;}
+.data-table tbody tr.row-match{background:#fff;}
+.data-table tbody tr.row-mismatch{background:#FBF6E9;}
+.data-table tbody tr.row-missing-src{background:#fff;color:var(--muted);}
+.data-table tbody tr.row-missing-tgt td{background:var(--miss-light);color:var(--miss);font-style:italic;}
+.data-table tbody tr.row-repaired{background:#EAF2FB;animation:repairFlash .8s ease;}
+@keyframes repairFlash{0%{background:#CFE3FA;}100%{background:#EAF2FB;}}
+.diff-cell{color:var(--warn);font-weight:700;background:#FCEBC7;border-radius:4px;}
+.result-tag{
+  font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:5px;letter-spacing:.03em;
+}
+.result-tag.match{background:var(--tgt-light);color:var(--tgt);}
+.result-tag.mismatch{background:#FBF0DC;color:var(--warn);}
+.result-tag.missing{background:var(--miss-light);color:var(--miss);}
+.result-tag.repaired{background:#E7F0FB;color:var(--primary-blue);}
+.repair-btn{
+  border:1.5px solid var(--primary-blue);background:#fff;color:var(--primary-blue);padding:9px 16px;
+  border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;
+}
+.repair-btn:hover{background:var(--src-light);}
+.repair-btn:disabled{opacity:.4;cursor:default;}
+.sync-banner{
+  border-left:3px solid var(--primary-blue);background:var(--src-light);color:#124A87;
+  padding:10px 14px;border-radius:0 8px 8px 0;font-size:12.5px;margin:14px 0;display:none;
+}
+.sync-banner.show{display:block;animation:fadein .3s ease;}
+
+.callout{border-left:3px solid var(--redwood);background:var(--redwood-light);padding:10px 14px;border-radius:0 8px 8px 0;font-size:12.5px;color:var(--redwood-dark);margin:14px 0;}
+
+/* ===== Architecture sub-tabs ===== */
+.subtabbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;}
+.subtab-btn{
+  border:1.5px solid var(--line);background:#fff;border-radius:20px;padding:7px 14px;
+  font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;
+}
+.subtab-btn.active{border-color:var(--redwood);color:var(--redwood-dark);background:var(--redwood-light);}
+.subpanel{display:none;}
+.subpanel.active{display:block;animation:fadein .2s ease;}
+
+.concept-list{display:flex;flex-direction:column;gap:10px;}
+.concept-item{display:flex;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:var(--shadow);}
+.concept-num{
+  flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--redwood);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;
+}
+.concept-item h4{margin:0 0 4px;font-size:13.5px;}
+.concept-item p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.55;}
+
+.role-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+
+.arch-comp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:16px;}
+@media(max-width:900px){.arch-comp-grid{grid-template-columns:1fr;}}
+.arch-comp-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;box-shadow:var(--shadow);}
+.arch-comp-card .ac-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.arch-comp-card .ac-head .icon-circle{background:var(--redwood-light);color:var(--redwood-dark);}
+.arch-comp-card h4{margin:0;font-size:14px;}
+.arch-comp-card p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.55;}
+
+.step-flow{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:900px){.step-flow{grid-template-columns:1fr;}}
+.step-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;box-shadow:var(--shadow);position:relative;}
+.step-card .step-tag{
+  display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.04em;padding:3px 9px;
+  border-radius:6px;margin-bottom:8px;
+}
+.step-card.moos .step-tag{background:#FBF0DC;color:var(--warn);}
+.step-card.coos .step-tag{background:var(--src-light);color:var(--primary-blue);}
+.step-card h4{margin:0 0 8px;font-size:14.5px;}
+.step-card ul{margin:0 0 10px;padding-left:18px;font-size:12.5px;color:var(--muted);line-height:1.7;}
+.step-card .step-note{font-size:12px;color:var(--ink);background:var(--bg);border-radius:8px;padding:10px 12px;line-height:1.55;}
+.status-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+.status-legend .leg{
+  display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);
+  border:1px solid var(--line);border-radius:20px;padding:5px 11px;background:#fff;
+}
+.status-legend .leg .sw{width:9px;height:9px;border-radius:50%;}
+.leg.inflight .sw{background:var(--warn);}
+.leg.insync .sw{background:var(--tgt);}
+.leg.oos .sw{background:var(--miss);}
+
+footer{text-align:center;font-size:11.5px;color:var(--muted);padding:20px;border-top:1px solid var(--line);}
+</style>
+<script>
+/* Basic deterrents against casual view-source / copying.
+   NOTE: This does not provide real security — any determined visitor can
+   still access the page source via browser dev tools, curl, or other means. */
+document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+document.addEventListener('keydown', function(e){
+  var k = e.key ? e.key.toUpperCase() : '';
+  if (
+    k === 'F12' ||
+    (e.ctrlKey && k === 'U') ||
+    (e.ctrlKey && e.shiftKey && (k === 'I' || k === 'J' || k === 'C')) ||
+    (e.metaKey && e.altKey && (k === 'I' || k === 'J' || k === 'C'))
+  ) {
+    e.preventDefault();
+  }
+});
+</script>
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <span class="badge">COMPARE</span>
+    <div>
+      <h1>Oracle GoldenGate Veridata — Data Comparison Simulator</h1>
+      <div class="subtitle">Overview &middot; Connectivity &middot; Goldengate parameter file to Compare Pairs &middot; Supported Use Cases &middot; Live Simulator</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <button class="version-badge" id="versionBadge">v1.0.0 &middot; Changelog</button>
+    <a class="back" href="https://ravikumv.github.io/gg-experience-center/">&larr; Back to GoldenGate Experience Center</a>
+  </div>
+</header>
+
+<div id="changelogPanel">
+  <button class="cl-close" id="clClose">&#10005; Close</button>
+  <h3>Version History</h3>
+  <div class="cl-entry">
+    <span class="cl-ver">v1.0.0</span><span class="cl-date">2026-08-20</span>
+    <ul>
+      <li>Initial release: Overview (What is Veridata?, Concepts, Architecture, How It Works), Connectivity, GoldenGate parameter file to Compare Pairs (parameter file, configuration.xml, Vericom CLI, and GUI import steps), Supported Use Cases, and a Live Simulator with source/target selection, side-by-side compare tables, and a Repair action.</li>
+    </ul>
+  </div>
+</div>
+
+<nav class="tabbar" id="tabbar">
+  <button class="tab-btn active" data-tab="arch">Overview</button>
+  <button class="tab-btn" data-tab="conn">Connectivity</button>
+  <button class="tab-btn" data-tab="builder">Goldengate parameter file to Compare Pairs</button>
+  <button class="tab-btn" data-tab="usecases">Supported Use Cases</button>
+  <button class="tab-btn" data-tab="livesim">Live Simulator</button>
+</nav>
+
+<main>
+
+<!-- ============ ARCHITECTURE ============ -->
+<section class="tab active" id="tab-arch">
+  <div class="hero">
+    <h2>Oracle GoldenGate Veridata — Overview</h2>
+    <p>Based on the official Oracle GoldenGate Veridata documentation (Release 26): what it is, the objects you configure to use it, how its components fit together, and the two-step process it uses to confirm data is actually out of sync.</p>
+  </div>
+
+  <div class="subtabbar" id="archSubtabs">
+    <button class="subtab-btn active" data-sub="what">What is Veridata?</button>
+    <button class="subtab-btn" data-sub="concepts">Concepts</button>
+    <button class="subtab-btn" data-sub="components">Architecture</button>
+    <button class="subtab-btn" data-sub="howworks">How It Works</button>
+  </div>
+
+  <!-- ---- What is Veridata ---- -->
+  <div class="subpanel active" id="sub-what">
+    <div class="card" style="margin-bottom:16px;">
+      <h3>A comparison and repair solution, not a replication engine</h3>
+      <p>Oracle GoldenGate Veridata is a high-speed data comparison and repair tool that finds, reports on, and fixes data discrepancies across heterogeneous databases — without interrupting the business processes running against those databases. It's built to surface out-of-sync data before it causes a problem downstream, rather than after.</p>
+    </div>
+    <div class="card">
+      <h3>Why it matters alongside GoldenGate replication</h3>
+      <p>Because Veridata standardizes and validates data across different database types, teams rely on it for confidence in mission-critical systems, data migrations, and disaster-recovery configurations — anywhere GoldenGate is keeping databases in sync and someone needs independent proof that the sync actually held.</p>
+    </div>
+  </div>
+
+  <!-- ---- Concepts ---- -->
+  <div class="subpanel" id="sub-concepts">
+    <div class="card" style="margin-bottom:16px;">
+      <h3>The objects you build, in order</h3>
+      <p>Setting up a comparison in Veridata means creating a small chain of objects, each one scoped by the object before it.</p>
+    </div>
+    <div class="concept-list">
+      <div class="concept-item">
+        <div class="concept-num">1</div>
+        <div><h4>Connections</h4><p>A Connection points the Veridata Server at a source or target database. The Server uses it to talk to the Veridata Agent running against that database.</p></div>
+      </div>
+      <div class="concept-item">
+        <div class="concept-num">2</div>
+        <div><h4>Groups</h4><p>A Group is a logical container for one or more Compare Pairs, tied to a set of source and target Connections.</p></div>
+      </div>
+      <div class="concept-item">
+        <div class="concept-num">3</div>
+        <div><h4>Compare Pairs</h4><p>A Compare Pair is the logical relationship between one source table and one target table for comparison purposes. Every Compare Pair belongs to a Group.</p></div>
+      </div>
+      <div class="concept-item">
+        <div class="concept-num">4</div>
+        <div><h4>Jobs and Repairs</h4><p>Compare Pairs only run inside a Job — the Job decides which Groups get processed. From the UI you can also repair a job's out-of-sync results, and for a handful of supported databases, generate a repair SQL file instead.</p></div>
+      </div>
+      <div class="concept-item">
+        <div class="concept-num">5</div>
+        <div>
+          <h4>Users, User Groups &amp; Roles</h4>
+          <p>User Management lets you create and organize users and user groups, each assigned one or more roles.</p>
+          <div class="role-tags">
+            <span class="pill grey">Administrator</span><span class="pill grey">Super User</span><span class="pill grey">Monitoring Operator</span>
+            <span class="pill grey">Detail Monitoring Operator</span><span class="pill grey">Repair Operator</span><span class="pill grey">Job Operator</span>
+            <span class="pill grey">Command Line Operator</span>
+          </div>
+        </div>
+      </div>
+      <div class="concept-item">
+        <div class="concept-num">6</div>
+        <div><h4>Delta Comparison</h4><p>Instead of re-comparing every row on every run, a Delta Processing Job compares only what has changed in the source and target tables since the previous job run.</p></div>
+      </div>
+      <div class="concept-item">
+        <div class="concept-num">7</div>
+        <div><h4>Profile</h4><p>A Profile is a named set of processing parameters that controls how a comparison or repair job behaves. Veridata ships a default Profile, but you can create your own and assign — or override — them per Job or per Compare Pair, including at run time.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ---- Architecture components ---- -->
+  <div class="subpanel" id="sub-components">
+    <div class="arch-comp-grid">
+      <div class="arch-comp-card">
+        <div class="ac-head"><div class="icon-circle">&#9881;</div><h4>Veridata Agent</h4></div>
+        <p>A lightweight Java program that runs on the database system itself or remotely. It talks directly to the source or target database to fetch and return blocks of data rows and column-level detail, and to run the queries a repair needs.</p>
+      </div>
+      <div class="arch-comp-card">
+        <div class="ac-head"><div class="icon-circle">&#128202;</div><h4>Veridata Server</h4></div>
+        <p>Compares the data the Agents return, confirms which rows are genuinely out of sync, performs repairs, produces reports, and coordinates jobs across every other component.</p>
+      </div>
+      <div class="arch-comp-card">
+        <div class="ac-head"><div class="icon-circle">&#128451;</div><h4>Repository Database</h4></div>
+        <p>Stores Veridata's own metadata — Connections, Groups, Compare Pairs, Jobs, Profiles, users. Veridata supports MySQL Server only for this repository, independent of whichever databases are being compared.</p>
+      </div>
+      <div class="arch-comp-card">
+        <div class="ac-head"><div class="icon-circle">&#9000;</div><h4>Vericom, Export &amp; Import Utilities</h4></div>
+        <p><b>Vericom</b> is Veridata's command-line interface — every administration task available in the GUI can also be done here. The <b>Export/Import Utilities</b> move configuration between environments or versions (test to production, Veridata Classic to Next Gen); the Import Utility can also build Compare Pairs, Groups, and Jobs straight from a GoldenGate Replicat parameter file — the basis for the mapping shown in the next tab.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Simplified compare topology used in this simulator</h3>
+      <div class="flow-wrap">
+        <div class="flow-track">
+          <div class="flow-col">
+            <div class="flow-node-box"><b>Oracle 19c / 23ai</b>SOURCE<div class="pill blue" style="margin-top:8px;">Agent A1</div></div>
+            <div class="flow-node-box"><b>IBM DB2 LUW / z/OS</b>SOURCE<div class="pill db2" style="margin-top:8px;">Agent A2</div></div>
+            <div class="flow-node-box"><b>Microsoft SQL Server</b>SOURCE<div class="pill sql" style="margin-top:8px;">Agent A3</div></div>
+          </div>
+          <div class="flow-arrow-col"><div class="flow-arrow">&rarr;</div><div class="flow-arrow-lbl">JDBC / native<br>driver</div></div>
+          <div class="flow-col" style="max-width:230px;">
+            <div class="flow-node-box core"><b>Veridata Server</b>Compare Engine &middot; MySQL Repository &middot; Web Console</div>
+            <div class="flow-node-box core small">GoldenGate Extract / Replicat<div class="pill" style="margin-top:8px;">live CDC path</div></div>
+          </div>
+          <div class="flow-arrow-col"><div class="flow-arrow">&rarr;</div><div class="flow-arrow-lbl">JDBC /<br>OCI driver</div></div>
+          <div class="flow-col">
+            <div class="flow-node-box"><b>Oracle Database 26ai</b>TARGET<div class="pill" style="margin-top:8px;">Agent A4</div></div>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:12.5px;color:var(--muted);margin:12px 0 0;">GoldenGate keeps 26ai continuously synchronized with the three heterogeneous sources; Veridata runs independently — scheduled or on-demand — to confirm the sync actually held.</p>
+    </div>
+  </div>
+
+  <!-- ---- How it works ---- -->
+  <div class="subpanel" id="sub-howworks">
+    <div class="card" style="margin-bottom:16px;">
+      <h3>A two-step process, because replication has latency</h3>
+      <p>Comparing live, continuously-replicated data risks false positives — a row can look out of sync simply because a change hasn't replicated yet. Veridata handles this with two stages: <b>MOOS</b> (Maybe Out of Sync) and <b>COOS</b> (Confirm Out of Sync).</p>
+    </div>
+
+    <div class="step-flow">
+      <div class="step-card moos">
+        <span class="step-tag">STEP 1 &middot; ROW HASH</span>
+        <h4>MOOS — Maybe Out of Sync</h4>
+        <ul>
+          <li>Agent retrieves rows from source and target using a defined query</li>
+          <li>Data types are standardized across the heterogeneous source/target pair</li>
+          <li>Primary key values are fetched as-is; non-key column values are hashed to cut network transfer</li>
+          <li>Hashes are sent to the Server and compared</li>
+          <li>Any rows that look different are held in an in-memory MOOS queue — not yet reported</li>
+        </ul>
+        <div class="step-note">Why hold them back? With replication running concurrently, a "different" row may just be mid-flight — about to be corrected by the next replicated change.</div>
+      </div>
+
+      <div class="step-card coos">
+        <span class="step-tag">STEP 2 &middot; VALUE COMPARE</span>
+        <h4>COOS — Confirm Out of Sync</h4>
+        <ul>
+          <li>Runs in parallel with Step 1, but each row waits out a configurable replication-latency delay first</li>
+          <li>After the delay, Veridata re-queries actual (unhashed) values for every column, source and target</li>
+          <li>Confirm-out-of-sync lookups can be batched and run in parallel — good for remote databases</li>
+          <li>Every MOOS row is resolved to one of three outcomes</li>
+        </ul>
+        <div class="status-legend">
+          <div class="leg inflight"><span class="sw"></span>In Flight — was out, replication just fixed it</div>
+          <div class="leg insync"><span class="sw"></span>In Sync — confirmed matching</div>
+          <div class="leg oos"><span class="sw"></span>Persistently Out of Sync — confirmed, reported</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Two profile settings that control this behavior</h3>
+      <p><span class="kcode">Delay Confirm-Out-Of-Sync By (seconds)</span> — how long a MOOS row waits before COOS re-checks it. Set this close to your normal replication lag to avoid false out-of-sync results.<br><br>
+      <span class="kcode">Perform Confirm-Out-of-Sync Step</span> — lets you skip COOS entirely and report straight off the row-hash step, useful when source activity is quiesced or the target isn't being continuously updated.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONNECTIVITY ============ -->
+<section class="tab" id="tab-conn">
+  <div class="hero">
+    <h2>Connections — how the Veridata Server reaches each database</h2>
+    <p>A Connection isn't a direct database login. It points the Veridata Server at the <b>Veridata Agent</b> running near a database — by host and port — and the Agent's own datasource is what actually talks to that database. Connections are created and managed on the Connections page, and only users with the <b>Administrator</b> or <b>Super User</b> role can create, edit, or delete them.</p>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <h3>What defines a Connection</h3>
+    <div class="grid grid-4">
+      <div><b style="font-size:13px;">Host Name</b><p style="font-size:12px;color:var(--muted);margin:4px 0 0;">DNS name or IP of the machine running the Veridata Agent — not necessarily the database host itself.</p></div>
+      <div><b style="font-size:13px;">Port</b><p style="font-size:12px;color:var(--muted);margin:4px 0 0;">The Agent's port — <span class="kcode">server.port</span> in <span class="kcode">agent.properties</span> for a Java agent, or <span class="kcode">INFO MANAGER</span> in GGSCI for a C-agent.</p></div>
+      <div><b style="font-size:13px;">Database</b><p style="font-size:12px;color:var(--muted);margin:4px 0 0;">Auto-detected when you click Verify. Shows as <span class="kcode">Not Specified</span> if the agent wasn't started with database details.</p></div>
+      <div><b style="font-size:13px;">Credentials</b><p style="font-size:12px;color:var(--muted);margin:4px 0 0;">A datasource user/password, plus an optional separate repair user with update and query privileges for target fixes.</p></div>
+    </div>
+  </div>
+
+  <div class="grid grid-4">
+    <div class="card conn-card">
+      <h3><span class="pill blue">Oracle</span></h3>
+      <b>ORCL_SRC — Oracle 19c</b>
+      <table>
+        <tr><td>Host Name</td><td>orcl-src01.internal</td></tr>
+        <tr><td>Port</td><td>7810 (Java agent)</td></tr>
+        <tr><td>Database</td><td>Oracle Database <span style="color:var(--tgt);">&#10003; verified</span></td></tr>
+        <tr><td>Use SSL</td><td>Enabled</td></tr>
+        <tr><td>Datasource user</td><td>vdt_ora_reader</td></tr>
+        <tr><td>Repair user</td><td>&mdash; (source only)</td></tr>
+      </table>
+      <span class="status-chip ok">&#9679; connected</span>
+    </div>
+    <div class="card conn-card">
+      <h3><span class="pill db2">DB2</span></h3>
+      <b>DB2_SRC — IBM DB2 LUW</b>
+      <table>
+        <tr><td>Host Name</td><td>db2-src04.internal</td></tr>
+        <tr><td>Port</td><td>7811 (Java agent)</td></tr>
+        <tr><td>Database</td><td>IBM Db2 <span style="color:var(--tgt);">&#10003; verified</span></td></tr>
+        <tr><td>Use SSL</td><td>Enabled</td></tr>
+        <tr><td>Datasource user</td><td>vdt_db2_reader</td></tr>
+        <tr><td>Repair user</td><td>&mdash; (source only)</td></tr>
+      </table>
+      <span class="status-chip ok">&#9679; connected</span>
+    </div>
+    <div class="card conn-card">
+      <h3><span class="pill sql">SQL Server</span></h3>
+      <b>MSSQL_SRC — SQL Server</b>
+      <table>
+        <tr><td>Host Name</td><td>mssql-src02.internal</td></tr>
+        <tr><td>Port</td><td>7812 (Java agent)</td></tr>
+        <tr><td>Database</td><td>Microsoft SQL Server <span style="color:var(--tgt);">&#10003; verified</span></td></tr>
+        <tr><td>Use SSL</td><td>Enabled</td></tr>
+        <tr><td>Datasource user</td><td>vdt_mssql_reader</td></tr>
+        <tr><td>Repair user</td><td>&mdash; (source only)</td></tr>
+      </table>
+      <span class="status-chip ok">&#9679; connected</span>
+    </div>
+    <div class="card conn-card">
+      <h3><span class="pill blue">Oracle</span></h3>
+      <b>AI26_TGT — Oracle 26ai</b>
+      <table>
+        <tr><td>Host Name</td><td>ai26-tgt01.internal</td></tr>
+        <tr><td>Port</td><td>7813 (Java agent)</td></tr>
+        <tr><td>Database</td><td>Oracle Database <span style="color:var(--warn);">pending verify</span></td></tr>
+        <tr><td>Use SSL</td><td>Enabled</td></tr>
+        <tr><td>Datasource user</td><td>vdt_ai26_reader</td></tr>
+        <tr><td>Repair user</td><td>vdt_ai26_repair (update + query)</td></tr>
+      </table>
+      <span class="status-chip pending">&#9679; repository sync pending</span>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3>Databases supported as a Connection datasource</h3>
+    <p style="margin-bottom:10px;">Veridata auto-detects the datasource type on Verify from any of the following — this simulator exercises three of them against an Oracle target.</p>
+    <div class="role-tags">
+      <span class="pill green">Oracle Database</span>
+      <span class="pill green">IBM Db2</span>
+      <span class="pill green">Microsoft SQL Server</span>
+      <span class="pill grey">Apache Hive</span>
+      <span class="pill grey">HPE NonStop</span>
+      <span class="pill grey">MariaDB</span>
+      <span class="pill grey">MySQL</span>
+      <span class="pill grey">PostgreSQL</span>
+      <span class="pill grey">Snowflake</span>
+      <span class="pill grey">Sybase Adaptive Server Enterprise</span>
+      <span class="pill grey">Teradata Vantage</span>
+    </div>
+  </div>
+
+  <div class="callout">Tip: register the target connection last — Veridata validates that every column referenced by an incoming compare pair definition exists and is type-compatible before it accepts the pair. Only Administrator and Super User roles can create, edit, or delete Connections.</div>
+</section>
+
+<!-- ============ GOLDENGATE PARAMETER FILE TO COMPARE PAIRS ============ -->
+<section class="tab" id="tab-builder">
+  <div class="hero">
+    <h2>GoldenGate parameter file to Compare Pairs</h2>
+    <p>The Veridata <b>Import Utility</b> (run through <span class="kcode">vdt-import.sh</span> / <span class="kcode">vdt-import.bat</span>, part of Vericom) can build Connections, Groups, and Compare Pairs two ways: from a Veridata <span class="kcode">configuration.xml</span> file, or by pointing it <i>directly at a GoldenGate Replicat parameter file</i>. Either way, the same <span class="kcode">TABLE</span>/<span class="kcode">MAP</span>/<span class="kcode">KEYCOLS</span> mapping that drives replication is what ends up defining the compare pair.</p>
+  </div>
+
+  <div class="sim-layout">
+    <div class="sim-panel">
+      <h4>Compare Pair Setup</h4>
+      <div class="field-group">
+        <label>Source database</label>
+        <div class="pill-toggle" id="srcPills">
+          <div class="opt active" data-src="oracle">Oracle</div>
+          <div class="opt" data-src="db2">DB2</div>
+          <div class="opt" data-src="sql">SQL Server</div>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Source table</label>
+        <input type="text" id="srcTable" value="CUSTOMER_ORDERS">
+      </div>
+      <div class="field-group">
+        <label>Target table (Oracle 26ai)</label>
+        <input type="text" id="tgtTable" value="CUSTOMER_ORDERS">
+      </div>
+      <div class="field-group">
+        <label>Key column(s)</label>
+        <input type="text" id="keyCols" value="ORDER_ID">
+      </div>
+      <div class="field-group">
+        <label>How the Job runs</label>
+        <div class="pill-toggle" id="modePills">
+          <div class="opt active" data-mode="scheduled">Recurring schedule</div>
+          <div class="opt" data-mode="realtime">Continuous, short-interval</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="block-title">1 &middot; GoldenGate parameter file — defines the replication mapping</div>
+      <div class="code-block" id="ggCode"></div>
+
+      <div class="block-title">2 &middot; Veridata configuration.xml — the equivalent Import Utility input</div>
+      <div class="code-block" id="vdCode"></div>
+
+      <div class="block-title">3 &middot; Command Line Interface — Vericom (loads either file as-is)</div>
+      <div class="code-block" id="importCode"></div>
+    </div>
+  </div>
+
+  <div class="callout" id="modeExplainer"></div>
+
+  <p style="font-size:12.5px;color:var(--muted);margin-top:14px;">In practice, teams either hand the GoldenGate <span class="kcode">.prm</span> file straight to <span class="kcode">vdt-import.sh -create</span>, or check in the equivalent <span class="kcode">configuration.xml</span> so Connections, Groups, and Compare Pairs are version-controlled alongside the replication parameter files that define them. The <span class="kcode">key-column</span> mapping is what Veridata joins rows on — the same key columns GoldenGate uses to route change records.</p>
+
+  <div class="card" style="margin-top:18px;">
+    <h3>4 &middot; Steps to Import in the GUI</h3>
+    <p style="margin-bottom:12px;">Prefer a point-and-click path over Vericom? The same GoldenGate parameter file can be loaded from the Web Console.</p>
+    <div class="concept-list">
+      <div class="concept-item">
+        <div class="concept-num">1</div>
+        <div><h4>Log in to the Veridata Web UI</h4><p>Open the Veridata Web UI and log in with a user that has configuration privileges (Administrator or Super User).</p></div>
+      </div>
+      <div class="concept-item">
+        <div class="concept-num">2</div>
+        <div><h4>Open Utilities</h4><p>Click <b>Utilities</b> in the main navigation menu.</p></div>
+      </div>
+      <div class="concept-item">
+        <div class="concept-num">3</div>
+        <div><h4>Switch to the Import tab</h4><p>Select the <b>Import</b> option/tab — the <b>Export</b> tab is shown by default.</p></div>
+      </div>
+      <div class="concept-item">
+        <div class="concept-num">4</div>
+        <div><h4>Choose the GoldenGate parameter file option</h4><p>Select the option to import from a GoldenGate parameter file (<span class="kcode">.prm</span>) rather than a Veridata <span class="kcode">configuration.xml</span>.</p></div>
+      </div>
+      <div class="concept-item">
+        <div class="concept-num">5</div>
+        <div><h4>Browse and select the file</h4><p>Click <b>Browse File</b> and select your target or extract <span class="kcode">.prm</span> file from your local system.</p></div>
+      </div>
+      <div class="concept-item">
+        <div class="concept-num">6</div>
+        <div><h4>Click Import</h4><p>Click <b>Import</b> to parse the file and load the resulting Connections, Groups, and Compare Pairs into your repository.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LIVE SIMULATOR ============ -->
+<section class="tab" id="tab-livesim">
+  <div class="hero">
+    <h2>Live Simulator — run a compare pair</h2>
+    <p>Choose a source database and a target database, then run the compare pair. Veridata reads row hashes in blocks, drills into any block with a mismatch, and shows the exact source and target rows side by side.</p>
+  </div>
+
+  <div class="sim-layout">
+    <div class="sim-panel">
+      <h4>Run Configuration</h4>
+      <div class="field-group">
+        <label>Source database</label>
+        <select id="simSrcSelect">
+          <option value="oracle">Oracle 19c (ORCL_SRC)</option>
+          <option value="db2">IBM DB2 LUW (DB2_SRC)</option>
+          <option value="sql">Microsoft SQL Server (MSSQL_SRC)</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Target database</label>
+        <select id="simTgtSelect">
+          <option value="ai26" selected>Oracle 26ai (AI26_TGT)</option>
+          <option value="ai23">Oracle 23ai (AI23_DR)</option>
+          <option value="ora19">Oracle 19c (ORA19_STG)</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Compare pair</label>
+        <input type="text" id="simPairName" value="CG_CUSTOMER_ORDERS" disabled>
+      </div>
+      <div class="op-btns">
+        <button class="run-btn" id="runBtn">Run Compare Pair</button>
+        <button class="ghost-btn" id="resetBtn">Reset</button>
+      </div>
+      <div class="op-btns" style="margin-top:8px;">
+        <button class="repair-btn" id="repairBtn" disabled>&#9881; Repair Mismatches</button>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin:8px 0 0;line-height:1.5;">Repair pushes corrected values and inserts missing rows into the target, the way a Veridata-initiated fix (or a GoldenGate re-sync) would.</p>
+    </div>
+
+    <div>
+      <div id="metricStrip" class="metric-strip" style="display:none;">
+        <div class="metric-card"><div class="m-label">Rows Compared</div><div class="m-value" id="mTotal">0</div></div>
+        <div class="metric-card good"><div class="m-label">Matched</div><div class="m-value" id="mMatch">0</div></div>
+        <div class="metric-card warn"><div class="m-label">Mismatched</div><div class="m-value" id="mMismatch">0</div></div>
+        <div class="metric-card miss"><div class="m-label">Missing In Target</div><div class="m-value" id="mMissing">0</div></div>
+      </div>
+
+      <div id="syncBanner" class="sync-banner">&#9989; Repair complete — all rows corrected and inserted. Source and target are now in sync.</div>
+
+      <div id="preRunNote" class="callout">Pick a source and target above, then click <b>Run Compare Pair</b> to render the live source and target tables.</div>
+
+      <div class="compare-grid" id="compareGrid" style="display:none;">
+        <div class="table-card src">
+          <div class="tc-head"><h4><span class="dot"></span><span id="srcHeadLabel">Source</span></h4><span class="pill blue" id="srcRowsPill">0 rows</span></div>
+          <div style="overflow-x:auto;"><table class="data-table" id="srcTableEl"></table></div>
+        </div>
+        <div class="table-card tgt">
+          <div class="tc-head"><h4><span class="dot"></span><span id="tgtHeadLabel">Target</span></h4><span class="pill green" id="tgtRowsPill">0 rows</span></div>
+          <div style="overflow-x:auto;"><table class="data-table" id="tgtTableEl"></table></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SUPPORTED USE CASES ============ -->
+<section class="tab" id="tab-usecases">
+  <div class="hero">
+    <h2>Oracle GoldenGate Veridata Supported Use Cases</h2>
+    <p>In a hybrid, multi-location IT environment — the same data often living in more than one system, or moving between them — some drift is almost inevitable. Left unchecked, bad data leads to poor decisions, missed SLAs, and operational, financial, or legal risk. The following are the use cases Oracle GoldenGate Veridata is built to support.</p>
+  </div>
+
+  <div class="arch-comp-grid">
+    <div class="arch-comp-card">
+      <div class="ac-head"><div class="icon-circle">&#128257;</div><h4>Data Migration</h4></div>
+      <p>Moving data from one location or system to another — and confirming afterward that nothing was lost or altered in transit. Data validation immediately after migration is the critical last step: the new system has to function correctly and hold the same data integrity as the old one.</p>
+      <div class="role-tags">
+        <span class="pill grey">Database upgrades</span>
+        <span class="pill grey">Cloud migration</span>
+        <span class="pill grey">Data center relocation</span>
+        <span class="pill grey">Post-migration validation</span>
+      </div>
+    </div>
+
+    <div class="arch-comp-card">
+      <div class="ac-head"><div class="icon-circle">&#128196;</div><h4>Auditing &amp; Compliance</h4></div>
+      <p>As compliance expectations rise, organizations and their leadership are held to increasingly strict standards of accountability — including proving data accuracy to regulators. Veridata's comparison reports support that evidence trail.</p>
+      <div class="role-tags">
+        <span class="pill grey">HIPAA</span>
+        <span class="pill grey">PCI-DSS</span>
+        <span class="pill grey">GDPR</span>
+      </div>
+    </div>
+
+    <div class="arch-comp-card">
+      <div class="ac-head"><div class="icon-circle">&#9878;</div><h4>Data Consistency</h4></div>
+      <p>In any replication scenario — data center to data center, on-premises to cloud, or relational database to data lake — it's essential that no discrepancies creep in between source and target. Veridata is the independent check that consistency actually holds.</p>
+    </div>
+
+    <div class="arch-comp-card">
+      <div class="ac-head"><div class="icon-circle">&#11014;</div><h4>Application Upgrades</h4></div>
+      <p>Application upgrades typically fire a large volume of DDL and DML against the database. Where replication is already configured, it's essential to confirm every one of those source-side changes landed accurately on the target — exactly what a Veridata compare pair verifies.</p>
+    </div>
+  </div>
+
+  <div class="callout">These four use cases map directly onto this simulator's setup: the Oracle → 26ai / DB2 → 26ai / SQL Server → 26ai compare pairs model both a migration validation check and an ongoing data-consistency check against GoldenGate replication.</div>
+</section>
+
+</main>
+
+<footer>Oracle Goldengate Veridata Data Comparison Simulator &middot; part of the GoldenGate Experience Center &middot; Ravikumar Vasudevan</footer>
+
+<script>
+(function(){
+
+  /* ===== Header: version badge / changelog ===== */
+  var versionBadge = document.getElementById('versionBadge');
+  var changelogPanel = document.getElementById('changelogPanel');
+  var clClose = document.getElementById('clClose');
+  versionBadge.addEventListener('click', function(){ changelogPanel.classList.toggle('open'); });
+  clClose.addEventListener('click', function(){ changelogPanel.classList.remove('open'); });
+
+  /* ===== Tabs ===== */
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  tabBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      tabBtns.forEach(function(b){ b.classList.remove('active'); });
+      document.querySelectorAll('section.tab').forEach(function(s){ s.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  /* ===== Architecture sub-tabs ===== */
+  var subtabBtns = document.querySelectorAll('#archSubtabs .subtab-btn');
+  subtabBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      subtabBtns.forEach(function(b){ b.classList.remove('active'); });
+      document.querySelectorAll('#tab-arch .subpanel').forEach(function(p){ p.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById('sub-'+btn.dataset.sub).classList.add('active');
+    });
+  });
+
+  /* ===== GoldenGate parameter file -> Compare Pairs builder ===== */
+  var srcPills = document.querySelectorAll('#srcPills .opt');
+  var modePills = document.querySelectorAll('#modePills .opt');
+  var srcTableEl = document.getElementById('srcTable');
+  var tgtTableFieldEl = document.getElementById('tgtTable');
+  var keyColsEl = document.getElementById('keyCols');
+
+  var builderState = { src:'oracle', mode:'scheduled' };
+
+  srcPills.forEach(function(p){
+    p.addEventListener('click', function(){
+      srcPills.forEach(function(x){ x.classList.remove('active'); });
+      p.classList.add('active');
+      builderState.src = p.dataset.src;
+      renderBuilder();
+    });
+  });
+  modePills.forEach(function(p){
+    p.addEventListener('click', function(){
+      modePills.forEach(function(x){ x.classList.remove('active'); });
+      p.classList.add('active');
+      builderState.mode = p.dataset.mode;
+      renderBuilder();
+    });
+  });
+  [srcTableEl, tgtTableFieldEl, keyColsEl].forEach(function(el){ el.addEventListener('input', renderBuilder); });
+
+  var sourceMeta = {
+    oracle: { label:'ORCL_SRC', extract:'ext_ora', trail:'/ogg/dirdat/oa', dblogin:'Oracle 19c source DB', schema:'SALES_SRC', host:'orcl-src01.internal', port:'7810', user:'vdt_ora_reader' },
+    db2:    { label:'DB2_SRC',  extract:'ext_db2', trail:'/ogg/dirdat/db', dblogin:'DB2 LUW source DB', schema:'SALES', host:'db2-src04.internal', port:'7811', user:'vdt_db2_reader' },
+    sql:    { label:'MSSQL_SRC',extract:'ext_mss', trail:'/ogg/dirdat/ms', dblogin:'SQL Server source DB', schema:'dbo', host:'mssql-src02.internal', port:'7812', user:'vdt_mssql_reader' },
+  };
+
+  function esc(s){ return s.replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function highlight(text){
+    return text
+      .replace(/(--.*$)/gm, '<span class="cm">$1</span>')
+      .replace(/(#.*$)/gm, '<span class="cm">$1</span>')
+      .replace(/\b(EXTRACT|REPLICAT|TABLE|MAP|TARGET|KEYCOLS|SOURCEDB|USERIDALIAS|EXTTRAIL|GETUPDATEBEFORES)\b/g, '<span class="kw">$1</span>')
+      .replace(/'([^']*)'/g, "<span class=\"str\">'$1'</span>")
+      .replace(/\b(\d+%|\d+m|\d+)\b/g, '<span class="num">$1</span>');
+  }
+  function xmlHighlight(text){
+    var e = esc(text);
+    e = e.replace(/(&lt;!--.*?--&gt;)/g, '<span class="cm">$1</span>');
+    e = e.replace(/(&lt;\/?)([a-zA-Z0-9\-]+)/g, '$1<span class="kw">$2</span>');
+    e = e.replace(/([a-zA-Z\-]+)(=)(&quot;|")([^"]*)(&quot;|")/g, function(m,a,eq,q1,v,q2){
+      return '<span class="lbl">'+a+'</span>'+eq+'<span class="str">"'+v+'"</span>';
+    });
+    return e;
+  }
+
+  function renderBuilder(){
+    var src = builderState.src;
+    var meta = sourceMeta[src];
+    var srcTable = (srcTableEl.value || 'CUSTOMER_ORDERS').toUpperCase();
+    var tgtTable = (tgtTableFieldEl.value || 'CUSTOMER_ORDERS').toUpperCase();
+    var keys = (keyColsEl.value || 'ORDER_ID').toUpperCase();
+    var srcQual = meta.schema + '.' + srcTable;
+    var groupName = 'CG_' + srcTable;
+
+    var ggText =
+'-- ' + meta.dblogin + ': extract parameter file (' + meta.extract + '.prm)\n' +
+'EXTRACT ' + meta.extract + '\n' +
+'SOURCEDB ' + meta.label + ', USERIDALIAS ' + meta.label.toLowerCase() + '_alias\n' +
+'EXTTRAIL ' + meta.trail + '\n' +
+'GETUPDATEBEFORES\n' +
+'TABLE ' + srcQual + ', KEYCOLS (' + keys + ');\n\n' +
+'-- Oracle 26ai target: replicat parameter file (rep_ai26.prm)\n' +
+'REPLICAT rep_ai26\n' +
+'TARGET SALES_TGT.' + tgtTable + '\n' +
+'MAP ' + srcQual + ', TARGET SALES_TGT.' + tgtTable + ', KEYCOLS (' + keys + ');';
+
+    var vdText =
+'<!-- Veridata Import Utility configuration.xml — equivalent to the MAP statement above -->\n' +
+'<configuration operation="create" validation="required">\n' +
+'  <connection name="' + meta.label + '" host="' + meta.host + '" port="' + meta.port + '" user="' + meta.user + '" use-ssl="true"/>\n' +
+'  <connection name="AI26_TGT" host="ai26-tgt01.internal" port="7813" user="vdt_ai26_reader"\n' +
+'              repairUser="vdt_ai26_repair" use-ssl="true"/>\n\n' +
+'  <group name="' + groupName + '" source-conn="' + meta.label + '" target-conn="AI26_TGT"\n' +
+'         source-schema="' + meta.schema + '" target-schema="SALES_TGT">\n' +
+'    <compare-pair name="' + srcTable + '" source-table="' + srcTable + '" target-table="' + tgtTable + '">\n' +
+        keys.split(',').map(function(k){
+          k = k.trim();
+          return '      <key-column source-name="' + k + '" target-name="' + k + '"/>';
+        }).join('\n') + '\n' +
+'    </compare-pair>\n' +
+'  </group>\n' +
+'</configuration>';
+
+    var importText =
+'# Option A — feed the GoldenGate parameter file straight in:\n' +
+'./vdt-import.sh -create ' + meta.extract + '.prm -user veridata -host vdt-server01 -port 8089\n\n' +
+'# Option B — feed the equivalent Veridata configuration.xml:\n' +
+'./vdt-import.sh -create configuration.xml -user veridata -host vdt-server01 -port 8089\n\n' +
+'# -update / -replace / -delete work the same way once the Group and\n' +
+'# Compare Pair already exist in the repository.';
+
+    document.getElementById('ggCode').innerHTML = highlight(esc(ggText));
+    document.getElementById('vdCode').innerHTML = xmlHighlight(vdText);
+    document.getElementById('importCode').innerHTML = highlight(esc(importText));
+
+    var explainer = document.getElementById('modeExplainer');
+    if (builderState.mode === 'scheduled'){
+      explainer.innerHTML =
+        '<b>Recurring schedule &mdash;</b> the Job that runs this Compare Pair is set to repeat (e.g. every 6 hours) from the ' +
+        '<b>Job Scheduler</b> in the Veridata Web Console, or by an external scheduler invoking Vericom. Good fit for periodic audits, ' +
+        'nightly reconciliation, or post-batch checks where a short delay before results are confirmed is acceptable.';
+    } else {
+      explainer.innerHTML =
+        '<b>Continuous, short-interval &mdash;</b> there is no built-in mechanism where GoldenGate directly triggers a Veridata compare job. ' +
+        'What "near real-time" actually means here is the same Job scheduled to repeat at a short interval (minutes, not hours), combined with ' +
+        'the profile parameter <span class="kcode">Delay Confirm-Out-Of-Sync By (seconds)</span> tuned close to your normal GoldenGate apply lag &mdash; ' +
+        'so the Confirm-Out-of-Sync step (see Overview &rarr; How It Works) waits just long enough for in-flight changes to land before deciding ' +
+        'a row is genuinely out of sync.';
+    }
+  }
+  renderBuilder();
+
+  /* ===== Live Simulator ===== */
+  var simSrcSelect = document.getElementById('simSrcSelect');
+  var simTgtSelect = document.getElementById('simTgtSelect');
+  var runBtn = document.getElementById('runBtn');
+  var resetBtn = document.getElementById('resetBtn');
+  var metricStrip = document.getElementById('metricStrip');
+  var preRunNote = document.getElementById('preRunNote');
+  var compareGrid = document.getElementById('compareGrid');
+  var srcHeadLabel = document.getElementById('srcHeadLabel');
+  var tgtHeadLabel = document.getElementById('tgtHeadLabel');
+  var srcRowsPill = document.getElementById('srcRowsPill');
+  var tgtRowsPill = document.getElementById('tgtRowsPill');
+  var srcTableOut = document.getElementById('srcTableEl');
+  var tgtTableOut = document.getElementById('tgtTableEl');
+  var repairBtn = document.getElementById('repairBtn');
+  var syncBanner = document.getElementById('syncBanner');
+  var currentRun = null; /* { keyName, cols, rows, srcKey, tgtKey } — deep-copied working set */
+
+  var sourceLabels = {
+    oracle: 'Oracle 19c — ORCL_SRC',
+    db2: 'IBM DB2 LUW — DB2_SRC',
+    sql: 'Microsoft SQL Server — MSSQL_SRC'
+  };
+  var targetLabels = {
+    ai26: 'Oracle 26ai — AI26_TGT',
+    ai23: 'Oracle 23ai — AI23_DR',
+    ora19: 'Oracle 19c — ORA19_STG'
+  };
+
+  /* Each dataset: key column name, other columns, and rows.
+     Row status: match | mismatch | missing (missing = present in source, absent in target) */
+  var datasets = {
+    oracle: {
+      keyName: 'ORDER_ID',
+      cols: ['CUSTOMER', 'AMOUNT', 'STATUS'],
+      rows: [
+        { key:'100231', src:['J. RAMOS', '452.00', 'SHIPPED'], tgt:['J. RAMOS', '452.00', 'SHIPPED'], status:'match' },
+        { key:'100232', src:['A. FRANK', '118.50', 'OPEN'], tgt:['A. FRANK', '118.50', 'OPEN'], status:'match' },
+        { key:'100233', src:['M. LEE', '90.00', 'OPEN'], tgt:['M. LEE', '90.00', 'CANCELLED'], status:'mismatch', diffIdx:[2] },
+        { key:'100234', src:['S. KHAN', '1204.75', 'SHIPPED'], tgt:['S. KHAN', '1204.75', 'SHIPPED'], status:'match' },
+        { key:'100235', src:['R. OKafor', '60.20', 'OPEN'], tgt:null, status:'missing' },
+        { key:'100236', src:['T. NGUYEN', '330.00', 'SHIPPED'], tgt:['T. NGUYEN', '330.00', 'SHIPPED'], status:'match' }
+      ]
+    },
+    db2: {
+      keyName: 'ITEM_ID',
+      cols: ['WAREHOUSE', 'QTY', 'PRICE'],
+      rows: [
+        { key:'A-55210', src:['WH-EAST', '12', '44.00'], tgt:['WH-EAST', '12', '44.00'], status:'match' },
+        { key:'A-55211', src:['WH-WEST', '3', '129.99'], tgt:['WH-WEST', '3', '129.99'], status:'match' },
+        { key:'A-55212', src:['WH-EAST', '8', '19.50'], tgt:['WH-EAST', '7', '19.50'], status:'mismatch', diffIdx:[1] },
+        { key:'A-55213', src:['WH-CNTRL', '1', '899.00'], tgt:null, status:'missing' },
+        { key:'A-55214', src:['WH-WEST', '20', '5.75'], tgt:['WH-WEST', '20', '5.75'], status:'match' }
+      ]
+    },
+    sql: {
+      keyName: 'ORDER_NO',
+      cols: ['STATE', 'CARRIER', 'TOTAL'],
+      rows: [
+        { key:'ORD-9001', src:['TX', 'UPS', '302.10'], tgt:['TX', 'UPS', '302.10'], status:'match' },
+        { key:'ORD-9002', src:['CA', 'FEDEX', '55.00'], tgt:['CA', 'FEDEX', '55.00'], status:'match' },
+        { key:'ORD-9003', src:['NY', 'USPS', '812.40'], tgt:['NJ', 'USPS', '812.40'], status:'mismatch', diffIdx:[0] },
+        { key:'ORD-9004', src:['WA', 'UPS', '41.25'], tgt:['WA', 'UPS', '41.25'], status:'match' },
+        { key:'ORD-9005', src:['FL', 'FEDEX', '199.99'], tgt:['FL', 'FEDEX', '199.99'], status:'match' },
+        { key:'ORD-9006', src:['IL', 'USPS', '76.60'], tgt:null, status:'missing' }
+      ]
+    }
+  };
+
+  function buildTable(el, keyName, cols, rows, side){
+    var thead = '<thead><tr><th>' + keyName + '</th>' + cols.map(function(c){ return '<th>'+c+'</th>'; }).join('') + '<th>Result</th></tr></thead>';
+    var tbody = '<tbody>';
+    rows.forEach(function(r){
+      var vals = side === 'src' ? r.src : r.tgt;
+      var rowClass, cellHtml, resultTag;
+
+      if (r.status === 'match'){
+        rowClass = 'row-match';
+        resultTag = '<span class="result-tag match">MATCH</span>';
+        cellHtml = vals.map(function(v){ return '<td>'+v+'</td>'; }).join('');
+      } else if (r.status === 'mismatch'){
+        rowClass = 'row-mismatch';
+        resultTag = '<span class="result-tag mismatch">MISMATCH</span>';
+        cellHtml = vals.map(function(v,i){
+          var isDiff = r.diffIdx && r.diffIdx.indexOf(i) > -1;
+          return '<td' + (isDiff ? ' class="diff-cell"' : '') + '>' + v + '</td>';
+        }).join('');
+      } else if (r.status === 'repaired-fix'){
+        rowClass = 'row-repaired';
+        resultTag = '<span class="result-tag repaired">REPAIRED</span>';
+        cellHtml = vals.map(function(v){ return '<td>'+v+'</td>'; }).join('');
+      } else if (r.status === 'repaired-insert'){
+        rowClass = 'row-repaired';
+        resultTag = side === 'src'
+          ? '<span class="result-tag repaired">SYNCED</span>'
+          : '<span class="result-tag repaired">INSERTED</span>';
+        cellHtml = vals.map(function(v){ return '<td>'+v+'</td>'; }).join('');
+      } else { /* missing */
+        if (side === 'src'){
+          rowClass = 'row-missing-src';
+          resultTag = '<span class="result-tag missing">MISSING IN TARGET</span>';
+          cellHtml = vals.map(function(v){ return '<td>'+v+'</td>'; }).join('');
+        } else {
+          rowClass = 'row-missing-tgt';
+          resultTag = '<span class="result-tag missing">NOT FOUND</span>';
+          cellHtml = '<td colspan="'+cols.length+'">&mdash; row not found in target &mdash;</td>';
+        }
+      }
+
+      tbody += '<tr class="'+rowClass+'"><td>'+r.key+'</td>'+cellHtml+'<td>'+resultTag+'</td></tr>';
+    });
+    tbody += '</tbody>';
+    el.innerHTML = thead + tbody;
+  }
+
+  function resetSim(){
+    metricStrip.style.display = 'none';
+    compareGrid.style.display = 'none';
+    preRunNote.style.display = 'block';
+    syncBanner.classList.remove('show');
+    runBtn.disabled = false;
+    repairBtn.disabled = true;
+    currentRun = null;
+  }
+  resetBtn.addEventListener('click', resetSim);
+
+  function updatePairName(){
+    document.getElementById('simPairName').value = 'CG_CUSTOMER_ORDERS_' + simSrcSelect.value.toUpperCase();
+  }
+  simSrcSelect.addEventListener('change', updatePairName);
+  updatePairName();
+
+  function refreshMetrics(rows, totalRows){
+    var matchCount = rows.filter(function(r){ return r.status==='match' || r.status==='repaired-fix' || r.status==='repaired-insert'; }).length;
+    var mismatchCount = rows.filter(function(r){ return r.status==='mismatch'; }).length;
+    var missingCount = rows.filter(function(r){ return r.status==='missing'; }).length;
+
+    document.getElementById('mTotal').textContent = totalRows;
+    document.getElementById('mMatch').textContent = matchCount;
+    document.getElementById('mMismatch').textContent = mismatchCount;
+    document.getElementById('mMissing').textContent = missingCount;
+
+    tgtRowsPill.textContent = (totalRows - missingCount) + ' rows';
+  }
+
+  runBtn.addEventListener('click', function(){
+    runBtn.disabled = true;
+    syncBanner.classList.remove('show');
+    var srcKey = simSrcSelect.value;
+    var tgtKey = simTgtSelect.value;
+    var base = datasets[srcKey];
+
+    /* deep copy so repair can mutate without touching the source dataset */
+    var rows = JSON.parse(JSON.stringify(base.rows));
+    currentRun = { keyName: base.keyName, cols: base.cols, rows: rows, srcKey: srcKey, tgtKey: tgtKey };
+
+    srcHeadLabel.textContent = sourceLabels[srcKey];
+    tgtHeadLabel.textContent = targetLabels[tgtKey];
+
+    preRunNote.style.display = 'none';
+    compareGrid.style.display = 'grid';
+    metricStrip.style.display = 'grid';
+
+    buildTable(srcTableOut, currentRun.keyName, currentRun.cols, currentRun.rows, 'src');
+    buildTable(tgtTableOut, currentRun.keyName, currentRun.cols, currentRun.rows, 'tgt');
+
+    srcRowsPill.textContent = currentRun.rows.length + ' rows';
+    refreshMetrics(currentRun.rows, currentRun.rows.length);
+
+    var needsRepair = currentRun.rows.some(function(r){ return r.status==='mismatch' || r.status==='missing'; });
+    repairBtn.disabled = !needsRepair;
+
+    setTimeout(function(){ runBtn.disabled = false; }, 400);
+  });
+
+  repairBtn.addEventListener('click', function(){
+    if (!currentRun) return;
+    repairBtn.disabled = true;
+
+    currentRun.rows.forEach(function(r){
+      if (r.status === 'mismatch'){
+        r.tgt = r.src.slice();
+        r.status = 'repaired-fix';
+        delete r.diffIdx;
+      } else if (r.status === 'missing'){
+        r.tgt = r.src.slice();
+        r.status = 'repaired-insert';
+      }
+    });
+
+    buildTable(srcTableOut, currentRun.keyName, currentRun.cols, currentRun.rows, 'src');
+    buildTable(tgtTableOut, currentRun.keyName, currentRun.cols, currentRun.rows, 'tgt');
+
+    refreshMetrics(currentRun.rows, currentRun.rows.length);
+    syncBanner.classList.add('show');
+  });
+
+})();
+</script>
+</body>
+</html>
